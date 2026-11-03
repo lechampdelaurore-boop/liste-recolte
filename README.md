@@ -22,7 +22,7 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 | Geste | Effet |
 |---|---|
 | **Récolte / Détail** (en haut) | Récolte : produit, emplacement, quantité totale. Détail : en plus le type de caisse, le conditionnement et la part de chaque circuit. |
-| **Puces de zone** (Tunnel, Choux et poireau, Racines, Stock) | N'affiche que cette zone. |
+| **Puces de zone** (Tunnel, Plein champ, Stock) | N'affiche que cette zone. |
 | **Puces de circuit** (Très Allier, Marché ven., Paniers solidaires, Ellie, Locavore, Auvabio 03) | N'affiche que les produits de ce circuit, avec la quantité de ce circuit seulement. Pratique pour préparer une commande. |
 | **⠿ à gauche d'une ligne** | Appuyer dessus et glisser pour changer l'ordre. L'ordre est le même sur les deux téléphones. |
 | **Case à cocher** | La ligne part dans « Récoltes déjà effectuées », avec le prénom et l'heure. |

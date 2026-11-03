@@ -43,7 +43,7 @@ Un fichier par jour de récolte : `listes/AAAA-MM-JJ.json`. `listes/actuelle.jso
 | `titre`, `pour`, `source` | oui | Textes affichés. `source` doit dire d'où viennent les chiffres et à quelle date. |
 | `circuits[]` | oui | `id` court (sert de clé dans `circ`), `nom` (puce de filtre), `court` (vue Détail). Un circuit sans aucune quantité n'a pas de puce. |
 | `items[].id` | oui | Garder le même `id` d'une semaine à l'autre pour un même produit. |
-| `items[].zone` | oui | Libellés actuels : `Tunnel`, `Choux et poireau`, `Racines`, `Stock`. L'ordre des puces suit le premier produit de chaque zone. |
+| `items[].zone` | oui | Libellés : `Tunnel`, `Plein champ`, `Stock` (lieu réel, d'après les planches Ouvre ta ferme : T = tunnel, B = plein champ). Ne pas inventer d'autre regroupement. L'ordre des puces suit le premier produit de chaque zone. |
 | `items[].caisse` | oui | Code du cumul. `null` pour les produits hors caisse (tomates « tout », persil en botte, courges à la pièce). |
 | `items[].circ` | oui | Nombre = colis ; texte = autre unité. Un circuit absent ou à 0 n'est pas affiché. |
 | `items[].total`, `items[].kg` | oui | Calculés à la main (colis × conditionnement, plus les autres unités). L'appli ne les recalcule pas. |
