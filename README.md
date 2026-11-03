@@ -40,7 +40,7 @@ La pastille sous le titre dit l'état du partage :
 
 ## Lisibilité en plein soleil
 
-Fond blanc pur, texte noir, traits de 2 px, textes gros et gras, pas de gris clair ni de couleurs pâles. Les cases à cocher font 44 px. Si le téléphone est en mode sombre, l'appli passe en noir pur et blanc pur (moins lisible au soleil : désactiver le mode sombre dehors).
+Fond blanc pur, texte noir, traits de 2 px, textes gros et gras, pas de gris clair ni de couleurs pâles. Les cases à cocher font 44 px. Un seul affichage : même si le téléphone est en mode sombre, la liste reste en fond blanc et texte noir (demande de François, 03/11/2026).
 
 ## Mise en route
 
