@@ -1,0 +1,37 @@
+{
+  "id": "2026-11-04",
+  "titre": "Récolte du mercredi 4 novembre",
+  "pour": "Livraisons du jeudi 5 et marché du vendredi 6 novembre 2026",
+  "source": "Cumul envoyé par François le 03/11/2026, paniers solidaires, Ellie et Locavore. Emplacements d'après l'assolement Ouvre ta ferme du 14/10/2026, à vérifier sur place.",
+  "circuits": [
+    {"id": "ta", "nom": "Très Allier", "court": "TA"},
+    {"id": "mk", "nom": "Marché ven.", "court": "Marché"},
+    {"id": "ps", "nom": "Paniers solidaires", "court": "Paniers"},
+    {"id": "el", "nom": "Ellie", "court": "Ellie"},
+    {"id": "lv", "nom": "Locavore", "court": "Locavore"},
+    {"id": "av", "nom": "Auvabio 03", "court": "Auvabio"}
+  ],
+  "items": [
+    {"id": "mesclun", "produit": "Mesclun", "zone": "Tunnel", "ou": "T1-3 (mesclun d'automne)", "caisse": "PH", "condit": "1 kg", "circ": {"ta": 1, "mk": 1}, "total": "2 colis", "kg": "2 kg"},
+    {"id": "epinard", "produit": "Épinard (feuille)", "zone": "Tunnel", "ou": "T3 (épinard d'hiver) ou B4 (épinard d'automne)", "caisse": "GH", "condit": "4 kg", "circ": {"ta": 2, "mk": 1, "lv": "5 × 500 g"}, "total": "3 colis + 2,5 kg", "kg": "14,5 kg"},
+    {"id": "celeri-branche", "produit": "Céleri-branche", "zone": "Tunnel", "ou": "T4 (céleri branche #4, #5)", "caisse": "GB", "condit": "5 kg", "circ": {"ta": 0.5, "mk": 0.5, "ps": "34 bottes", "lv": "1 × 500 g"}, "total": "1 colis + 34 bottes + 0,5 kg", "kg": "5,5 kg + 34 bottes"},
+    {"id": "bette", "produit": "Bette", "zone": "Tunnel", "ou": "T4-2 (bette S36), sinon B2-8/9, B10-6/7, B3-6", "caisse": "GH", "condit": "5 kg", "circ": {"ta": 1, "mk": 1.5, "ps": 3.5, "lv": "1 × 1 kg + 4 × 500 g"}, "total": "6 colis + 3 kg", "kg": "33 kg"},
+    {"id": "tomates", "produit": "Tomates (ronde rouge, cerise, ancienne pop.)", "zone": "Tunnel", "ou": "T2", "caisse": null, "condit": "PH 5 kg / PB 3 kg / GB 6 kg", "circ": {"ta": "tout"}, "total": "tout ce qu'il y a", "kg": "tout"},
+    {"id": "aromatiques", "produit": "Aromatiques", "zone": "Choux et poireau", "ou": "non précisé", "caisse": "PB", "condit": "6 bottes", "circ": {"ta": 0.5, "mk": 0.5}, "total": "1 colis (6 bottes)", "kg": "6 bottes"},
+    {"id": "persil", "produit": "Persil frisé", "zone": "Choux et poireau", "ou": "B7-4 ou B2-10 (persil S21, S12)", "caisse": null, "condit": "botte", "circ": {"lv": "1 botte"}, "total": "1 botte", "kg": "1 botte"},
+    {"id": "rhubarbe", "produit": "Rhubarbe", "zone": "Choux et poireau", "ou": "B11-10", "caisse": null, "condit": "500 g", "circ": {"lv": "3 × 500 g"}, "total": "1,5 kg", "kg": "1,5 kg"},
+    {"id": "chou-frise", "produit": "Chou frisé", "zone": "Choux et poireau", "ou": "B1-8/9, B2-3 à B2-5 (choux d'automne et d'hiver)", "caisse": "GH", "condit": "6 kg", "circ": {"mk": 0.5}, "total": "0,5 colis", "kg": "3 kg"},
+    {"id": "chou-vert", "produit": "Chou vert", "zone": "Choux et poireau", "ou": "B1-8/9, B2-3 à B2-5 (choux d'automne et d'hiver)", "caisse": "GH", "condit": "10 kg", "circ": {"mk": 0.5}, "total": "0,5 colis", "kg": "5 kg"},
+    {"id": "chou-rouge", "produit": "Chou rouge", "zone": "Choux et poireau", "ou": "B1-8/9, B2-3 à B2-5 (choux d'automne et d'hiver)", "caisse": "GH", "condit": "10 kg", "circ": {"mk": 0.5}, "total": "0,5 colis", "kg": "5 kg"},
+    {"id": "poireau", "produit": "Poireau", "zone": "Choux et poireau", "ou": "B10-1", "caisse": "GH", "condit": "10 kg", "circ": {"mk": 1, "el": "10 poireaux"}, "total": "1 colis + 10 poireaux", "kg": "10 kg + 10 poireaux"},
+    {"id": "radis", "produit": "Radis d'hiver en mélange", "zone": "Racines", "ou": "B3-1 à B3-3 (hiver), B2-1/2 (automne)", "caisse": "PH", "condit": "5 kg", "circ": {"mk": 1}, "total": "1 colis", "kg": "5 kg"},
+    {"id": "celeri-rave", "produit": "Céleri-rave", "zone": "Racines", "ou": "B9-9", "caisse": "PH", "condit": "5 kg", "circ": {"mk": 0.5}, "total": "0,5 colis", "kg": "2,5 kg"},
+    {"id": "panais", "produit": "Panais", "zone": "Racines", "ou": "B9-10", "caisse": "PH", "condit": "5 kg", "circ": {"mk": 0.5}, "total": "0,5 colis", "kg": "2,5 kg"},
+    {"id": "carotte", "produit": "Carotte lavée", "zone": "Racines", "ou": "B6-6 à B6-9 (conservation) ou stock", "caisse": "PH", "condit": "8 kg", "circ": {"mk": 2}, "total": "2 colis", "kg": "16 kg"},
+    {"id": "betterave", "produit": "Betterave rouge", "zone": "Racines", "ou": "B5-10 (conservation) ou stock", "caisse": "PH", "condit": "7 kg", "circ": {"mk": 0.5}, "total": "0,5 colis", "kg": "3,5 kg"},
+    {"id": "endive", "produit": "Endive", "zone": "Stock", "ou": "forçage, chambre froide", "caisse": "PH", "condit": "5 kg", "circ": {"ta": 2, "mk": 1, "av": 7}, "total": "10 colis", "kg": "50 kg"},
+    {"id": "butternut", "produit": "Courge butternut", "zone": "Stock", "ou": "stock (B11-1 à 3)", "caisse": null, "condit": "pièce", "circ": {"lv": "2 pièces"}, "total": "2 pièces", "kg": "2 pièces"},
+    {"id": "potimarron", "produit": "Courge potimarron", "zone": "Stock", "ou": "stock (B11-4 à 8)", "caisse": null, "condit": "pièce", "circ": {"lv": "3 pièces"}, "total": "3 pièces", "kg": "3 pièces"},
+    {"id": "patate-douce", "produit": "Patate douce", "zone": "Stock", "ou": "stock (récoltée en B3-9/10)", "caisse": "PH", "condit": "6 kg", "circ": {"mk": 1}, "total": "1 colis", "kg": "6 kg"}
+  ]
+}
