@@ -3,7 +3,9 @@
 Liste de récolte partagée du Champ de l'Aurore (GAEC, Tronget), faite pour le téléphone.
 François et Aurore la suivent en même temps pendant la récolte du mercredi : ce que l'un coche disparaît aussi chez l'autre.
 
-**Adresse :** https://lechampdelaurore-boop.github.io/liste-recolte/ (une fois GitHub Pages activé, voir [Mise en route](#mise-en-route))
+**Adresse : https://liste-recolte.pages.dev**
+
+Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` est en ligne une minute après. Ne pas utiliser l'adresse `lechampdelaurore-boop.github.io/liste-recolte/` : sur les téléphones où l'accueil des applis de Marc est installé, elle s'ouvre dans cette appli-là (son installation couvre tout le site github.io).
 
 ## Sommaire
 
@@ -40,9 +42,9 @@ La pastille sous le titre dit l'état du partage :
 
 À faire une seule fois.
 
-### 1. Mettre le site en ligne (GitHub Pages)
+### 1. Mettre le site en ligne (Cloudflare Pages)
 
-[Settings → Pages](https://github.com/lechampdelaurore-boop/liste-recolte/settings/pages) du dépôt : Source = **Deploy from a branch**, branche **main**, dossier **/ (root)**, Save. Après une minute, la page affiche « Your site is live at https://lechampdelaurore-boop.github.io/liste-recolte/ ».
+Sur https://dash.cloudflare.com : **Workers & Pages → Create → Pages → Connect to Git**, dépôt `liste-recolte`, branche `main`, Framework preset **None**, Build command vide, Build output directory `/`, **Save and Deploy**. Adresse obtenue : https://liste-recolte.pages.dev (fait le 03/11/2026).
 
 ### 2. Créer la base partagée (Firebase Realtime Database, gratuit)
 
