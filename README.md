@@ -24,7 +24,7 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 | **Récolte / Détail** (en haut) | Récolte : produit, emplacement, quantité totale. Détail : en plus le type de caisse, le conditionnement et la part de chaque circuit. |
 | **Puces de zone** (Tunnel, Plein champ, Stock) | N'affiche que cette zone. |
 | **Puces de circuit** (Très Allier, Marché ven., Paniers solidaires, Ellie, Locavore, Auvabio 03) | N'affiche que les produits de ce circuit, avec la quantité de ce circuit seulement. Pratique pour préparer une commande. |
-| **⠿ à gauche d'une ligne** | Appuyer dessus et glisser pour changer l'ordre. L'ordre est le même sur les deux téléphones. |
+| **Appui long sur une ligne** (0,5 s, sans bouger) | La ligne se décolle (petite vibration) ; la glisser à sa place. Un geste rapide fait défiler la page normalement, sans rien déplacer. L'ordre est le même sur les deux téléphones. |
 | **Case à cocher** | La ligne part dans « Récoltes déjà effectuées », avec le prénom et l'heure. |
 | **Récoltes déjà effectuées ›** (en bas) | Déroule la liste de ce qui est fait. Toucher la case d'une ligne pour la décocher. |
 | **Caisses ›** | Nombre de caisses PB, PH, GB, GH qui restent à remplir (voir [Calcul des caisses](#calcul-des-caisses)). |
@@ -37,6 +37,10 @@ La pastille sous le titre dit l'état du partage :
 - **Sur ce téléphone seulement** : la base partagée n'est pas encore configurée (`config.js` vide).
 
 **Installer sur l'écran d'accueil** : Chrome sur Android, menu ⋮ puis « Ajouter à l'écran d'accueil » ; Safari sur iPhone, Partager puis « Sur l'écran d'accueil ». L'appli s'ouvre alors en plein écran et marche sans réseau avec la dernière liste chargée.
+
+## Lisibilité en plein soleil
+
+Fond blanc pur, texte noir, traits de 2 px, textes gros et gras, pas de gris clair ni de couleurs pâles. Les cases à cocher font 44 px. Si le téléphone est en mode sombre, l'appli passe en noir pur et blanc pur (moins lisible au soleil : désactiver le mode sombre dehors).
 
 ## Mise en route
 

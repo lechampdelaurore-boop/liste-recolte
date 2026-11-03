@@ -59,19 +59,29 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   verifie((await B.textContent('#done li .by')).includes('François'), 'Aurore voit qui a récolté');
   verifie(!(await ordre(B)).includes('mesclun'), 'la ligne cochée quitte la liste principale');
 
-  // 2. Glisser au doigt chez Aurore, voir l'ordre chez François
+  // 2. Appui long puis glisser au doigt chez Aurore, voir l'ordre chez François
   const cdp = await ctxB.newCDPSession(B);
-  const poignee = await (await B.$('li[data-id="bette"] .handle')).boundingBox();
+  const doigt = async (id, versY, attente) => {
+    const boite = await (await B.$(`li[data-id="${id}"] .prod`)).boundingBox();
+    const x = boite.x + 20, y = boite.y + boite.height / 2;
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
+    await B.waitForTimeout(attente);
+    for (let i = 1; i <= 12; i++) {
+      await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y + (versY - y) * i / 12 }] });
+      await B.waitForTimeout(30);
+    }
+    await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+    await B.waitForTimeout(300);
+  };
+  const avant = await ordre(B);
   const premiere = await (await B.$('#todo li.item')).boundingBox();
-  const x = poignee.x + poignee.width / 2, y = poignee.y + poignee.height / 2;
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x, y }] });
-  for (let i = 1; i <= 12; i++) {
-    await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x, y: y + (premiere.y + 5 - y) * i / 12 }] });
-    await B.waitForTimeout(30);
-  }
-  await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+  await doigt('bette', premiere.y + 5, 50);
+  verifie((await ordre(B)).join() === avant.join(), 'un glissement rapide (défilement) ne déplace pas la ligne');
+  await B.evaluate(() => scrollTo(0, 0));
+  const premiere2 = await (await B.$('#todo li.item')).boundingBox();
+  await doigt('bette', premiere2.y + 5, 650);
   await A.waitForTimeout(500);
-  verifie((await ordre(A))[0] === 'bette', 'la bette glissée en tête chez Aurore est en tête chez François');
+  verifie((await ordre(A))[0] === 'bette', 'après un appui long, la bette glissée en tête chez Aurore est en tête chez François');
 
   // 3. Caisses (mesclun coché : 2 PH en moins)
   const caisses = await B.$$eval('.crate', (e) => e.map((x) => x.querySelector('b').textContent));

@@ -16,4 +16,5 @@ Appli web statique (GitHub Pages) de liste de récolte partagée pour François 
 - Après toute modification de `index.html`, `config.js` ou des icônes : changer `CACHE` dans `sw.js`.
 - Lancer `node tests/deux-telephones.cjs` avant d'envoyer, et mettre à jour le test et `README.md` si le comportement change.
 - Textes de l'interface en français, phrases courtes, gros éléments tactiles (usage au champ, au soleil, avec des gants).
+- Charte « plein soleil » demandée par François : fond blanc, texte noir, traits épais, pas de gris clair. Glisser-déposer uniquement par appui long (pas de poignée : risque de déplacement involontaire en défilant au pouce).
 - Ne pas mettre de secret dans le dépôt : il est public.
