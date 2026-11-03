@@ -24,7 +24,7 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 | **Récolte / Détail** (en haut) | Récolte : produit, emplacement, quantité totale. Détail : en plus le type de caisse, le conditionnement et la part de chaque circuit. |
 | **Puces de zone** (Tunnel, Plein champ, Stock) | N'affiche que cette zone. |
 | **Puces de circuit** (Très Allier, Marché ven., Paniers solidaires, Ellie, Locavore, Auvabio 03) | N'affiche que les produits de ce circuit, avec la quantité de ce circuit seulement. Pratique pour préparer une commande. |
-| **Appui long sur une ligne** (0,5 s, sans bouger) | La ligne se décolle (petite vibration) ; la glisser à sa place. Un geste rapide fait défiler la page normalement, sans rien déplacer. L'ordre est le même sur les deux téléphones. |
+| **Appui long sur une ligne** (0,45 s, sans bouger) | La ligne se décolle (petite vibration) ; la glisser à sa place. Un geste rapide fait défiler la page normalement, sans rien déplacer. L'ordre est le même sur les deux téléphones. |
 | **Case à cocher** | La ligne part dans « Récoltes déjà effectuées », avec le prénom et l'heure. |
 | **Récoltes déjà effectuées ›** (en bas) | Déroule la liste de ce qui est fait. Toucher la case d'une ligne pour la décocher. |
 | **Caisses ›** | Nombre de caisses PB, PH, GB, GH qui restent à remplir (voir [Calcul des caisses](#calcul-des-caisses)). |
@@ -75,7 +75,7 @@ Chaque semaine, la liste vient du **cumul** (colonnes total JEUDI, Très Allier 
 
 1. Créer `listes/AAAA-MM-JJ.json` (date du jour de récolte), au format décrit dans [docs/format-liste.md](docs/format-liste.md). Le plus simple : copier la liste précédente et changer les quantités.
 2. Dans `listes/actuelle.json`, mettre le nouvel identifiant : `{"liste": "AAAA-MM-JJ"}`.
-3. Envoyer sur `main`. Les téléphones affichent la nouvelle liste à la prochaine ouverture, avec des cases vides et l'ordre par zone (les coches et l'ordre sont rangés par liste).
+3. Ouvrir une **PR** (jamais d'envoi direct sur `main`), lancer le test, puis fusionner une fois les contrôles verts. Les téléphones affichent la nouvelle liste à la prochaine ouverture, avec des cases vides et l'ordre par zone (les coches et l'ordre sont rangés par liste).
 
 Une ancienne liste reste consultable avec `?liste=AAAA-MM-JJ` à la fin de l'adresse.
 
@@ -102,7 +102,8 @@ Liste du 4 novembre 2026, rien de coché : 2 PB, 19 PH, 2 GB, 14 GH (par circuit
 | `manifest.webmanifest`, `icons/` | Installation sur l'écran d'accueil. |
 | `tests/` | Test de bout en bout avec deux téléphones et un faux Firebase. |
 | `docs/` | Format des listes, fonctionnement de la base partagée. |
-| `CLAUDE.md` | Consignes pour les agents IA qui modifient ce dépôt. |
+| `AGENTS.md` | Consignes pour les agents IA qui modifient ce dépôt (`CLAUDE.md` y renvoie). |
+| `docs/ETAT_DU_PROJET.md`, `docs/ROADMAP.md`, `docs/DECISIONS.md`, `CHANGELOG.md` | Registres : où on en est, étapes, décisions, historique. |
 
 ## Tests
 

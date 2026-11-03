@@ -1,3 +1,5 @@
+> **Document historique du 03/11/2026.** Depuis, les décisions ont changé : les listes passent par une PR (plus d'envoi sur `main`), et les consignes sont dans `AGENTS.md`. Voir `docs/DECISIONS.md`.
+
 # Prompt de reprise : appli « Liste de récolte » du Champ de l'Aurore
 
 Tu reprends le développement d'une petite appli web mobile. Lis tout ce texte, puis le dépôt, avant de toucher à quoi que ce soit.
