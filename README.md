@@ -76,7 +76,7 @@ Une ancienne liste reste consultable avec `?liste=AAAA-MM-JJ` à la fin de l'adr
 ## Calcul des caisses
 
 - Il y a quatre types de caisses, avec le code du cumul : **PB** petite basse, **PH** petite haute, **GB** grande basse, **GH** grande haute.
-- Chaque produit porte un code de caisse (champ `caisse`). **Une caisse par colis.**
+- Chaque produit porte un code de caisse (champ `caisse`), repris de [referentiel/conditionnements.json](referentiel/conditionnements.json). **Une caisse par colis.**
 - Par défaut, **une caisse par circuit** : un demi-colis pour Très Allier et un demi-colis pour le marché font 2 caisses, parce qu'ils partent à deux endroits. En décochant l'option, les demi-colis d'un même produit sont regroupés (ici, 1 caisse).
 - Les sachets Locavore, les bottes, les pièces (Ellie, courges) et les tomates (« tout ») ne sont pas comptés.
 - Le chiffre affiché est ce qui **reste à remplir** : une ligne cochée sort du compte. Avec un filtre de zone ou de circuit, le calcul ne porte que sur ce qui est affiché.
@@ -91,6 +91,7 @@ Liste du 4 novembre 2026, rien de coché : 2 PB, 19 PH, 2 GB, 14 GH (par circuit
 | `config.js` | Adresse de la base Firebase. Vide = pas de partage. |
 | `listes/actuelle.json` | Liste ouverte par défaut. |
 | `listes/AAAA-MM-JJ.json` | Une liste par jour de récolte. Format : [docs/format-liste.md](docs/format-liste.md). |
+| `referentiel/conditionnements.json` | Pour chaque produit : type de caisse (PB, PH, GB, GH) et contenu d'un colis (kg, ou nombre de bottes, pièces, sachets). Source : onglet « Liste produits » du cumul. |
 | `sw.js` | Hors ligne : la page et la liste passent par le réseau, sinon la dernière copie. Changer `CACHE` à chaque modification de l'appli. Ne met jamais la base Firebase en cache. |
 | `manifest.webmanifest`, `icons/` | Installation sur l'écran d'accueil. |
 | `tests/` | Test de bout en bout avec deux téléphones et un faux Firebase. |

@@ -50,6 +50,8 @@ Un fichier par jour de récolte : `listes/AAAA-MM-JJ.json`. `listes/actuelle.jso
 
 ## Règles pour remplir
 
+- Le type de caisse (`caisse`) et le conditionnement (`condit`) se prennent dans **`referentiel/conditionnements.json`** (73 produits, tiré de l'onglet « Liste produits » du cumul). Recopier `unite` dans `condit`. Si le produit n'y est pas, demander à François et l'ajouter au référentiel.
+
 - Les quantités viennent du **cumul** (colis × conditionnement) et des commandes des circuits. Locavore : quantité = Qté × Format (500 g, 1 kg, 1 u).
 - Ne jamais inventer une quantité ou un conditionnement : si une valeur manque (par exemple un conditionnement affiché « 0% » dans le cumul), demander à François.
 - Les emplacements viennent de la liste d'assolement Ouvre ta ferme ; indiquer sa date dans `source`.

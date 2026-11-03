@@ -1,0 +1,474 @@
+{
+ "source": "Onglet « Liste produits » du cumul, envoyé par François le 03/11/2026 (capture). Poireau : 10 kg confirmé par François le 03/11/2026 (la ligne vide du cumul est un doublon).",
+ "caisses": {
+  "PB": "petite basse",
+  "PH": "petite haute",
+  "GB": "grande basse",
+  "GH": "grande haute"
+ },
+ "produits": [
+  {
+   "produit": "Ail sec",
+   "caisse": "PH",
+   "unite": "5 kg",
+   "kg": 5.0
+  },
+  {
+   "produit": "Aillet",
+   "caisse": "GB",
+   "unite": "Botte (x10)",
+   "par_colis": 10,
+   "type": "botte"
+  },
+  {
+   "produit": "Aromatiques",
+   "caisse": "PB",
+   "unite": "Botte (x6)",
+   "par_colis": 6,
+   "type": "botte"
+  },
+  {
+   "produit": "Aubergine Violette",
+   "caisse": "GB",
+   "unite": "7 kg",
+   "kg": 7.0
+  },
+  {
+   "produit": "Bette",
+   "caisse": "GH",
+   "unite": "5 kg",
+   "kg": 5.0
+  },
+  {
+   "produit": "Bette mini (pied)",
+   "caisse": "GH",
+   "unite": "5 kg",
+   "kg": 5.0
+  },
+  {
+   "produit": "Bette multicolore (bouquet)",
+   "caisse": "GB",
+   "unite": "Botte (x5)",
+   "par_colis": 5,
+   "type": "botte"
+  },
+  {
+   "produit": "Betterave Rouge",
+   "caisse": "PH",
+   "unite": "7 kg",
+   "kg": 7.0
+  },
+  {
+   "produit": "Betterave Rouge (botte)",
+   "caisse": "GH",
+   "unite": "Botte (x8)",
+   "par_colis": 8,
+   "type": "botte"
+  },
+  {
+   "produit": "Betterave Rouge cuite sous vide",
+   "caisse": "PH",
+   "unite": "Sachet (x10)",
+   "par_colis": 10,
+   "type": "sachet"
+  },
+  {
+   "produit": "Carotte (botte)",
+   "caisse": "GH",
+   "unite": "Botte (x10)",
+   "par_colis": 10,
+   "type": "botte"
+  },
+  {
+   "produit": "Carotte lavée",
+   "caisse": "PH",
+   "unite": "8 kg",
+   "kg": 8.0
+  },
+  {
+   "produit": "Céleri-branche",
+   "caisse": "GB",
+   "unite": "5 kg",
+   "kg": 5.0
+  },
+  {
+   "produit": "Céleri-rave",
+   "caisse": "PH",
+   "unite": "5 kg",
+   "kg": 5.0
+  },
+  {
+   "produit": "Chou brocoli",
+   "caisse": "GH",
+   "unite": "7 kg",
+   "kg": 7.0
+  },
+  {
+   "produit": "Chou chinois",
+   "caisse": "GH",
+   "unite": "7 kg",
+   "kg": 7.0
+  },
+  {
+   "produit": "Chou fleur",
+   "caisse": "GH",
+   "unite": "7 kg",
+   "kg": 7.0
+  },
+  {
+   "produit": "Chou Frisé",
+   "caisse": "GH",
+   "unite": "6 kg",
+   "kg": 6.0
+  },
+  {
+   "produit": "Chou Kale",
+   "caisse": "GH",
+   "unite": "3 kg",
+   "kg": 3.0
+  },
+  {
+   "produit": "Chou Pointu",
+   "caisse": "GH",
+   "unite": "10 kg",
+   "kg": 10.0
+  },
+  {
+   "produit": "Chou romanesco",
+   "caisse": "GH",
+   "unite": "7 kg",
+   "kg": 7.0
+  },
+  {
+   "produit": "Chou Rouge",
+   "caisse": "GH",
+   "unite": "10 kg",
+   "kg": 10.0
+  },
+  {
+   "produit": "Chou Vert",
+   "caisse": "GH",
+   "unite": "10 kg",
+   "kg": 10.0
+  },
+  {
+   "produit": "Chou-rave vert (Colrave)",
+   "caisse": "PH",
+   "unite": "5 kg",
+   "kg": 5.0
+  },
+  {
+   "produit": "Chou-rave violet (Colrave)",
+   "caisse": "PH",
+   "unite": "5 kg",
+   "kg": 5.0
+  },
+  {
+   "produit": "Concombre Court Epineux",
+   "caisse": "PH",
+   "unite": "5 kg",
+   "kg": 5.0
+  },
+  {
+   "produit": "Concombre Long Lisse",
+   "caisse": "PH",
+   "unite": "Pièce (x10)",
+   "par_colis": 10,
+   "type": "pièce"
+  },
+  {
+   "produit": "Courge Butternut",
+   "caisse": "GH",
+   "unite": "10 kg",
+   "kg": 10.0
+  },
+  {
+   "produit": "Courge Potimarron",
+   "caisse": "GH",
+   "unite": "10 kg",
+   "kg": 10.0
+  },
+  {
+   "produit": "Courgette Verte cal 14/25",
+   "caisse": "PH",
+   "unite": "7 kg",
+   "kg": 7.0
+  },
+  {
+   "produit": "Courgette Verte cal 30/40",
+   "caisse": "GB",
+   "unite": "7 kg",
+   "kg": 7.0
+  },
+  {
+   "produit": "Endive",
+   "caisse": "PH",
+   "unite": "5 kg",
+   "kg": 5.0
+  },
+  {
+   "produit": "Epinard (feuille)",
+   "caisse": "GH",
+   "unite": "4 kg",
+   "kg": 4.0
+  },
+  {
+   "produit": "Fenouil",
+   "caisse": "PH",
+   "unite": "5 kg",
+   "kg": 5.0
+  },
+  {
+   "produit": "Fève",
+   "caisse": "PH",
+   "unite": "4 kg",
+   "kg": 4.0
+  },
+  {
+   "produit": "Haricot Vert",
+   "caisse": "PH",
+   "unite": "3 kg",
+   "kg": 3.0
+  },
+  {
+   "produit": "Mâche",
+   "caisse": "PB",
+   "unite": "1 kg",
+   "kg": 1.0
+  },
+  {
+   "produit": "Melon Charentais",
+   "caisse": "GH",
+   "unite": "12 kg",
+   "kg": 12.0
+  },
+  {
+   "produit": "Mesclun",
+   "caisse": "PH",
+   "unite": "1 kg",
+   "kg": 1.0
+  },
+  {
+   "produit": "Navet violet",
+   "caisse": "PH",
+   "unite": "5 kg",
+   "kg": 5.0
+  },
+  {
+   "produit": "Navet (botte)",
+   "caisse": "GH",
+   "unite": "Botte (x10)",
+   "par_colis": 10,
+   "type": "botte"
+  },
+  {
+   "produit": "Oignon Blanc (botte)",
+   "caisse": "GB",
+   "unite": "Botte (x10)",
+   "par_colis": 10,
+   "type": "botte"
+  },
+  {
+   "produit": "Oignon Blanc Cebette (botte)",
+   "caisse": "GB",
+   "unite": "Botte (x10)",
+   "par_colis": 10,
+   "type": "botte"
+  },
+  {
+   "produit": "Oignon blanc demi-sec",
+   "caisse": "PH",
+   "unite": "7 kg",
+   "kg": 7.0
+  },
+  {
+   "produit": "Panais",
+   "caisse": "PH",
+   "unite": "5 kg",
+   "kg": 5.0
+  },
+  {
+   "produit": "Pastèque",
+   "caisse": "GH",
+   "unite": "12 kg",
+   "kg": 12.0
+  },
+  {
+   "produit": "Patate douce",
+   "caisse": "PH",
+   "unite": "6 kg",
+   "kg": 6.0
+  },
+  {
+   "produit": "Petit-Pois",
+   "caisse": "PH",
+   "unite": "4 kg",
+   "kg": 4.0
+  },
+  {
+   "produit": "Pois Mange-Tout",
+   "caisse": "PB",
+   "unite": "2 kg",
+   "kg": 2.0
+  },
+  {
+   "produit": "Poireau",
+   "caisse": "GH",
+   "unite": "10 kg",
+   "kg": 10.0
+  },
+  {
+   "produit": "Rabiole",
+   "caisse": "GH",
+   "unite": "Botte (x10)",
+   "par_colis": 10,
+   "type": "botte"
+  },
+  {
+   "produit": "Radis long rose",
+   "caisse": "GB",
+   "unite": "Botte (x12)",
+   "par_colis": 12,
+   "type": "botte"
+  },
+  {
+   "produit": "Radis d'hiver en mélange",
+   "caisse": "PH",
+   "unite": "5 kg",
+   "kg": 5.0
+  },
+  {
+   "produit": "Radis noir rond",
+   "caisse": "PH",
+   "unite": "5 kg",
+   "kg": 5.0
+  },
+  {
+   "produit": "Rhubarbe",
+   "caisse": "GB",
+   "unite": "7 kg",
+   "kg": 7.0
+  },
+  {
+   "produit": "Roquette",
+   "caisse": "PH",
+   "unite": "1 kg",
+   "kg": 1.0
+  },
+  {
+   "produit": "Rutabaga",
+   "caisse": "PH",
+   "unite": "5 kg",
+   "kg": 5.0
+  },
+  {
+   "produit": "Salade Batavia Carmen (170g+)",
+   "caisse": "GH",
+   "unite": "Pièce (x8)",
+   "par_colis": 8,
+   "type": "pièce"
+  },
+  {
+   "produit": "Salade Batavia Carmen (marbrée verte et rouge)",
+   "caisse": "GH",
+   "unite": "Pièce (x8)",
+   "par_colis": 8,
+   "type": "pièce"
+  },
+  {
+   "produit": "Salade Batavia Verte",
+   "caisse": "GH",
+   "unite": "Pièce (x8)",
+   "par_colis": 8,
+   "type": "pièce"
+  },
+  {
+   "produit": "Salade Batavia Verte (170g+)",
+   "caisse": "GH",
+   "unite": "Pièce (x8)",
+   "par_colis": 8,
+   "type": "pièce"
+  },
+  {
+   "produit": "Salade Feuille de Chêne Rouge",
+   "caisse": "GH",
+   "unite": "Pièce (x8)",
+   "par_colis": 8,
+   "type": "pièce"
+  },
+  {
+   "produit": "Salade Feuille de Chêne Rouge (170+)",
+   "caisse": "GH",
+   "unite": "Pièce (x8)",
+   "par_colis": 8,
+   "type": "pièce"
+  },
+  {
+   "produit": "Salade Feuille de Chêne Verte",
+   "caisse": "GH",
+   "unite": "Pièce (x8)",
+   "par_colis": 8,
+   "type": "pièce"
+  },
+  {
+   "produit": "Salade Feuille de Chêne Verte (170g+)",
+   "caisse": "GH",
+   "unite": "Pièce (x8)",
+   "par_colis": 8,
+   "type": "pièce"
+  },
+  {
+   "produit": "Salade Laitue",
+   "caisse": "GH",
+   "unite": "Pièce (x8)",
+   "par_colis": 8,
+   "type": "pièce"
+  },
+  {
+   "produit": "Salade Laitue (170g+)",
+   "caisse": "GH",
+   "unite": "Pièce (x8)",
+   "par_colis": 8,
+   "type": "pièce"
+  },
+  {
+   "produit": "Salade Laitue Romaine",
+   "caisse": "GB",
+   "unite": "Pièce (x8)",
+   "par_colis": 8,
+   "type": "pièce"
+  },
+  {
+   "produit": "Salade Laitue Rouge",
+   "caisse": "GH",
+   "unite": "Pièce (x8)",
+   "par_colis": 8,
+   "type": "pièce"
+  },
+  {
+   "produit": "Salade Laitue Rouge (170g+)",
+   "caisse": "GH",
+   "unite": "Pièce (x8)",
+   "par_colis": 8,
+   "type": "pièce"
+  },
+  {
+   "produit": "Tomate Ancienne Population Mélange",
+   "caisse": "GB",
+   "unite": "6 kg",
+   "kg": 6.0
+  },
+  {
+   "produit": "Tomate Cerise",
+   "caisse": "PB",
+   "unite": "3 kg",
+   "kg": 3.0
+  },
+  {
+   "produit": "Tomate Ronde Rouge",
+   "caisse": "PH",
+   "unite": "5 kg",
+   "kg": 5.0
+  }
+ ]
+}

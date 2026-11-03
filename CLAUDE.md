@@ -5,6 +5,7 @@ Appli web statique (GitHub Pages) de liste de récolte partagée pour François 
 ## Ajouter la liste de la semaine
 
 - Suivre `docs/format-liste.md`. Créer `listes/AAAA-MM-JJ.json`, puis mettre à jour `listes/actuelle.json`.
+- Caisse et conditionnement : les prendre dans `referentiel/conditionnements.json`. Un produit absent : demander à François, puis l'ajouter au référentiel.
 - Ne jamais inventer une quantité, un conditionnement ou un emplacement : s'il manque, demander à François.
 - Garder le vocabulaire maison tel quel : cumul, colis, PB / PH / GB / GH, noms des circuits (Très Allier, Marché, Paniers solidaires, Ellie, Locavore, Auvabio 03).
 - Martin est salarié à temps partiel : ne jamais parler de prestation de service.
