@@ -2,6 +2,8 @@
 
 ## 2026-11-04
 
+- **Préparation de commandes** (étape 10, demande de François du 4/11 après-midi) : troisième onglet « Préparation » à côté de Récolte et Détail. Même liste du jour, une ligne par produit et par client (38 lignes, 8 clients le 4/11), avec la quantité du client (colis bois compris). Tri par client ou par produit. Chaque ligne porte « Récolté » ou « Pas encore récolté », repris des coches de récolte. Toucher une ligne la coche (prénom et heure) ; la case du client marque la commande prête, qui passe en bas dans « Commandes prêtes » et reste visible. Coches partagées par la base, rangées à part (`prep`, `prepClient`) : les coches de récolte ne changent pas. `CACHE` → `recolte-v13`. Test deux-téléphones : 53 vérifications (23 nouvelles).
+
 - **Feuille de route** : vision de François inscrite (étapes 10 à 19, sans code) : préparation de commandes, commandes de plusieurs canaux, stock du magasin, arbitrage hebdomadaire, historique, prise de temps, lien Ouvre ta ferme, plusieurs fermes. Aucun changement de l'appli.
 
 - **Kilos hors colis** (demande de François) : une quantité en kilos seuls pour un circuit (« 5 kg ») compte maintenant pour une caisse de plus. Liste du 4/11 : patates douces 1 colis + 5 kg = 2 PH ; caisses rien de coché : 2 PB, 21 PH, 2 GB, 10 GH. `CACHE` → `recolte-v12`.

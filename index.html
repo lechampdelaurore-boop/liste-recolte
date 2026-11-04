@@ -38,8 +38,10 @@ h1{font-size:1.45rem;margin:0;line-height:1.15;font-weight:800}
 .pill.ok i{background:#00a83a} .pill.wait i{background:#ffb300} .pill.err i{background:#e00000}
 .who{cursor:pointer}
 .controls{display:grid;gap:8px;position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 8px;margin-top:-8px;border-bottom:var(--bw) solid var(--line)}
-.seg{display:grid;grid-template-columns:1fr 1fr;border:var(--bw) solid var(--line);border-radius:10px;overflow:hidden}
-.seg button{border:0;background:var(--surface);padding:10px;font-weight:800;cursor:pointer}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:var(--bw) solid var(--line);border-radius:10px;overflow:hidden}
+.seg[hidden]{display:none}
+.seg button{border:0;background:var(--surface);padding:10px 4px;font-weight:800;cursor:pointer}
+.seg button+button{border-left:var(--bw) solid var(--line)}
 .seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
 .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .chips[hidden]{display:none}
@@ -105,6 +107,31 @@ li.done{border-style:dashed}
 details.donesec>summary{list-style:none;cursor:pointer;padding:14px 12px;font-weight:800;display:flex;gap:10px;align-items:center;border:var(--bw) solid var(--line);border-radius:var(--radius)}
 details.donesec>summary::-webkit-details-marker{display:none}
 details.donesec ul{margin-top:8px}
+/* Préparation de commandes : un bloc par client (ou par produit), une ligne par produit × client */
+[hidden]{display:none !important}
+#prepView{display:grid;gap:12px}
+.groups{display:grid;gap:14px}
+.grp{overflow:hidden}
+.grp-head{display:grid;grid-template-columns:auto 1fr;gap:4px 12px;align-items:center;padding:12px;background:var(--fg);color:var(--bg)}
+.grp-head.nobox{grid-template-columns:1fr}
+.grp-head .box{border-color:var(--bg);background:var(--fg)}
+.grp-head .box svg{color:var(--accent-fg)}
+.grp.ready .grp-head{background:var(--accent)}
+.grp.ready .grp-head .box{background:var(--accent);border-color:var(--bg)}
+.grp.ready .grp-head .box svg{opacity:1}
+.grp-name{font-weight:900;font-size:1.25rem;line-height:1.15}
+.grp-sum{font-weight:700;font-size:.9rem}
+.grp-warn{display:inline-block;margin-top:4px;background:var(--warn-bg);color:var(--warn-fg);border:2px solid #000;border-radius:6px;padding:1px 7px;font-size:.85rem;font-weight:800}
+ul.plist{list-style:none;margin:0;padding:0}
+li.pitem{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;padding:12px;border-top:var(--bw) solid var(--line);cursor:pointer;-webkit-user-select:none;user-select:none}
+li.pitem:first-child{border-top:0}
+li.pitem.done .box{background:var(--accent);border-color:var(--accent)} li.pitem.done .box svg{opacity:1;color:var(--accent-fg)}
+li.pitem.done{border-style:solid none none}
+li.pitem.done .prod{text-decoration:line-through;text-decoration-thickness:2px}
+.rec{display:inline-block;margin-top:4px;border:2px solid #000;border-radius:6px;padding:1px 7px;font-size:.85rem;font-weight:800;white-space:nowrap}
+.rec.ok{background:var(--accent);color:var(--accent-fg);border-color:var(--accent)}
+.rec.no{background:var(--warn-bg);color:var(--warn-fg)}
+.grp-head .rec{border-color:var(--bg)}
 .note{background:var(--warn-bg);color:var(--warn-fg);border:var(--bw) solid #000;border-radius:10px;padding:10px 12px;font-size:.9rem;font-weight:600;margin:0}
 footer{color:var(--muted);font-size:.85rem;display:grid;gap:8px}
 dialog{border:var(--bw) solid var(--line);border-radius:14px;padding:20px;background:var(--surface);color:var(--fg);max-width:min(340px,90vw)}
@@ -130,6 +157,11 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
     <div class="seg" role="group" aria-label="Vue">
       <button type="button" data-view="recolte" aria-pressed="true">Récolte</button>
       <button type="button" data-view="detail" aria-pressed="false">Détail</button>
+      <button type="button" data-view="prep" aria-pressed="false">Préparation</button>
+    </div>
+    <div class="seg" id="prepSort" role="group" aria-label="Trier la préparation" hidden>
+      <button type="button" data-sort="client" aria-pressed="true">Par client</button>
+      <button type="button" data-sort="produit" aria-pressed="false">Par produit</button>
     </div>
     <div class="chips" id="zones" aria-label="Zone"></div>
     <div class="chips" id="circs" aria-label="Circuit"></div>
@@ -164,13 +196,22 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
     <p class="crate-note" id="crateAlt" hidden></p>
   </details>
 
-  <p class="hint">Appui long sur une ligne pour la déplacer.</p>
+  <p class="hint" id="dragHint">Appui long sur une ligne pour la déplacer.</p>
   <ul class="list" id="todo"></ul>
 
   <details class="donesec" id="doneSec">
     <summary><span class="chev">›</span><span>Récoltes déjà effectuées (<span id="doneCount">0</span>)</span></summary>
     <ul class="list" id="done"></ul>
   </details>
+
+  <div id="prepView" hidden>
+    <p class="hint" id="prepSum"></p>
+    <div class="groups" id="prepList"></div>
+    <details class="donesec" id="prepDoneSec">
+      <summary><span class="chev">›</span><span>Commandes prêtes (<span id="prepDoneCount">0</span>)</span></summary>
+      <div class="groups" id="prepDone" style="margin-top:8px"></div>
+    </details>
+  </div>
 
   <footer>
     <p class="note" id="noShare" hidden>Le partage n'est pas encore activé : les coches et l'ordre restent sur ce téléphone.</p>
@@ -204,8 +245,8 @@ function ls(k, v){ try{ if(v === undefined){ var x = localStorage.getItem(k); re
 function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function fr(n){ return String(n).replace('.', ','); }
 
-var list = null, byId = {}, mirror = {order:null, done:{}};
-var ui = Object.assign({view:'recolte', zone:'', circ:'', perCirc:true, cratesOpen:false, doneOpen:false, progOpen:false}, ls('recolte.ui') || {});
+var list = null, byId = {}, mirror = {order:null, done:{}, prep:{}, prepClient:{}};
+var ui = Object.assign({view:'recolte', zone:'', circ:'', perCirc:true, cratesOpen:false, doneOpen:false, progOpen:false, prepSort:'client', prepDoneOpen:false}, ls('recolte.ui') || {});
 var me = ls('recolte.qui');
 var pending = [];
 var MKEY;
@@ -227,7 +268,7 @@ function init(data){
   data.items.forEach(function(it){ byId[it.id] = it; });
   circById = {}; data.circuits.forEach(function(ci){ circById[ci.id] = ci; });
   MKEY = 'recolte.liste.' + data.id;
-  var saved = ls(MKEY); if(saved) mirror = {order: saved.order || null, done: saved.done || {}};
+  var saved = ls(MKEY); if(saved) mirror = {order: saved.order || null, done: saved.done || {}, prep: saved.prep || {}, prepClient: saved.prepClient || {}};
   pending = ls('recolte.pending.' + data.id) || [];
   document.title = data.titre;
   $('#titre').textContent = data.titre;
@@ -268,9 +309,14 @@ function buildChips(){
   c.innerHTML = '<button class="chip" type="button" data-c="">Tous circuits</button>' +
     used.map(function(ci){ return '<button class="chip" type="button" data-c="' + ci.id + '">' + esc(ci.nom) + '</button>'; }).join('');
   c.onclick = function(e){ var b = e.target.closest('[data-c]'); if(!b) return; ui.circ = b.dataset.c; saveUi(); render(); };
-  document.querySelectorAll('.seg button').forEach(function(b){
+  document.querySelectorAll('.seg button[data-view]').forEach(function(b){
     b.onclick = function(){ ui.view = b.dataset.view; saveUi(); render(); };
   });
+  document.querySelectorAll('#prepSort button').forEach(function(b){
+    b.onclick = function(){ ui.prepSort = b.dataset.sort; saveUi(); render(); };
+  });
+  $('#prepDoneSec').open = ui.prepDoneOpen;
+  $('#prepDoneSec').ontoggle = function(){ ui.prepDoneOpen = this.open; saveUi(); };
   $('#perCirc').checked = ui.perCirc;
   $('#perCirc').onchange = function(){ ui.perCirc = this.checked; saveUi(); renderCrates(); };
   $('#crates').open = ui.cratesOpen;
@@ -326,14 +372,16 @@ function content(v, it){
   var m = typeof v === 'number' && /^([\d,.]+) (.+)$/.exec(it.condit || '');
   return m ? fr(Math.round(v * parseFloat(m[1].replace(',', '.')) * 10) / 10) + ' ' + m[2] : '';
 }
+// Quantité d'un produit pour un circuit (filtre de circuit, ligne de préparation).
+function circQtyHtml(it, circId){
+  var v = it.circ[circId], ci = circById[circId];
+  var tot = content(v, it), alt = typeof v === 'number' && altName(circId, it.caisse), small = [];
+  if(alt) small.push('de ' + it.condit);           // même contenu que la caisse
+  if(tot && !(alt && v === 1)) small.push(tot);    // total, sauf s'il redit le contenu
+  return esc(circLabel(ci, v, it, true)) + (small.length ? '<small>' + esc(small.join(' · ')) + '</small>' : '');
+}
 function qtyHtml(it){
-  if(ui.circ){
-    var v = it.circ[ui.circ], ci = circById[ui.circ];
-    var tot = content(v, it), alt = typeof v === 'number' && altName(ui.circ, it.caisse), small = [];
-    if(alt) small.push('de ' + it.condit);           // même contenu que la caisse
-    if(tot && !(alt && v === 1)) small.push(tot);    // total, sauf s'il redit le contenu
-    return esc(circLabel(ci, v, it, true)) + (small.length ? '<small>' + esc(small.join(' · ')) + '</small>' : '');
-  }
+  if(ui.circ) return circQtyHtml(it, ui.circ);
   return esc(it.total) + (it.kg && it.kg !== it.total ? '<small>' + esc(it.kg) + '</small>' : '');
 }
 // Quantité d'un circuit en colis. Un nombre = des colis. Des kilos seuls hors colis (« 5 kg ») prennent
@@ -396,7 +444,10 @@ function itemHtml(it, done){
 
 function render(){
   if(!list) return;
-  document.querySelectorAll('.seg button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.view === ui.view)); });
+  document.querySelectorAll('.seg button[data-view]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.view === ui.view)); });
+  var prep = ui.view === 'prep';
+  ['#dragHint', '#todo', '#doneSec'].forEach(function(s){ $(s).hidden = prep; });
+  $('#prepView').hidden = !prep; $('#prepSort').hidden = !prep;
   document.querySelectorAll('#zones .chip').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.z === ui.zone)); });
   document.querySelectorAll('#circs .chip').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.c === ui.circ)); });
   var o = order().map(function(id){ return byId[id]; }).filter(visible);
@@ -408,8 +459,82 @@ function render(){
   $('#done').innerHTML = done.map(function(it){ return itemHtml(it, true); }).join('');
   $('#doneCount').textContent = done.length;
   $('#who').textContent = me ? '👤 ' + me : '👤 Qui es-tu ?';
+  if(prep) renderPrep();
   renderCrates();
   renderProgress();
+}
+
+/* ---------- Préparation de commandes ---------- */
+// Une ligne par produit et par client (circuit). Les coches de préparation sont rangées à part dans la base
+// (prep/<circuit>/<produit> et prepClient/<circuit>) : elles ne touchent jamais aux coches de récolte (done).
+function prepLines(){
+  var r = [];
+  order().map(function(id){ return byId[id]; }).filter(visible).forEach(function(it){
+    list.circuits.forEach(function(ci){
+      var v = it.circ[ci.id];
+      if(v === undefined || v === 0 || (ui.circ && ci.id !== ui.circ)) return;
+      r.push({it:it, ci:ci, k:ci.id + '/' + it.id});
+    });
+  });
+  return r;
+}
+function infoAt(path){ return path.split('/').reduce(function(o, k){ return o && typeof o === 'object' ? o[k] : null; }, mirror) || null; }
+function prepInfo(k){ return infoAt('prep/' + k); }
+function clientInfo(c){ return infoAt('prepClient/' + c); }
+function heure(info){ return info && info.at ? ' à ' + new Date(info.at).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) : ''; }
+function recBadge(it){
+  return isDone(it.id) ? '<span class="rec ok">✓ Récolté</span>' : '<span class="rec no">Pas encore récolté</span>';
+}
+function prepLineHtml(l, byClient){
+  var info = prepInfo(l.k), name = byClient ? l.it.produit : l.ci.nom;
+  return '<li class="pitem' + (info ? ' done' : '') + '" data-k="' + esc(l.k) + '">' +
+    '<button class="box" type="button" aria-label="' + (info ? 'Décocher ' : 'Cocher ') + esc(l.it.produit + ' pour ' + l.ci.nom) + '">' + CHECK + '</button>' +
+    '<div class="main"><div class="prod">' + esc(name) + '</div>' + (byClient ? recBadge(l.it) : '') + '</div>' +
+    '<div class="qty">' + circQtyHtml(l.it, l.ci.id) + '</div>' +
+    (info ? '<div class="by">Préparé' + (info.by ? ' par ' + esc(info.by) : '') + heure(info) + '</div>' : '') + '</li>';
+}
+function countTxt(n, t){ return 'Préparé : ' + n + ' sur ' + t; }
+function renderPrep(){
+  document.querySelectorAll('#prepSort button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.sort === ui.prepSort)); });
+  var lines = prepLines(), byClient = ui.prepSort !== 'produit';
+  var groups = [], gi = {};
+  lines.forEach(function(l){
+    var key = byClient ? l.ci.id : l.it.id;
+    if(!gi[key]){ gi[key] = {key:key, lines:[]}; groups.push(gi[key]); }
+    gi[key].lines.push(l);
+  });
+  // Par client : dans l'ordre des circuits de la liste ; par produit : dans l'ordre de la récolte.
+  if(byClient) groups.sort(function(a, b){ return list.circuits.indexOf(circById[a.key]) - list.circuits.indexOf(circById[b.key]); });
+  var nDone = 0, ready = 0;
+  function groupHtml(g){
+    var n = g.lines.filter(function(l){ return prepInfo(l.k); }).length, t = g.lines.length, head;
+    nDone += n;
+    if(byClient){
+      var ci = circById[g.key], info = clientInfo(g.key);
+      if(info) ready++;
+      head = '<div class="grp-head">' +
+        '<button class="box" type="button" data-client="' + esc(g.key) + '" aria-label="' + (info ? 'Rouvrir la commande ' : 'Commande prête : ') + esc(ci.nom) + '">' + CHECK + '</button>' +
+        '<div><div class="grp-name">' + esc(ci.nom) + '</div><div class="grp-sum">' +
+        (info ? 'Commande prête' + (info.by ? ', ' + esc(info.by) : '') + heure(info) + ' · ' : '') + countTxt(n, t) + '</div>' +
+        (info && n < t ? '<span class="grp-warn">Attention : ' + (t - n) + ' ligne' + (t - n > 1 ? 's' : '') + ' pas cochée' + (t - n > 1 ? 's' : '') + '</span>' : '') +
+        '</div></div>';
+      return {ready:!!info, html:'<section class="card grp' + (info ? ' ready' : '') + '" data-circ="' + esc(g.key) + '">' + head + '<ul class="plist">' + g.lines.map(function(l){ return prepLineHtml(l, true); }).join('') + '</ul></section>'};
+    }
+    var it = byId[g.key];
+    head = '<div class="grp-head nobox"><div><div class="grp-name">' + esc(it.produit) + '</div>' + recBadge(it) +
+      '<div class="grp-sum">' + (n === t ? 'Tout est préparé · ' : '') + countTxt(n, t) + '</div></div></div>';
+    return {ready:false, html:'<section class="card grp" data-item="' + esc(it.id) + '">' + head + '<ul class="plist">' + g.lines.map(function(l){ return prepLineHtml(l, false); }).join('') + '</ul></section>'};
+  }
+  var out = groups.map(groupHtml);
+  var open = out.filter(function(g){ return !g.ready; }), shut = out.filter(function(g){ return g.ready; });
+  $('#prepList').innerHTML = open.length ? open.map(function(g){ return g.html; }).join('') :
+    '<p class="empty">' + (lines.length ? 'Toutes les commandes sont prêtes. Bravo.' : 'Rien pour ce filtre.') + '</p>';
+  $('#prepDone').innerHTML = shut.map(function(g){ return g.html; }).join('');
+  $('#prepDoneCount').textContent = shut.length;
+  $('#prepDoneSec').hidden = !byClient;
+  $('#prepSum').textContent = nDone + ' ligne' + (nDone > 1 ? 's' : '') + ' préparée' + (nDone > 1 ? 's' : '') + ' sur ' + lines.length +
+    (byClient ? ' · ' + ready + ' commande' + (ready > 1 ? 's' : '') + ' prête' + (ready > 1 ? 's' : '') + ' sur ' + groups.length : '') +
+    '. Toucher une ligne pour la cocher.';
 }
 
 function renderCrates(){
@@ -511,7 +636,17 @@ function toggle(id){
   else write('done/' + id, {by: me, at: Date.now()});
   if(navigator.vibrate) navigator.vibrate(15);
 }
+// Préparation : une coche par ligne produit × client, et une par client (commande prête).
+function prepToggle(path){
+  if(!me){ askName(function(){ prepToggle(path); }); return; }
+  write(path, infoAt(path) ? null : {by: me, at: Date.now()});
+  if(navigator.vibrate) navigator.vibrate(15);
+}
 document.addEventListener('click', function(e){
+  var c = e.target.closest('.box[data-client]');
+  if(c){ prepToggle('prepClient/' + c.dataset.client); return; }
+  var p = e.target.closest('li.pitem');   // toute la ligne se touche (gants)
+  if(p){ prepToggle('prep/' + p.dataset.k); return; }
   var b = e.target.closest('.box'); if(!b) return;
   toggle(b.closest('li').dataset.id);
 });
@@ -620,12 +755,12 @@ function setStatus(cls, txt){ var s = $('#sync'); s.className = 'pill ' + cls; s
 
 function setAt(path, val){
   var parts = path.split('/').filter(Boolean);
-  if(!parts.length){ mirror = {order: (val && val.order) || null, done: (val && val.done) || {}}; return; }
+  if(!parts.length){ mirror = {order: (val && val.order) || null, done: (val && val.done) || {}, prep: (val && val.prep) || {}, prepClient: (val && val.prepClient) || {}}; return; }
   var o = mirror;
   for(var i = 0; i < parts.length - 1; i++){ if(!o[parts[i]] || typeof o[parts[i]] !== 'object') o[parts[i]] = {}; o = o[parts[i]]; }
   var last = parts[parts.length - 1];
   if(val === null) delete o[last]; else o[last] = val;
-  if(!mirror.done) mirror.done = {};
+  ['done', 'prep', 'prepClient'].forEach(function(k){ if(!mirror[k]) mirror[k] = {}; });
 }
 function persist(){ ls(MKEY, mirror); ls('recolte.pending.' + list.id, pending); }
 

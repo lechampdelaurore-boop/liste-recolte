@@ -11,15 +11,20 @@ listes/
   2026-11-04/
     order: ["bette", "mesclun", ...]          // ordre des lignes ; absent = ordre du fichier (par zone)
     done/
-      mesclun: {"by": "François", "at": 1793730000000}   // coché par, heure (millisecondes)
+      mesclun: {"by": "François", "at": 1793730000000}   // récolté par, heure (millisecondes)
+    prep/                                       // préparation de commandes (depuis le 04/11/2026)
+      ta/                                       // identifiant du circuit (client)
+        mesclun: {"by": "Aurore", "at": 1793731000000}   // ligne mesclun × Très Allier préparée
+    prepClient/
+      el: {"by": "François", "at": 1793732000000}        // commande Ellie prête
 ```
 
-Seuls l'ordre et les coches sont dans la base. Les produits et quantités restent dans `listes/*.json` sur GitHub.
+Seuls l'ordre et les coches sont dans la base. Les coches de préparation (`prep`, `prepClient`) sont à part des coches de récolte (`done`) : l'une ne modifie jamais l'autre. Les produits et quantités restent dans `listes/*.json` sur GitHub.
 
 ## Comment l'appli s'en sert
 
 - **Lecture en temps réel** : `EventSource` sur `<base>/listes/<id>.json` (flux REST de Firebase, événements `put` et `patch`).
-- **Écriture** : `PUT <base>/listes/<id>/done/<produit>.json` pour cocher, `DELETE` pour décocher, `PUT .../order.json` pour l'ordre.
+- **Écriture** : `PUT <base>/listes/<id>/done/<produit>.json` pour cocher, `DELETE` pour décocher, `PUT .../order.json` pour l'ordre. Préparation : `PUT`/`DELETE` sur `.../prep/<circuit>/<produit>.json` et `.../prepClient/<circuit>.json`.
 - **Hors ligne** : chaque écriture est appliquée tout de suite sur l'écran, gardée dans le téléphone (`localStorage`, clé `recolte.pending.<id>`), et renvoyée au retour du réseau (événement `online`, puis toutes les 15 s). Les écritures en attente gardent la priorité sur ce qui arrive de la base.
 - **Copie locale** : le dernier état connu est gardé (`recolte.liste.<id>`) pour ouvrir l'appli sans réseau.
 - Autres clés locales : `recolte.qui` (prénom), `recolte.ui` (vue, filtres, panneaux ouverts).

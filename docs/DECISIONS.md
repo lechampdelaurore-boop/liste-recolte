@@ -18,6 +18,8 @@
 | 04/11/2026 | La page stock du magasin (étape 12) doit être ouverte aussi aux personnes du magasin. Cela suppose de renforcer d'abord l'accès à la base (étape 5) ; l'ouverture reste soumise au « vas-y » exprès de François. |
 | 04/11/2026 | Arbitrage hebdomadaire (étape 13) : un simple tableau, sans suggestion automatique. François et Aurore renseignent les stocks qu'ils pensent avoir de disponibles dans la semaine (champ, ferme, magasin) et les répartissent eux-mêmes entre les canaux de commercialisation. François montrera le tableau de cumul plus tard. |
 | 04/11/2026 | Le colisage doit pouvoir se décrire et se modifier dans le logiciel, produit par produit et selon les débouchés (étape 19 de la feuille de route). |
+| 04/11/2026 | **Préparation de commandes** (François) : troisième onglet « Préparation », même liste du jour, une ligne par produit et par client, tri par client ou par produit, indicateur récolté ou pas sur chaque produit. En tri par client, on coche chaque ligne et le client entier ; le client coché reste visible en bas, comme les récoltes effectuées. En tri par produit, on coche chaque ligne chez chaque client. |
+| 04/11/2026 | Choix de Claude pour la préparation, à confirmer par François à l'essai : cocher le client ne coche pas ses lignes (une alerte dit s'il en reste) ; les lignes cochées restent à leur place, barrées ; toute la ligne se touche (gants) ; les coches de préparation sont à part de celles de la récolte. |
 
 ## Décisions de conception (reprises du prompt de reprise du 03/11/2026)
 

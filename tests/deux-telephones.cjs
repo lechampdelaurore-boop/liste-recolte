@@ -153,6 +153,64 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   await B.click('[data-view="recolte"]');
   verifie((await B.$$('#resetOrder')).length === 0, 'le bouton « Remettre l\'ordre par zone » a disparu');
 
+  // 7. Préparation de commandes (endive et céleri-branche sont récoltés à ce stade, rien d'autre)
+  const recolteAvant = await B.textContent('#doneCount');
+  await A.click('[data-view="prep"]');
+  await B.click('[data-view="prep"]');
+  verifie(await B.isVisible('#prepView') && !(await B.isVisible('#todo')) && await B.isVisible('#prepSort'), 'l\'onglet Préparation remplace la liste de récolte et montre le choix du tri');
+  verifie((await B.getAttribute('[data-sort="client"]', 'aria-pressed')) === 'true', 'tri par client par défaut');
+  const clients = await B.$$eval('#prepList section.grp', (e) => e.map((x) => x.dataset.circ));
+  verifie(clients.join() === 'ta,mk,ps,el,lv,av,fd,lm', 'un bloc par client, dans l\'ordre des circuits (obtenu ' + clients.join() + ')');
+  const nLignes = await B.$$eval('#prepList li.pitem', (e) => e.length);
+  verifie(nLignes === 38, 'une ligne par produit et par client : 38 lignes (obtenu ' + nLignes + ')');
+  const ligne = (p, k) => p.$(`li.pitem[data-k="${k}"]`);
+  verifie((await (await ligne(B, 'av/endive')).textContent()).includes('✓ Récolté'), 'l\'endive (récoltée) porte « Récolté »');
+  verifie((await (await ligne(B, 'ta/bette')).textContent()).includes('Pas encore récolté'), 'la bette (pas récoltée) porte « Pas encore récolté »');
+  const qPs = await (await ligne(B, 'ps/bette')).$eval('.qty', (x) => x.textContent);
+  verifie(qPs === '3,5 grands colis boisde 5 kg · 17,5 kg', 'Panier adéquat, bette : 3,5 grands colis bois de 5 kg, 17,5 kg (obtenu ' + qPs + ')');
+  // Cocher une ligne chez François (toucher la ligne entière), la voir chez Aurore ; la récolte ne bouge pas
+  await (await ligne(A, 'ta/mesclun')).click();
+  await B.waitForTimeout(500);
+  verifie(await (await ligne(B, 'ta/mesclun')).evaluate((x) => x.classList.contains('done')), 'une ligne préparée chez François est cochée chez Aurore');
+  verifie((await (await ligne(B, 'ta/mesclun')).textContent()).includes('Préparé par François'), 'Aurore voit qui a préparé');
+  verifie(!(await (await ligne(B, 'mk/mesclun')).evaluate((x) => x.classList.contains('done'))), 'le mesclun du marché reste à préparer (une coche par client)');
+  verifie((await B.textContent('#doneCount')) === recolteAvant && (await (await ligne(B, 'ta/mesclun')).textContent()).includes('Pas encore récolté'), 'cocher la préparation ne coche pas la récolte');
+  // Commande prête : Ellie (poireau) part en bas, dans « Commandes prêtes », et reste visible
+  await B.click('section[data-circ="el"] .box[data-client]');
+  await A.waitForTimeout(500);
+  verifie((await A.$$('#prepList section[data-circ="el"]')).length === 0 && (await A.textContent('#prepDoneCount')) === '1', 'la commande Ellie prête chez Aurore passe en bas chez François');
+  await A.click('#prepDoneSec summary');
+  const ellie = await A.textContent('#prepDone section[data-circ="el"]');
+  verifie(ellie.includes('Poireau') && ellie.includes('Attention : 1 ligne pas cochée'), 'la commande prête reste visible en bas, avec l\'alerte de la ligne pas cochée');
+  // Tri par produit : cocher la bette de Locavore, la voir cochée chez François dans le tri par client
+  await B.click('[data-sort="produit"]');
+  const lignesBette = await B.$$eval('section[data-item="bette"] li.pitem .prod', (e) => e.map((x) => x.textContent));
+  verifie(lignesBette.join() === 'Très Allier,Marché ven.,Panier adéquat,Locavore', 'tri par produit : la bette a une ligne par client (obtenu ' + lignesBette.join() + ')');
+  verifie((await B.textContent('section[data-item="bette"] .grp-head')).includes('Pas encore récolté'), 'tri par produit : l\'indicateur de récolte est sur le produit');
+  verifie(!(await B.isVisible('#prepDoneSec')), 'tri par produit : pas de section « Commandes prêtes »');
+  await (await ligne(B, 'lv/bette')).click();
+  await A.waitForTimeout(500);
+  verifie(await (await ligne(A, 'lv/bette')).evaluate((x) => x.classList.contains('done')), 'la bette Locavore cochée en tri par produit est cochée chez François en tri par client');
+  // Filtre de circuit dans la préparation
+  await B.click('[data-c="fd"]');
+  const fdPrep = await B.$$eval('#prepList li.pitem', (e) => e.map((x) => x.dataset.k));
+  verifie(fdPrep.join() === 'fd/persil,fd/carotte', 'filtre Ferme Deschamps : 2 lignes (obtenu ' + fdPrep.join() + ')');
+  await B.click('[data-c=""]');
+  // Les coches de préparation reviennent de la base après rechargement
+  await B.reload(); await B.waitForSelector('li.pitem'); await B.waitForTimeout(500);
+  verifie((await B.getAttribute('[data-sort="produit"]', 'aria-pressed')) === 'true', 'après rechargement, l\'onglet et le tri choisis sont gardés');
+  await B.click('[data-sort="client"]');
+  const garde = async (k) => (await ligne(B, k)).evaluate((x) => x.classList.contains('done'));
+  verifie((await B.textContent('#prepDoneCount')) === '1' && await garde('lv/bette') && await garde('ta/mesclun'), 'après rechargement, Ellie est toujours prête, le mesclun TA et la bette Locavore cochés');
+  // Rouvrir la commande, décocher une ligne
+  await A.click('#prepDone section[data-circ="el"] .box[data-client]');
+  await (await ligne(A, 'ta/mesclun')).click();
+  await B.waitForTimeout(500);
+  verifie((await B.textContent('#prepDoneCount')) === '0' && !(await (await ligne(B, 'ta/mesclun')).evaluate((x) => x.classList.contains('done'))), 'rouvrir la commande et décocher une ligne chez François se voit chez Aurore');
+  verifie(await B.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'pas de défilement de côté dans la préparation');
+  await B.click('[data-view="recolte"]');
+  verifie((await B.textContent('#doneCount')) === recolteAvant && await B.isVisible('#todo'), 'retour à l\'onglet Récolte : les coches de récolte sont inchangées');
+
   verifie(erreurs.length === 0, 'aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));
   await nav.close(); site.close(); base.close();
   process.exit(echecs ? 1 : 0);
