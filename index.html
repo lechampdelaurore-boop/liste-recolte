@@ -100,6 +100,16 @@ li.done .box{background:var(--accent);border-color:var(--accent)} li.done .box s
 .tag.c{font-weight:800;border-color:currentColor}
 .tag.c[data-c="PB"]{color:var(--pb)} .tag.c[data-c="PH"]{color:var(--ph)} .tag.c[data-c="GB"]{color:var(--gb)} .tag.c[data-c="GH"]{color:var(--gh)}
 .tag.alt{border-style:dashed;font-weight:800}
+.more{grid-column:3;justify-self:end;width:40px;height:40px;display:grid;place-items:center;border:var(--bw) solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);padding:0;cursor:pointer}
+.more svg{width:24px;height:24px;transition:transform .2s}
+.more[aria-expanded="true"] svg{transform:rotate(180deg)}
+.repart{grid-column:1 / 4;list-style:none;margin:0;padding:0;border-top:var(--bw) solid var(--line)}
+.repart li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 2px;border-top:1.5px solid var(--line)}
+.repart li:first-child{border-top:0}
+.repart .cl{font-weight:800}
+.repart .cq{text-align:right;font-weight:800;font-variant-numeric:tabular-nums}
+.repart .cq small{display:block;font-weight:600;color:var(--muted);font-size:.85rem}
+.repart .col{font-weight:600;color:var(--muted)}
 .by{grid-column:2 / 4;font-size:.85rem;color:var(--muted);font-weight:600}
 li.done .prod{text-decoration:line-through;text-decoration-thickness:2px}
 li.done{border-style:dashed}
@@ -239,6 +249,10 @@ var DB = (window.RECOLTE_DB_URL || '').replace(/\/+$/, '');
    Il était recopié à la main depuis l'assolement, pas relié à Ouvre ta ferme. Les données restent
    dans les listes ; passer à true pour le réafficher. */
 var MONTRER_LIEU = false;
+/* Onglet « Détail » (caisse, conditionnement et part de chaque circuit) : caché pour l'instant,
+   demande de François du 4/11/2026, l'onglet Préparation le remplace. Le code reste ;
+   passer à true pour le remettre. */
+var MONTRER_DETAIL = false;
 var CRATES = [['PB','Petite basse'],['PH','Petite haute'],['GB','Grande basse'],['GH','Grande haute']];
 var $ = function(s){ return document.querySelector(s); };
 function ls(k, v){ try{ if(v === undefined){ var x = localStorage.getItem(k); return x ? JSON.parse(x) : null; } localStorage.setItem(k, JSON.stringify(v)); }catch(e){ return null; } }
@@ -414,6 +428,19 @@ function itemCrates(it){
 }
 
 /* ---------- Affichage ---------- */
+var ARROW = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 9l7 7 7-7"/></svg>';
+// Répartition par client sous chaque produit (petite flèche) : ouverte ou fermée sur ce téléphone seulement.
+var repOpen = {};
+function repartHtml(it){
+  var rows = [];
+  rows.push('<li class="col"><span>Colis</span><span>' + esc(it.caisse ? it.caisse + ' de ' + it.condit : it.condit) + '</span></li>');
+  list.circuits.forEach(function(ci){
+    var v = it.circ[ci.id];
+    if(v === undefined || v === 0) return;
+    rows.push('<li data-circ="' + ci.id + '"><span class="cl">' + esc(ci.nom) + '</span><span class="cq">' + circQtyHtml(it, ci.id) + '</span></li>');
+  });
+  return '<ul class="repart">' + rows.join('') + '</ul>';
+}
 var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
 function itemHtml(it, done){
@@ -430,6 +457,12 @@ function itemHtml(it, done){
     if(MONTRER_LIEU) tags.push('<span class="tag">' + esc(it.zone) + '</span>');
     d = '<div class="detail">' + tags.join('') + '</div>';
   }
+  var more = '';
+  if(ui.view !== 'detail'){
+    var open = !!repOpen[it.id];
+    more = '<button class="more" type="button" aria-expanded="' + open + '" aria-label="' + (open ? 'Cacher' : 'Voir') + ' la répartition par client de ' + esc(it.produit) + '">' + ARROW + '</button>' +
+      (open ? repartHtml(it) : '');
+  }
   var by = '';
   if(done){
     var info = mirror.done[it.id];
@@ -439,11 +472,13 @@ function itemHtml(it, done){
   return '<li class="item' + (done ? ' done' : '') + '" data-id="' + it.id + '">' +
     '<button class="box" type="button" aria-label="' + (done ? 'Décocher ' : 'Cocher ') + esc(it.produit) + '">' + CHECK + '</button>' +
     '<div class="main"><div class="prod">' + esc(it.produit) + '</div>' + (MONTRER_LIEU && it.ou ? '<div class="ou">' + esc(it.ou) + '</div>' : '') + '</div>' +
-    '<div class="qty">' + qtyHtml(it) + '</div>' + d + by + '</li>';
+    '<div class="qty">' + qtyHtml(it) + '</div>' + d + by + more + '</li>';
 }
 
 function render(){
   if(!list) return;
+  if(!MONTRER_DETAIL && ui.view === 'detail'){ ui.view = 'recolte'; saveUi(); }
+  $('.seg button[data-view="detail"]').hidden = !MONTRER_DETAIL;
   document.querySelectorAll('.seg button[data-view]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.view === ui.view)); });
   var prep = ui.view === 'prep';
   ['#dragHint', '#todo', '#doneSec'].forEach(function(s){ $(s).hidden = prep; });
@@ -647,6 +682,8 @@ document.addEventListener('click', function(e){
   if(c){ prepToggle('prepClient/' + c.dataset.client); return; }
   var p = e.target.closest('li.pitem');   // toute la ligne se touche (gants)
   if(p){ prepToggle('prep/' + p.dataset.k); return; }
+  var m = e.target.closest('li.item .more');
+  if(m){ var id = m.closest('li').dataset.id; repOpen[id] = !repOpen[id]; render(); return; }
   var b = e.target.closest('.box'); if(!b) return;
   toggle(b.closest('li').dataset.id);
 });
@@ -682,7 +719,7 @@ function startDrag(li, y){
 function beginPress(target, x, y){
   if(drag || press) return;
   var li = target.closest('#todo li.item');
-  if(!li || target.closest('.box')) return;
+  if(!li || target.closest('.box, .more')) return;
   li.classList.add('pressing');
   press = {li:li, x:x, y:y, timer:setTimeout(function(){ var p = press; press = null; if(p) startDrag(p.li, p.y); }, LONG)};
 }

@@ -34,11 +34,19 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   const nav = await chromium.launch();
   const erreurs = [];
 
-  const telephone = async (nom) => {
+  const telephone = async (nom, montrerDetail) => {
     const ctx = await nav.newContext({ ...devices['Pixel 7'], serviceWorkers: 'block' });
     await ctx.addInitScript((n) => localStorage.setItem('recolte.qui', JSON.stringify(n)), nom);
     // L'appli utilise le faux Firebase au lieu de l'adresse de config.js.
     await ctx.route('**/config.js', (r) => r.fulfill({ contentType: 'text/javascript', body: `window.RECOLTE_DB_URL='http://localhost:${PORT_BASE}';` }));
+    // Pour vérifier que le réglage MONTRER_DETAIL remet l'onglet Détail, on sert la page avec le réglage à true.
+    if (montrerDetail) {
+      await ctx.route(`http://localhost:${PORT_SITE}/`, async (r) => {
+        const rep = await r.fetch();
+        const html = (await rep.text()).replace('var MONTRER_DETAIL = false;', 'var MONTRER_DETAIL = true;');
+        r.fulfill({ response: rep, body: html });
+      });
+    }
     const p = await ctx.newPage();
     p.on('pageerror', (e) => erreurs.push(nom + ' : ' + e.message));
     await p.goto(`http://localhost:${PORT_SITE}/`);
@@ -98,13 +106,36 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   verifie(regroupees.join(',') === '1,19,1,10,1,1,4', 'demi-colis regroupés = 1,19,1,10,1,1,4 (obtenu ' + regroupees.join(',') + ')');
   verifie((await B.textContent('#crateAlt')).includes('Panier adéquat, Locavore, Ferme Deschamps : PB → petit colis bois, PH → moyen colis bois, GB → grand colis bois, GH → grand colis bois'), 'le rappel du colisage bois est affiché');
 
-  // 3 bis. Vue Détail : le circuit en colis bois dit lequel, les autres gardent « colis »
-  await B.click('[data-view="detail"]');
-  const tagsBette = await B.$$eval('li[data-id="bette"] .tag', (e) => e.map((x) => x.textContent));
+  // 3 bis. Onglet Détail caché pour l'instant (demande de François du 4/11/2026)
+  verifie(!(await B.isVisible('[data-view="detail"]')) && await B.isVisible('[data-view="recolte"]') && await B.isVisible('[data-view="prep"]'), 'l\'onglet Détail est caché ; Récolte et Préparation restent');
+  await B.evaluate(() => localStorage.setItem('recolte.ui', JSON.stringify(Object.assign(JSON.parse(localStorage.getItem('recolte.ui') || '{}'), { view: 'detail' }))));
+  await B.reload(); await B.waitForSelector('li.item');
+  verifie((await B.getAttribute('[data-view="recolte"]', 'aria-pressed')) === 'true' && (await B.$$('li.item .detail')).length === 0, 'un téléphone resté sur Détail rouvre sur Récolte');
+  // Le réglage MONTRER_DETAIL remet l'onglet tel qu'il était : le circuit en colis bois dit lequel, les autres gardent « colis »
+  // Petite flèche sous chaque produit (onglet Récolte) : répartition par client, colisage et poids
+  verifie((await B.$$('#todo li.item .more')).length === (await B.$$('#todo li.item')).length && (await B.$$('.repart')).length === 0, 'chaque produit a sa petite flèche, tout est replié au départ');
+  await B.click('li[data-id="bette"] .more');
+  const repBette = await B.$$eval('li[data-id="bette"] .repart li', (e) => e.map((x) => x.innerText.replace(/\s+/g, ' ').trim()));
+  verifie(repBette.join(' | ') === 'Colis GH de 5 kg | Très Allier 1 colis 5 kg | Marché ven. 1,5 colis 7,5 kg | Panier adéquat 3,5 grands colis bois de 5 kg · 17,5 kg | Locavore 1 × 1 kg + 4 × 500 g', 'la flèche de la bette déplie la répartition par client avec colisage et poids (obtenu ' + repBette.join(' | ') + ')');
+  verifie((await B.getAttribute('li[data-id="bette"] .more', 'aria-expanded')) === 'true' && (await B.$$('.repart')).length === 1, 'seule la bette est dépliée');
+  verifie((await B.textContent('#doneCount')) === '1', 'toucher la flèche ne coche pas le produit');
+  await A.click('li[data-id="poireau"] .box'); await B.waitForTimeout(500);
+  verifie((await B.$$('li[data-id="bette"] .repart')).length === 1, 'la répartition reste ouverte quand une coche arrive de l\'autre téléphone');
+  await A.click('#doneSec summary'); await A.click('#done li[data-id="poireau"] .box'); await A.click('#doneSec summary'); await B.waitForTimeout(500);
+  await B.click('li[data-id="persil"] .more');
+  const repPersil = await B.$$eval('li[data-id="persil"] .repart li', (e) => e.map((x) => x.innerText.replace(/\s+/g, ' ').trim()));
+  verifie(repPersil.includes('Ferme Deschamps 1 petit colis bois de 10 bouquets'), 'persil : Ferme Deschamps en 1 petit colis bois de 10 bouquets (obtenu ' + repPersil.join(' | ') + ')');
+  verifie(await B.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'pas de défilement de côté avec la répartition ouverte');
+  await B.click('li[data-id="bette"] .more'); await B.click('li[data-id="persil"] .more');
+  verifie((await B.$$('.repart')).length === 0, 'la flèche replie la répartition');
+
+  const C = (await telephone('Martin', true)).p;
+  verifie(await C.isVisible('[data-view="detail"]'), 'avec MONTRER_DETAIL à true, l\'onglet Détail revient');
+  await C.click('[data-view="detail"]');
+  const tagsBette = await C.$$eval('li[data-id="bette"] .tag', (e) => e.map((x) => x.textContent));
   verifie(tagsBette.includes('Panier adéquat : 3,5 grands colis bois de 5 kg') && tagsBette.includes('TA : 1 colis') && tagsBette.includes('GH · 5 kg'), 'détail bette : Panier adéquat en grands colis bois de 5 kg (même contenu que GH), TA en colis (obtenu ' + tagsBette.join(' / ') + ')');
-  const tagsPersil = await B.$$eval('li[data-id="persil"] .tag', (e) => e.map((x) => x.textContent));
+  const tagsPersil = await C.$$eval('li[data-id="persil"] .tag', (e) => e.map((x) => x.textContent));
   verifie(tagsPersil.includes('Deschamps : 1 petit colis bois de 10 bouquets'), 'détail persil : 1 petit colis bois de 10 bouquets (obtenu ' + tagsPersil.join(' / ') + ')');
-  await B.click('[data-view="recolte"]');
 
   // 4. Filtre circuit
   await B.click('[data-c="lv"]');
@@ -147,10 +178,9 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   // 5. Lieu des récoltes masqué pour l'instant (décision du 4/11/2026)
   verifie((await B.$$('li.item .ou')).length === 0, 'aucun emplacement (T1-3, B4…) sous les produits');
   verifie(!(await B.isVisible('#zones')), 'les puces de zone sont cachées');
-  await B.click('[data-view="detail"]');
-  const tags = await B.$$eval('li.item .tag', (e) => e.map((x) => x.textContent.trim()));
-  verifie(tags.length > 0 && !tags.some((t) => ['Tunnel', 'Plein champ', 'Stock'].includes(t)), 'la vue Détail n\'affiche plus la zone');
-  await B.click('[data-view="recolte"]');
+  const tags = await C.$$eval('li.item .tag', (e) => e.map((x) => x.textContent.trim()));
+  verifie(tags.length > 0 && !tags.some((t) => ['Tunnel', 'Plein champ', 'Stock'].includes(t)), 'la vue Détail (si on la remet) n\'affiche pas la zone');
+  await C.close();
   verifie((await B.$$('#resetOrder')).length === 0, 'le bouton « Remettre l\'ordre par zone » a disparu');
 
   // 7. Préparation de commandes (endive et céleri-branche sont récoltés à ce stade, rien d'autre)
