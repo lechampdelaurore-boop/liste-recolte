@@ -46,7 +46,7 @@ Un fichier par jour de récolte : `listes/AAAA-MM-JJ.json`. `listes/actuelle.jso
 | `id` | oui | Date de récolte `AAAA-MM-JJ`. Changer d'`id` repart avec des cases vides. |
 | `titre`, `pour`, `source` | oui | Textes affichés. `source` doit dire d'où viennent les chiffres et à quelle date. |
 | `colisages` | non | Voir [Colisage par circuit](#colisage-par-circuit). |
-| `circuits[]` | oui | `id` court (sert de clé dans `circ`), `nom` (puce de filtre), `court` (vue Détail), `colisage` (facultatif, nom d'un colisage de `colisages`). Un circuit sans aucune quantité n'a pas de puce. |
+| `circuits[]` | oui | `id` court (sert de clé dans `circ`), `nom` (puce de filtre), `court` (vue Détail, cachée depuis le 04/11/2026), `colisage` (facultatif, nom d'un colisage de `colisages`). Un circuit sans aucune quantité n'a pas de puce. |
 | `items[].id` | oui | Garder le même `id` d'une semaine à l'autre pour un même produit. |
 | `items[].zone` | non (masqué depuis le 04/11/2026) | Libellés : `Tunnel`, `Plein champ`, `Stock` (lieu réel, d'après les planches Ouvre ta ferme : T = tunnel, B = plein champ). Ne pas inventer d'autre regroupement. L'ordre des puces suit le premier produit de chaque zone. |
 | `items[].caisse` | oui | Code du cumul. `null` pour les produits hors caisse (tomates « tout », persil en botte, courges à la pièce). |

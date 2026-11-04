@@ -22,10 +22,11 @@
 | 04/11/2026 | Choix de Claude pour la préparation, à confirmer par François à l'essai : cocher le client ne coche pas ses lignes (une alerte dit s'il en reste) ; les lignes cochées restent à leur place, barrées ; toute la ligne se touche (gants) ; les coches de préparation sont à part de celles de la récolte. |
 | 04/11/2026 | Le logiciel aura une base de données des produits : pour chacun, conditionnements selon les débouchés et kilos par colis, que l'utilisateur ajoute, retire et modifie sans passer par le code (étape 19). |
 | 04/11/2026 | **Décision reportée** : réinterroger l'utilité de la vue Détail, redondante avec l'onglet Préparation (étape 20). François y reviendra plus tard ; la vue Détail reste telle quelle. |
+| 04/11/2026 (soir) | L'onglet Détail est retiré « pour l'instant » (demande de François) : caché, code gardé, réglage `MONTRER_DETAIL` pour le remettre. À sa place, dans l'onglet Récolte, une petite flèche en bas à droite de chaque produit déplie la répartition par client, avec le colisage et le poids (demande de François). Choix de Claude, à confirmer à l'essai : une ligne « Colis » en tête, tous les clients affichés même avec un filtre de circuit, ouvert ou fermé sur chaque téléphone sans partage. |
 
 ## Décisions de conception (reprises du prompt de reprise du 03/11/2026)
 
-- Vues **Récolte** (produit, emplacement masqué depuis le 04/11/2026, total) et **Détail** (caisse, conditionnement, part de chaque circuit).
+- Vues **Récolte** (produit, emplacement masqué depuis le 04/11/2026, total) et **Détail** (caisse, conditionnement, part de chaque circuit ; onglet caché depuis le 04/11/2026, voir plus haut).
 - Filtres par zone et par circuit. Zones = lieux réels seulement : **Tunnel, Plein champ, Stock**. Les catégories inventées (« Choux et poireau », « Racines ») sont refusées. Puces de zone masquées depuis le 04/11/2026 (voir plus haut).
 - Glisser-déposer par **appui long de 0,45 s**, sans poignée ; un geste rapide fait seulement défiler. L'ordre est partagé entre les deux téléphones.
 - Caisses **PB, PH, GB, GH** : une caisse par colis. Par défaut une caisse par circuit ; une option regroupe les demi-colis. Les sachets Locavore, bottes, pièces et tomates « tout » ne sont pas comptés. Le chiffre est ce qui reste à remplir.
