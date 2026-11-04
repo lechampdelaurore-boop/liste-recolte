@@ -91,11 +91,11 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   const noms = await B.$$eval('.crate .nm', (e) => e.map((x) => x.textContent));
   verifie(noms.slice(4).join(',') === 'Petit colis bois,Moyen colis bois,Grand colis bois', 'les colis bois s\'ajoutent aux caisses (obtenu ' + noms.join(' / ') + ')');
   const caisses = await B.$$eval('.crate', (e) => e.map((x) => x.querySelector('b').textContent));
-  verifie(caisses.join(',') === '2,17,2,10,1,0,4', 'à remplir PB,PH,GB,GH,petit,moyen,grand bois = 2,17,2,10,1,0,4 (obtenu ' + caisses.join(',') + ')');
+  verifie(caisses.join(',') === '2,17,2,10,1,1,4', 'à remplir PB,PH,GB,GH,petit,moyen,grand bois = 2,17,2,10,1,1,4 (obtenu ' + caisses.join(',') + ')');
   await B.click('#crates summary');
   await B.click('#perCirc');
   const regroupees = await B.$$eval('.crate', (e) => e.map((x) => x.querySelector('b').textContent));
-  verifie(regroupees.join(',') === '1,17,1,10,1,0,4', 'demi-colis regroupés = 1,17,1,10,1,0,4 (obtenu ' + regroupees.join(',') + ')');
+  verifie(regroupees.join(',') === '1,17,1,10,1,1,4', 'demi-colis regroupés = 1,17,1,10,1,1,4 (obtenu ' + regroupees.join(',') + ')');
   verifie((await B.textContent('#crateAlt')).includes('Paniers solidaires, Locavore, Ferme Deschamps : PB → petit colis bois, PH → moyen colis bois, GB → grand colis bois, GH → grand colis bois'), 'le rappel du colisage bois est affiché');
 
   // 3 bis. Vue Détail : le circuit en colis bois dit lequel, les autres gardent « colis »
@@ -112,7 +112,7 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   verifie(lv === 7, 'filtre Locavore : 7 lignes (obtenu ' + lv + ')');
   await B.click('[data-c="fd"]');
   const fd = await B.$$eval('#todo li.item', (e) => e.map((x) => x.dataset.id + ' ' + x.querySelector('.qty').textContent));
-  verifie(fd.join() === 'persil 1 petit colis boisde 10 bouquets', 'filtre Ferme Deschamps : persil, 1 petit colis bois de 10 bouquets (obtenu ' + fd.join() + ')');
+  verifie(fd.join() === 'persil 1 petit colis boisde 10 bouquets,carotte 1 moyen colis boisde 8 kg', 'filtre Ferme Deschamps : persil en petit colis bois de 10 bouquets, carotte en moyen colis bois de 8 kg (obtenu ' + fd.join() + ')');
   await B.click('[data-c="ps"]');
   const betteps = await B.$eval('li[data-id="bette"] .qty', (x) => x.textContent);
   verifie(betteps === '3,5 grands colis boisde 5 kg · 17,5 kg', 'filtre Paniers : bette 3,5 grands colis bois de 5 kg, 17,5 kg comme en GH (obtenu ' + betteps + ')');
@@ -124,19 +124,19 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   await B.waitForTimeout(500);
   verifie((await B.textContent('#doneCount')) === '0', 'décocher chez François remet la ligne chez Aurore');
 
-  // 6. Barre de progression (liste du 4/11 : 165 kg et 66 unités ; tomates « tout » non comptées)
-  verifie((await B.textContent('#progPct')) === '0 %' && (await B.textContent('#progSum')) === '0 sur 165 kg, 0 sur 66 unités', 'barre globale à 0 % : 0 sur 165 kg, 0 sur 66 unités (obtenu ' + (await B.textContent('#progSum')) + ')');
+  // 6. Barre de progression (liste du 4/11 : 173 kg et 66 unités ; tomates « tout » non comptées)
+  verifie((await B.textContent('#progPct')) === '0 %' && (await B.textContent('#progSum')) === '0 sur 173 kg, 0 sur 66 unités', 'barre globale à 0 % : 0 sur 173 kg, 0 sur 66 unités (obtenu ' + (await B.textContent('#progSum')) + ')');
   verifie(!(await B.isVisible('#progU')), 'le détail est replié au départ');
   await A.click('li[data-id="endive"] .box');
   await A.click('li[data-id="celeri-branche"] .box');
   await B.waitForTimeout(500);
-  // (50 + 5,5) kg + 34 bottes = 89,5 sur 231 → 39 %
-  verifie((await B.textContent('#progPct')) === '39 %', 'les coches de François font avancer la barre globale chez Aurore : 39 % (obtenu ' + (await B.textContent('#progPct')) + ')');
-  verifie((await B.getAttribute('#progBar', 'aria-valuenow')) === '39', 'la barre verte est remplie à 39 %');
+  // (50 + 5,5) kg + 34 bottes = 89,5 sur 239 → 37 %
+  verifie((await B.textContent('#progPct')) === '37 %', 'les coches de François font avancer la barre globale chez Aurore : 37 % (obtenu ' + (await B.textContent('#progPct')) + ')');
+  verifie((await B.getAttribute('#progBar', 'aria-valuenow')) === '37', 'la barre verte est remplie à 37 %');
   await B.click('#prog .arrow');
   const u = await B.textContent('#progU'), k = await B.textContent('#progK');
   verifie(await B.isVisible('#progU') && u.includes('34 sur 66') && u.includes('52 %') && u.includes('Reste : 7 bottes, 10 bouquets, 10 poireaux, 5 pièces'), 'la flèche déplie la barre des unités : 34 sur 66, 52 % (obtenu ' + u.replace(/\s+/g, ' ').trim() + ')');
-  verifie(k.includes('55,5 sur 165 kg') && k.includes('34 %') && k.includes('Reste : 109,5 kg'), 'barre des kilos : 55,5 sur 165 kg, 34 % (obtenu ' + k.replace(/\s+/g, ' ').trim() + ')');
+  verifie(k.includes('55,5 sur 173 kg') && k.includes('32 %') && k.includes('Reste : 117,5 kg'), 'barre des kilos : 55,5 sur 173 kg, 32 % (obtenu ' + k.replace(/\s+/g, ' ').trim() + ')');
   verifie((await B.textContent('#progNote')).includes('Non compté (pas de quantité) : Tomates'), 'les tomates « tout » sont signalées comme non comptées');
 
   verifie(erreurs.length === 0, 'aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));

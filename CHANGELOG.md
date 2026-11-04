@@ -2,6 +2,7 @@
 
 ## 2026-11-04
 
+- Liste du 4/11 : la Ferme Deschamps ajoute 1 colis de carottes lavées (PH, 8 kg, donc 1 moyen colis bois de 8 kg, d'après le référentiel). Carotte : 3 colis, 24 kg ; liste : 173 kg et 66 unités. Pas de changement de l'appli, `CACHE` inchangé.
 - **Barre de progression** en haut de la liste (demande de François du 4/11) : « Récolté … % » avance à chaque coche, kilos et unités additionnés ; une flèche vers le bas déplie une barre pour les unités et une pour les kilos, avec ce qui reste. Lit le champ `kg` des lignes ; les tomates « tout » ne sont pas comptées. Liste du 4/11 : 165 kg et 66 unités.
 - `sw.js` : `CACHE` passe à `recolte-v9`. Test deux-téléphones : 24 vérifications (7 nouvelles) ; le test fait maintenant défiler jusqu'à la liste avant le glisser-déposer, car la barre pousse la bette hors de l'écran du téléphone simulé.
 - **Correctif colis bois** (remarque de François) : le colis bois garde le contenu de la caisse correspondante. L'appli l'écrit maintenant : « 1 petit colis bois de 10 bouquets », « 3,5 grands colis bois de 5 kg » (17,5 kg, comme en GH). Le filtre d'un circuit donne aussi le total en bouquets ou en bottes, plus seulement en kg. Quantités et comptes inchangés. `CACHE` → `recolte-v8`, test : 17 vérifications.
