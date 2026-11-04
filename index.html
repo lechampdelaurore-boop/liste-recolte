@@ -160,7 +160,7 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
     <summary><span>Caisses <span class="crate-sum" id="crateSum"></span></span><span class="chev">›</span></summary>
     <div class="crate-grid" id="crateGrid"></div>
     <label class="crate-opt"><input type="checkbox" id="perCirc" checked> <span>Une caisse par circuit (un demi-colis pour Très Allier et un pour le marché = 2 caisses). Décoché : les demi-colis d'un même produit sont regroupés.</span></label>
-    <p class="crate-note">Une caisse par colis, d'après le code du cumul (PB, PH, GB, GH). Les sachets Locavore, les bottes, les pièces et les tomates ne sont pas comptés.</p>
+    <p class="crate-note">Une caisse par colis, d'après le code du cumul (PB, PH, GB, GH). Des kilos hors colis (« 1 colis + 5 kg ») prennent une caisse de plus. Les sachets Locavore, les bottes, les pièces et les tomates ne sont pas comptés.</p>
     <p class="crate-note" id="crateAlt" hidden></p>
   </details>
 
@@ -336,13 +336,24 @@ function qtyHtml(it){
   }
   return esc(it.total) + (it.kg && it.kg !== it.total ? '<small>' + esc(it.kg) + '</small>' : '');
 }
+// Quantité d'un circuit en colis. Un nombre = des colis. Des kilos seuls hors colis (« 5 kg ») prennent
+// une caisse de plus : en part de colis si le colis est en kg (5 kg dans un colis de 6 kg = 5/6), sinon 1.
+// Les autres textes (sachets, bottes, pièces, « tout ») ne sont pas comptés.
+function colisOf(it, v){
+  if(typeof v === 'number') return v;
+  var m = /^\s*([\d,.]+)\s*(kg|g)\s*$/i.exec(String(v));
+  if(!m) return 0;
+  var kg = parseFloat(m[1].replace(',', '.')) / (m[2].toLowerCase() === 'g' ? 1000 : 1);
+  var c = /^([\d,.]+) kg$/.exec(it.condit || '');
+  return c ? kg / parseFloat(c[1].replace(',', '.')) : 1;
+}
 function itemCrates(it){
   var r = {};
   if(!it.caisse) return r;
   var sum = {}, n = {};
   Object.keys(it.circ).forEach(function(k){
-    var v = it.circ[k];
-    if(typeof v !== 'number' || v <= 0) return;
+    var v = colisOf(it, it.circ[k]);
+    if(!(v > 0)) return;
     if(ui.circ && k !== ui.circ) return;
     var key = altName(k, it.caisse) || it.caisse;
     sum[key] = (sum[key] || 0) + v; n[key] = (n[key] || 0) + Math.ceil(v);

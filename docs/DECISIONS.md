@@ -9,6 +9,7 @@
 | 04/11/2026 | Nouveau débouché « Ferme Deschamps » (orthographe confirmée par François). Persil : colis de 10 bouquets, en petit colis bois. |
 | 04/11/2026 | Le débouché « Paniers solidaires » s'appelle désormais « Panier adéquat » (même circuit, même identifiant `ps`, toujours en colis bois). |
 | 04/11/2026 | Nouveau débouché « Panier La Magic », en caisses PB, PH, GB, GH (pas en colis bois). |
+| 04/11/2026 | Des kilos hors colis (ex. 1 colis de 6 kg + 5 kg) comptent pour une caisse de plus dans le total des caisses ; dans la liste on écrit « 1 colis + 5 kg ». |
 | 04/11/2026 | **Lieu des récoltes masqué pour l'instant** : ni emplacement (T1-3, B4…), ni puces de zone, ni zone en vue Détail. Raison donnée par François : ces lieux sont recopiés à la main depuis l'assolement, pas reliés à Ouvre ta ferme, donc pas fiables. Retrait réversible : les champs `zone` et `ou` restent dans les listes, un réglage `MONTRER_LIEU` dans `index.html` les réaffiche. Un lien direct avec Ouvre ta ferme pourra les remplacer plus tard. Le bouton « Remettre l'ordre par zone » est retiré (pas seulement renommé). |
 | 04/11/2026 | Barre de progression en haut de la liste : la barre globale additionne kilos et unités (1 unité compte comme 1 kg). Détail sous une flèche : une barre pour les unités, une pour les kilos. |
 
