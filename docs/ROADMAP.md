@@ -29,6 +29,7 @@ François précise que l'appli est une **preuve de concept** testée en conditio
 | 16 | Lien avec Ouvre ta ferme, en lecture (par exemple l'emplacement des cultures ; c'est l'étape 9 précisée), au plus 4 requêtes par seconde | Code | Opus 5.5 · Élevé (proposé) | **François** (vas-y exprès ; accès à Ouvre ta ferme, clé saisie par lui seul) | Idée, à préciser |
 | 17 | Lien avec Ouvre ta ferme, en écriture (renseigner des informations dans leur logiciel) | Code | Opus 5.5 · Élevé (proposé) | **François** (vas-y exprès ; touche aux vraies données) | Idée lointaine, après 16 |
 | 18 | Préparer l'usage par plusieurs fermes : sortir de l'appli ce qui est propre à cette ferme (circuits, caisses, noms), accès par ferme | Code | Opus 5.5 · Élevé (proposé) | **François** (ouverture d'accès à d'autres personnes : vas-y exprès) | Idée lointaine, à cadrer avec l'étape 5 |
+| 19 | Description du colisage, paramétrable par l'utilisateur : pour chaque produit, les types de colisage selon les débouchés (caisse PB/PH/GB/GH, colis bois, bouquets, kilos…), modifiables dans le logiciel au lieu des fichiers du dépôt (aujourd'hui `referentiel/conditionnements.json` et `colisages` dans la liste) | Code | Opus 5.5 · Élevé (proposé) | **François** (demande du 4/11/2026 ; sauvegarde avant toute migration, règle 14) | Idée, à préciser ; utile à l'étape 10 et à l'étape 18 (plusieurs fermes) |
 
 Décidé le 4/11 : la préparation de commandes passe en premier ; les chantiers restent dans ce dépôt pour l'instant ; déménagement à re-décider avant l'étape 12.
 

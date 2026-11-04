@@ -2,7 +2,7 @@
 
 ## 2026-11-04
 
-- **Feuille de route** : vision de François inscrite (étapes 10 à 18, sans code) : préparation de commandes, commandes de plusieurs canaux, stock du magasin, arbitrage hebdomadaire, historique, prise de temps, lien Ouvre ta ferme, plusieurs fermes. Aucun changement de l'appli.
+- **Feuille de route** : vision de François inscrite (étapes 10 à 19, sans code) : préparation de commandes, commandes de plusieurs canaux, stock du magasin, arbitrage hebdomadaire, historique, prise de temps, lien Ouvre ta ferme, plusieurs fermes. Aucun changement de l'appli.
 
 - **Kilos hors colis** (demande de François) : une quantité en kilos seuls pour un circuit (« 5 kg ») compte maintenant pour une caisse de plus. Liste du 4/11 : patates douces 1 colis + 5 kg = 2 PH ; caisses rien de coché : 2 PB, 21 PH, 2 GB, 10 GH. `CACHE` → `recolte-v12`.
 - Nouveau débouché « Panier La Magic » (caisses habituelles, pas de colis bois). Liste du 4/11 : 5 kg de patates douces et 1 colis de radis noir rond (PH, 5 kg, d'après le référentiel ; produit ajouté à la liste, sans emplacement puisque le lieu est masqué) pour lui. Liste : 183 kg ; caisses : 19 → 20 PH. Les 5 kg sont écrits en kilos, comme la commande : ils ne sont pas comptés dans les caisses.
