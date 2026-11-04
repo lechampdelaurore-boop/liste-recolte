@@ -84,11 +84,12 @@ Une ancienne liste reste consultable avec `?liste=AAAA-MM-JJ` à la fin de l'adr
 - Il y a quatre types de caisses, avec le code du cumul : **PB** petite basse, **PH** petite haute, **GB** grande basse, **GH** grande haute.
 - Chaque produit porte un code de caisse (champ `caisse`), repris de [referentiel/conditionnements.json](referentiel/conditionnements.json). **Une caisse par colis.**
 - Par défaut, **une caisse par circuit** : un demi-colis pour Très Allier et un demi-colis pour le marché font 2 caisses, parce qu'ils partent à deux endroits. En décochant l'option, les demi-colis d'un même produit sont regroupés (ici, 1 caisse).
+- **Kilos hors colis** (demande de François, 04/11/2026) : une quantité écrite seulement en kilos pour un circuit (`"5 kg"`) prend une caisse de plus, du type du produit. Exemple : patate douce, 1 colis de 6 kg pour le marché + 5 kg pour Panier La Magic = 2 PH. Regroupées, ces kilos comptent pour leur part de colis (5 kg sur 6). Dans la vue Récolte, on garde l'écriture « 1 colis + 5 kg ».
 - Les sachets Locavore, les bottes, les pièces (Ellie, courges) et les tomates (« tout ») ne sont pas comptés.
 - **Colisage par débouché** : un circuit peut partir dans d'autres colis que les caisses. Panier adéquat, Locavore et Ferme Deschamps partent en **colis bois** (demande de François, 04/11/2026) : PB → petit colis bois, PH → moyen colis bois, GB et GH → grand colis bois. Seule l'étiquette change : un colis bois contient exactement la même chose que la caisse correspondante (10 bouquets de persil en PB = 10 bouquets en petit colis bois). Ces colis sont comptés à part, sous les caisses, et la vue Détail ou le filtre du circuit dit lequel prendre et ce qu'on y met (« Panier adéquat : 3,5 grands colis bois de 5 kg »). Comme pour les caisses, un demi-colis occupe un colis : 3,5 colis = 4 colis bois à préparer, dont un à moitié plein. Les autres circuits gardent PB, PH, GB, GH. Réglage dans la liste : voir [docs/format-liste.md](docs/format-liste.md#colisage-par-circuit).
 - Le chiffre affiché est ce qui **reste à remplir** : une ligne cochée sort du compte. Avec un filtre de zone ou de circuit, le calcul ne porte que sur ce qui est affiché.
 
-Liste du 4 novembre 2026, rien de coché : 2 PB, 20 PH, 2 GB, 10 GH, et 1 petit, 1 moyen, 4 grands colis bois (par circuit) ; ou 1 PB, 20 PH, 1 GB, 10 GH, et 1 petit, 1 moyen, 4 grands colis bois (regroupées).
+Liste du 4 novembre 2026, rien de coché : 2 PB, 21 PH, 2 GB, 10 GH, et 1 petit, 1 moyen, 4 grands colis bois (par circuit) ; ou 1 PB, 21 PH, 1 GB, 10 GH, et 1 petit, 1 moyen, 4 grands colis bois (regroupées).
 
 ## Barre de progression
 

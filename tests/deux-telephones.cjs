@@ -91,11 +91,11 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   const noms = await B.$$eval('.crate .nm', (e) => e.map((x) => x.textContent));
   verifie(noms.slice(4).join(',') === 'Petit colis bois,Moyen colis bois,Grand colis bois', 'les colis bois s\'ajoutent aux caisses (obtenu ' + noms.join(' / ') + ')');
   const caisses = await B.$$eval('.crate', (e) => e.map((x) => x.querySelector('b').textContent));
-  verifie(caisses.join(',') === '2,18,2,10,1,1,4', 'à remplir PB,PH,GB,GH,petit,moyen,grand bois = 2,18,2,10,1,1,4 (obtenu ' + caisses.join(',') + ')');
+  verifie(caisses.join(',') === '2,19,2,10,1,1,4', 'à remplir PB,PH,GB,GH,petit,moyen,grand bois = 2,19,2,10,1,1,4 (obtenu ' + caisses.join(',') + ')');
   await B.click('#crates summary');
   await B.click('#perCirc');
   const regroupees = await B.$$eval('.crate', (e) => e.map((x) => x.querySelector('b').textContent));
-  verifie(regroupees.join(',') === '1,18,1,10,1,1,4', 'demi-colis regroupés = 1,18,1,10,1,1,4 (obtenu ' + regroupees.join(',') + ')');
+  verifie(regroupees.join(',') === '1,19,1,10,1,1,4', 'demi-colis regroupés = 1,19,1,10,1,1,4 (obtenu ' + regroupees.join(',') + ')');
   verifie((await B.textContent('#crateAlt')).includes('Panier adéquat, Locavore, Ferme Deschamps : PB → petit colis bois, PH → moyen colis bois, GB → grand colis bois, GH → grand colis bois'), 'le rappel du colisage bois est affiché');
 
   // 3 bis. Vue Détail : le circuit en colis bois dit lequel, les autres gardent « colis »
@@ -116,6 +116,8 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   await B.click('[data-c="lm"]');
   const lm = await B.$$eval('#todo li.item', (e) => e.map((x) => x.dataset.id + ' ' + x.querySelector('.qty').textContent));
   verifie(lm.join() === 'radis-noir 1 colis5 kg,patate-douce 5 kg', 'filtre Panier La Magic : radis noir 1 colis (PH), patate douce 5 kg (obtenu ' + lm.join() + ')');
+  const phLm = await B.$eval('.crate[data-c="PH"] b', (x) => x.textContent);
+  verifie(phLm === '2', 'Panier La Magic : les 5 kg de patates douces hors colis prennent une caisse PH de plus, avec le radis noir = 2 PH (obtenu ' + phLm + ')');
   await B.click('[data-c="ps"]');
   const betteps = await B.$eval('li[data-id="bette"] .qty', (x) => x.textContent);
   verifie(betteps === '3,5 grands colis boisde 5 kg · 17,5 kg', 'filtre Panier adéquat : bette 3,5 grands colis bois de 5 kg, 17,5 kg comme en GH (obtenu ' + betteps + ')');

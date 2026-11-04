@@ -50,7 +50,7 @@ Un fichier par jour de récolte : `listes/AAAA-MM-JJ.json`. `listes/actuelle.jso
 | `items[].id` | oui | Garder le même `id` d'une semaine à l'autre pour un même produit. |
 | `items[].zone` | non (masqué depuis le 04/11/2026) | Libellés : `Tunnel`, `Plein champ`, `Stock` (lieu réel, d'après les planches Ouvre ta ferme : T = tunnel, B = plein champ). Ne pas inventer d'autre regroupement. L'ordre des puces suit le premier produit de chaque zone. |
 | `items[].caisse` | oui | Code du cumul. `null` pour les produits hors caisse (tomates « tout », persil en botte, courges à la pièce). |
-| `items[].circ` | oui | Nombre = colis ; texte = autre unité. Un circuit absent ou à 0 n'est pas affiché. |
+| `items[].circ` | oui | Nombre = colis ; texte = autre unité. Un texte en kilos seuls (`"5 kg"`, hors colis) compte pour une caisse de plus. Un circuit absent ou à 0 n'est pas affiché. |
 | `items[].total`, `items[].kg` | oui | Calculés à la main (colis × conditionnement, plus les autres unités). L'appli ne les recalcule pas. La barre de progression lit `kg` : écrire « N kg », « N g » ou « N mot » (bottes, bouquets, pièces…), reliés par « + ». Un texte sans nombre (« tout ») n'est pas compté. |
 
 ## Colisage par circuit
