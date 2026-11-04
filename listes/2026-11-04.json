@@ -2,14 +2,18 @@
   "id": "2026-11-04",
   "titre": "Récolte du mercredi 4 novembre",
   "pour": "Livraisons du jeudi 5 et marché du vendredi 6 novembre 2026",
-  "source": "Cumul envoyé par François le 03/11/2026, paniers solidaires, Ellie et Locavore. Emplacements d'après l'assolement Ouvre ta ferme du 14/10/2026, à vérifier sur place.",
+  "source": "Cumul envoyé par François le 03/11/2026, paniers solidaires, Ellie et Locavore ; commande Ferme Deschamps donnée par François le 04/11/2026. Emplacements d'après l'assolement Ouvre ta ferme du 14/10/2026, à vérifier sur place.",
+  "colisages": {
+    "bois": {"PB": "Petit colis bois", "PH": "Moyen colis bois", "GB": "Grand colis bois", "GH": "Grand colis bois"}
+  },
   "circuits": [
     {"id": "ta", "nom": "Très Allier", "court": "TA"},
     {"id": "mk", "nom": "Marché ven.", "court": "Marché"},
-    {"id": "ps", "nom": "Paniers solidaires", "court": "Paniers"},
+    {"id": "ps", "nom": "Paniers solidaires", "court": "Paniers", "colisage": "bois"},
     {"id": "el", "nom": "Ellie", "court": "Ellie"},
-    {"id": "lv", "nom": "Locavore", "court": "Locavore"},
-    {"id": "av", "nom": "Auvabio 03", "court": "Auvabio"}
+    {"id": "lv", "nom": "Locavore", "court": "Locavore", "colisage": "bois"},
+    {"id": "av", "nom": "Auvabio 03", "court": "Auvabio"},
+    {"id": "fd", "nom": "Ferme Deschamps", "court": "Deschamps", "colisage": "bois"}
   ],
   "items": [
     {"id": "mesclun", "produit": "Mesclun", "zone": "Tunnel", "ou": "T1-3 (mesclun d'automne)", "caisse": "PH", "condit": "1 kg", "circ": {"ta": 1, "mk": 1}, "total": "2 colis", "kg": "2 kg"},
@@ -18,7 +22,7 @@
     {"id": "bette", "produit": "Bette", "zone": "Tunnel", "ou": "T4-2 (bette S36), sinon B2-8/9, B10-6/7, B3-6", "caisse": "GH", "condit": "5 kg", "circ": {"ta": 1, "mk": 1.5, "ps": 3.5, "lv": "1 × 1 kg + 4 × 500 g"}, "total": "6 colis + 3 kg", "kg": "33 kg"},
     {"id": "tomates", "produit": "Tomates (ronde rouge, cerise, ancienne pop.)", "zone": "Tunnel", "ou": "T2", "caisse": null, "condit": "PH 5 kg / PB 3 kg / GB 6 kg", "circ": {"ta": "tout"}, "total": "tout ce qu'il y a", "kg": "tout"},
     {"id": "aromatiques", "produit": "Aromatiques", "zone": "Plein champ", "ou": "non précisé", "caisse": "PB", "condit": "6 bottes", "circ": {"ta": 0.5, "mk": 0.5}, "total": "1 colis (6 bottes)", "kg": "6 bottes"},
-    {"id": "persil", "produit": "Persil frisé", "zone": "Plein champ", "ou": "B7-4 ou B2-10 (persil S21, S12)", "caisse": null, "condit": "botte", "circ": {"lv": "1 botte"}, "total": "1 botte", "kg": "1 botte"},
+    {"id": "persil", "produit": "Persil frisé", "zone": "Plein champ", "ou": "B7-4 ou B2-10 (persil S21, S12)", "caisse": "PB", "condit": "10 bouquets", "circ": {"lv": "1 botte", "fd": 1}, "total": "1 colis (10 bouquets) + 1 botte", "kg": "10 bouquets + 1 botte"},
     {"id": "rhubarbe", "produit": "Rhubarbe", "zone": "Plein champ", "ou": "B11-10", "caisse": null, "condit": "500 g", "circ": {"lv": "3 × 500 g"}, "total": "1,5 kg", "kg": "1,5 kg"},
     {"id": "chou-frise", "produit": "Chou frisé", "zone": "Plein champ", "ou": "B1-8/9, B2-3 à B2-5 (choux d'automne et d'hiver)", "caisse": "GH", "condit": "6 kg", "circ": {"mk": 0.5}, "total": "0,5 colis", "kg": "3 kg"},
     {"id": "chou-vert", "produit": "Chou vert", "zone": "Plein champ", "ou": "B1-8/9, B2-3 à B2-5 (choux d'automne et d'hiver)", "caisse": "GH", "condit": "10 kg", "circ": {"mk": 0.5}, "total": "0,5 colis", "kg": "5 kg"},

@@ -1,10 +1,23 @@
 {
- "source": "Onglet « Liste produits » du cumul, envoyé par François le 03/11/2026 (capture). Poireau : 10 kg confirmé par François le 03/11/2026 (la ligne vide du cumul est un doublon).",
+ "source": "Onglet « Liste produits » du cumul, envoyé par François le 03/11/2026 (capture). Poireau : 10 kg confirmé par François le 03/11/2026 (la ligne vide du cumul est un doublon). Persil frisé : colis de 10 bouquets en petit colis bois, donné par François le 04/11/2026 (commande Ferme Deschamps). Colisage bois : François, 04/11/2026.",
  "caisses": {
   "PB": "petite basse",
   "PH": "petite haute",
   "GB": "grande basse",
   "GH": "grande haute"
+ },
+ "colisages": {
+  "bois": {
+   "PB": "Petit colis bois",
+   "PH": "Moyen colis bois",
+   "GB": "Grand colis bois",
+   "GH": "Grand colis bois"
+  }
+ },
+ "circuits_colisage": {
+  "Locavore": "bois",
+  "Paniers solidaires": "bois",
+  "Ferme Deschamps": "bois"
  },
  "produits": [
   {
@@ -298,6 +311,13 @@
    "caisse": "PH",
    "unite": "6 kg",
    "kg": 6.0
+  },
+  {
+   "produit": "Persil frisé (bouquet)",
+   "caisse": "PB",
+   "unite": "Bouquet (x10)",
+   "par_colis": 10,
+   "type": "bouquet"
   },
   {
    "produit": "Petit-Pois",

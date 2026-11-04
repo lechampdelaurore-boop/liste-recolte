@@ -83,18 +83,32 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   await A.waitForTimeout(500);
   verifie((await ordre(A))[0] === 'bette', 'après un appui long, la bette glissée en tête chez Aurore est en tête chez François');
 
-  // 3. Caisses (mesclun coché : 2 PH en moins)
+  // 3. Caisses (mesclun coché : 2 PH en moins). Paniers solidaires, Locavore et Ferme Deschamps sont en colis bois :
+  //    la bette des paniers (3,5 colis GH) compte 4 grands colis bois, le persil Deschamps (1 colis PB) 1 petit colis bois.
+  const noms = await B.$$eval('.crate .nm', (e) => e.map((x) => x.textContent));
+  verifie(noms.slice(4).join(',') === 'Petit colis bois,Moyen colis bois,Grand colis bois', 'les colis bois s\'ajoutent aux caisses (obtenu ' + noms.join(' / ') + ')');
   const caisses = await B.$$eval('.crate', (e) => e.map((x) => x.querySelector('b').textContent));
-  verifie(caisses.join(',') === '2,17,2,14', 'caisses à remplir PB,PH,GB,GH = 2,17,2,14 (obtenu ' + caisses.join(',') + ')');
+  verifie(caisses.join(',') === '2,17,2,10,1,0,4', 'à remplir PB,PH,GB,GH,petit,moyen,grand bois = 2,17,2,10,1,0,4 (obtenu ' + caisses.join(',') + ')');
   await B.click('#crates summary');
   await B.click('#perCirc');
   const regroupees = await B.$$eval('.crate', (e) => e.map((x) => x.querySelector('b').textContent));
-  verifie(regroupees.join(',') === '1,17,1,13', 'demi-colis regroupés = 1,17,1,13 (obtenu ' + regroupees.join(',') + ')');
+  verifie(regroupees.join(',') === '1,17,1,10,1,0,4', 'demi-colis regroupés = 1,17,1,10,1,0,4 (obtenu ' + regroupees.join(',') + ')');
+  verifie((await B.textContent('#crateAlt')).includes('Paniers solidaires, Locavore, Ferme Deschamps : PB → petit colis bois, PH → moyen colis bois, GB → grand colis bois, GH → grand colis bois'), 'le rappel du colisage bois est affiché');
+
+  // 3 bis. Vue Détail : le circuit en colis bois dit lequel, les autres gardent « colis »
+  await B.click('[data-view="detail"]');
+  const tagsBette = await B.$$eval('li[data-id="bette"] .tag', (e) => e.map((x) => x.textContent));
+  verifie(tagsBette.includes('Paniers : 3,5 grands colis bois') && tagsBette.includes('TA : 1 colis') && tagsBette.includes('GH · 5 kg'), 'détail bette : Paniers en grands colis bois, TA en colis (obtenu ' + tagsBette.join(' / ') + ')');
+  await B.click('[data-view="recolte"]');
 
   // 4. Filtre circuit
   await B.click('[data-c="lv"]');
   const lv = await B.$$eval('#todo li.item', (e) => e.length);
   verifie(lv === 7, 'filtre Locavore : 7 lignes (obtenu ' + lv + ')');
+  await B.click('[data-c="fd"]');
+  const fd = await B.$$eval('#todo li.item', (e) => e.map((x) => x.dataset.id + ' ' + x.querySelector('.qty').textContent));
+  verifie(fd.join() === 'persil 1 petit colis bois', 'filtre Ferme Deschamps : persil, 1 petit colis bois (obtenu ' + fd.join() + ')');
+  await B.click('[data-c=""]');
 
   // 5. Décocher
   await A.click('#doneSec summary');
