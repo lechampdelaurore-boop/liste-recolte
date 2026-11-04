@@ -146,7 +146,7 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   const tags = await B.$$eval('li.item .tag', (e) => e.map((x) => x.textContent.trim()));
   verifie(tags.length > 0 && !tags.some((t) => ['Tunnel', 'Plein champ', 'Stock'].includes(t)), 'la vue Détail n\'affiche plus la zone');
   await B.click('[data-view="recolte"]');
-  verifie((await B.textContent('#resetOrder')).trim() === "Remettre l'ordre de départ", 'le bouton du bas dit « Remettre l\'ordre de départ »');
+  verifie((await B.$$('#resetOrder')).length === 0, 'le bouton « Remettre l\'ordre par zone » a disparu');
 
   verifie(erreurs.length === 0, 'aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));
   await nav.close(); site.close(); base.close();

@@ -34,4 +34,4 @@ Lecture et écriture libres sous `listes/`, rien ailleurs. Pas de mot de passe :
 
 ## Vider une semaine
 
-Dans la console Firebase, onglet Data, supprimer le nœud `listes/<id>`. Les téléphones repartent avec des cases vides et l'ordre par zone.
+Dans la console Firebase, onglet Data, supprimer le nœud `listes/<id>`. Les téléphones repartent avec des cases vides et l'ordre du fichier.

@@ -11,7 +11,7 @@ Réglage « Modèle · effort » : le code se fait en Opus 5.5, au niveau d'effo
 | 5 | Renforcer l'accès à la base (connexion Google, Firebase Authentication, SDK à ajouter) | Code | Opus 5.5 · Élevé (proposé) | **François** : ouvre ou ferme un accès, vas-y exprès | Pas décidé |
 | 6 | Colisage par débouché (colis bois) et commande Ferme Deschamps du 4/11 | Code et données | Opus 5.5 · Élevé (choisi par le coordinateur, étape absente de la roadmap au lancement) | **François** (demande du 4/11/2026) | Fait (PR #2), correctif contenu (PR #4) |
 | 7 | Barre de progression en haut de la liste (globale kilos + unités ; détail unités et kilos sous une flèche) | Code | Opus 5.5 · Élevé (choisi par Claude, délégation de François du 4/11) | **François** (demande du 4/11/2026 ; kilos et unités additionnés, choisi le 4/11) | Fait (PR #3) |
-| 8 | Masquer le lieu des récoltes (emplacement et zones), réversible | Code | Opus 5.5 · Moyen (choisi par Claude, délégation de François du 4/11) | **François** (demande du 4/11/2026) | En cours (PR à venir) |
+| 8 | Masquer le lieu des récoltes (emplacement et zones), réversible | Code | Opus 5.5 · Moyen (choisi par Claude, délégation de François du 4/11) | **François** (demande du 4/11/2026 ; zones cachées aussi, choisi le 4/11) | Fait (PR #5) |
 | 9 | Relier le lieu des récoltes à Ouvre ta ferme (lecture de l'assolement, au plus 4 requêtes par seconde), pour réafficher emplacement et zones | Code | À fixer | **François** (vas-y exprès ; accès à Ouvre ta ferme) | Idée, pas décidé |
 
 Hors de cette feuille : les futurs outils (gestion de stock, etc.) iront dans le dépôt `outils-de-la-ferme`, pas ici.

@@ -30,7 +30,6 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 | **Récolté … %** (barre en haut de la liste) | Avance à chaque coche, sur les deux téléphones : kilos et unités additionnés (voir [Barre de progression](#barre-de-progression)). La petite flèche vers le bas déplie le détail : une barre pour les unités (bottes, bouquets, pièces…), une barre pour les kilos, avec ce qui reste. |
 | **Caisses ›** | Nombre de caisses PB, PH, GB, GH, et de colis bois, qui restent à remplir (voir [Calcul des caisses](#calcul-des-caisses)). |
 | **👤 prénom** (en haut à droite) | Change le prénom affiché sur les coches. Demandé à la première coche. |
-| **Remettre l'ordre de départ** (tout en bas) | Annule les glisser-déposer, pour les deux téléphones. |
 
 La pastille sous le titre dit l'état du partage :
 - **Partagé** (vert) : tout est envoyé.
@@ -76,7 +75,7 @@ Chaque semaine, la liste vient du **cumul** (colonnes total JEUDI, Très Allier 
 
 1. Créer `listes/AAAA-MM-JJ.json` (date du jour de récolte), au format décrit dans [docs/format-liste.md](docs/format-liste.md). Le plus simple : copier la liste précédente et changer les quantités.
 2. Dans `listes/actuelle.json`, mettre le nouvel identifiant : `{"liste": "AAAA-MM-JJ"}`.
-3. Ouvrir une **PR** (jamais d'envoi direct sur `main`), lancer le test, puis fusionner une fois les contrôles verts. Les téléphones affichent la nouvelle liste à la prochaine ouverture, avec des cases vides et l'ordre par zone (les coches et l'ordre sont rangés par liste).
+3. Ouvrir une **PR** (jamais d'envoi direct sur `main`), lancer le test, puis fusionner une fois les contrôles verts. Les téléphones affichent la nouvelle liste à la prochaine ouverture, avec des cases vides et l'ordre du fichier (les coches et l'ordre sont rangés par liste).
 
 Une ancienne liste reste consultable avec `?liste=AAAA-MM-JJ` à la fin de l'adresse.
 
