@@ -5,6 +5,8 @@
 | 03/11/2026 | Garder `liste-recolte` comme dépôt à part : le site en ligne et Cloudflare Pages y sont reliés. Les futurs outils iront dans `outils-de-la-ferme`. |
 | 03/11/2026 | Chaque liste de la semaine passe par une PR, plus d'envoi direct sur `main`. |
 | 03/11/2026 | `AGENTS.md` et les registres vivent dans `liste-recolte` ; `CLAUDE.md` renvoie vers `AGENTS.md`. |
+| 04/11/2026 | Locavore, Paniers solidaires et Ferme Deschamps partent toujours en colis bois : GH et GB → grand colis bois, PH → moyen colis bois, PB → petit colis bois. Les autres circuits gardent PB, PH, GB, GH. Le colisage se règle par circuit dans la liste (pas réservé à cette ferme). |
+| 04/11/2026 | Nouveau débouché « Ferme Deschamps » (orthographe confirmée par François). Persil : colis de 10 bouquets, en petit colis bois. |
 
 ## Décisions de conception (reprises du prompt de reprise du 03/11/2026)
 
