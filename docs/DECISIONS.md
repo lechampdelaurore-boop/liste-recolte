@@ -16,6 +16,7 @@
 | 04/11/2026 | Les nouveaux chantiers (étapes 10 à 18) restent dans `liste-recolte` pour l'instant. Un éventuel déménagement vers `outils-de-la-ferme` se re-décide avant la page stock du magasin (étape 12). |
 | 04/11/2026 | Premier chantier de la vision : la préparation de commandes (étape 10). Les autres suivent après. |
 | 04/11/2026 | La page stock du magasin (étape 12) doit être ouverte aussi aux personnes du magasin. Cela suppose de renforcer d'abord l'accès à la base (étape 5) ; l'ouverture reste soumise au « vas-y » exprès de François. |
+| 04/11/2026 | Arbitrage hebdomadaire (étape 13) : un simple tableau, sans suggestion automatique. François et Aurore renseignent les stocks qu'ils pensent avoir de disponibles dans la semaine (champ, ferme, magasin) et les répartissent eux-mêmes entre les canaux de commercialisation. François montrera le tableau de cumul plus tard. |
 
 ## Décisions de conception (reprises du prompt de reprise du 03/11/2026)
 
