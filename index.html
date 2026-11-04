@@ -57,6 +57,7 @@ details[open]>summary .chev{transform:rotate(90deg)}
 .crate span{font-size:.85rem;color:var(--muted)}
 .crate .nm{font-weight:800;font-size:.95rem}
 .crate[data-c="PB"] .nm{color:var(--pb)} .crate[data-c="PH"] .nm{color:var(--ph)} .crate[data-c="GB"] .nm{color:var(--gb)} .crate[data-c="GH"] .nm{color:var(--gh)}
+.crate.alt{border-style:dashed;border-width:3px}
 .crate-opt{display:flex;gap:10px;align-items:flex-start;padding:0 14px 12px;font-size:.9rem;color:var(--muted)}
 .crate-opt input{width:24px;height:24px;flex:none;margin:0;accent-color:var(--accent)}
 .crate-note{padding:0 14px 12px;margin:0;font-size:.85rem;color:var(--muted)}
@@ -78,6 +79,7 @@ li.done .box{background:var(--accent);border-color:var(--accent)} li.done .box s
 .tag{border-radius:6px;padding:2px 7px;border:1.5px solid var(--line);font-weight:600}
 .tag.c{font-weight:800;border-color:currentColor}
 .tag.c[data-c="PB"]{color:var(--pb)} .tag.c[data-c="PH"]{color:var(--ph)} .tag.c[data-c="GB"]{color:var(--gb)} .tag.c[data-c="GH"]{color:var(--gh)}
+.tag.alt{border-style:dashed;font-weight:800}
 .by{grid-column:2 / 4;font-size:.85rem;color:var(--muted);font-weight:600}
 li.done .prod{text-decoration:line-through;text-decoration-thickness:2px}
 li.done{border-style:dashed}
@@ -121,6 +123,7 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
     <div class="crate-grid" id="crateGrid"></div>
     <label class="crate-opt"><input type="checkbox" id="perCirc" checked> <span>Une caisse par circuit (un demi-colis pour Très Allier et un pour le marché = 2 caisses). Décoché : les demi-colis d'un même produit sont regroupés.</span></label>
     <p class="crate-note">Une caisse par colis, d'après le code du cumul (PB, PH, GB, GH). Les sachets Locavore, les bottes, les pièces et les tomates ne sont pas comptés.</p>
+    <p class="crate-note" id="crateAlt" hidden></p>
   </details>
 
   <p class="hint">Appui long sur une ligne pour la déplacer.</p>
@@ -181,6 +184,7 @@ function start(){
 function init(data){
   list = data; byId = {};
   data.items.forEach(function(it){ byId[it.id] = it; });
+  circById = {}; data.circuits.forEach(function(ci){ circById[ci.id] = ci; });
   MKEY = 'recolte.liste.' + data.id;
   var saved = ls(MKEY); if(saved) mirror = {order: saved.order || null, done: saved.done || {}};
   pending = ls('recolte.pending.' + data.id) || [];
@@ -217,7 +221,7 @@ function buildChips(){
     zones.map(function(n){ return '<button class="chip" type="button" data-z="' + esc(n) + '">' + esc(n) + '</button>'; }).join('');
   z.onclick = function(e){ var b = e.target.closest('[data-z]'); if(!b) return; ui.zone = b.dataset.z; saveUi(); render(); };
   var c = $('#circs');
-  var used = list.circuits.filter(function(ci){ return list.items.some(function(it){ return it.circ[ci.id] !== undefined && it.circ[ci.id] !== 0; }); });
+  var used = list.circuits.filter(usedCirc);
   if(ui.circ && !used.some(function(ci){ return ci.id === ui.circ; })) ui.circ = '';
   c.innerHTML = '<button class="chip" type="button" data-c="">Tous circuits</button>' +
     used.map(function(ci){ return '<button class="chip" type="button" data-c="' + ci.id + '">' + esc(ci.nom) + '</button>'; }).join('');
@@ -233,31 +237,66 @@ function buildChips(){
   $('#doneSec').ontoggle = function(){ ui.doneOpen = this.open; saveUi(); };
 }
 
+/* ---------- Colisage par circuit ---------- */
+// Un circuit peut avoir son propre colisage (ex. « bois » : PB → Petit colis bois, PH → Moyen colis bois,
+// GB et GH → Grand colis bois). Défini dans la liste : "colisages" et circuits[].colisage.
+var circById = {};
+function altName(circId, caisse){
+  var ci = circById[circId], m = ci && ci.colisage && list.colisages && list.colisages[ci.colisage];
+  return (m && caisse && m[caisse]) || null;
+}
+function plural(name, v){
+  if(v < 2) return name;
+  return name.replace(/^(\S+?)(s|x)?(?=\s|$)/, function(w, a, end){ return a + (end || 's'); });
+}
+// Les types de colis à compter, dans l'ordre : PB, PH, GB, GH, puis les colisages des circuits utilisés.
+function crateKinds(){
+  var kinds = CRATES.map(function(c){ return {key:c[0], nm:c[1] + ' (' + c[0] + ')', alt:false}; });
+  var seen = {};
+  list.circuits.forEach(function(ci){
+    var m = ci.colisage && list.colisages && list.colisages[ci.colisage];
+    if(!m || seen[ci.colisage] || !usedCirc(ci)) return;
+    seen[ci.colisage] = 1;
+    CRATES.forEach(function(c){
+      var n = m[c[0]];
+      if(n && !kinds.some(function(k){ return k.key === n; })) kinds.push({key:n, nm:n, alt:true});
+    });
+  });
+  return kinds;
+}
+function usedCirc(ci){ return list.items.some(function(it){ return it.circ[ci.id] !== undefined && it.circ[ci.id] !== 0; }); }
+
 /* ---------- Quantités ---------- */
 function circLabel(ci, v, it){
-  if(typeof v === 'number') return fr(v) + ' colis';
+  if(typeof v === 'number'){
+    var alt = ci && altName(ci.id, it.caisse);
+    return fr(v) + ' ' + (alt ? plural(alt.charAt(0).toLowerCase() + alt.slice(1), v) : 'colis');
+  }
   return v;
 }
 function qtyHtml(it){
   if(ui.circ){
     var v = it.circ[ui.circ];
     var kg = (typeof v === 'number' && /^[\d,.]+ kg$/.test(it.condit)) ? '<small>' + fr(Math.round(v * parseFloat(it.condit.replace(',', '.')) * 10) / 10) + ' kg</small>' : '';
-    return esc(circLabel(null, v, it)) + kg;
+    return esc(circLabel(circById[ui.circ], v, it)) + kg;
   }
   return esc(it.total) + (it.kg && it.kg !== it.total ? '<small>' + esc(it.kg) + '</small>' : '');
 }
 function itemCrates(it){
   var r = {};
   if(!it.caisse) return r;
-  var sum = 0, n = 0;
+  var sum = {}, n = {};
   Object.keys(it.circ).forEach(function(k){
     var v = it.circ[k];
     if(typeof v !== 'number' || v <= 0) return;
     if(ui.circ && k !== ui.circ) return;
-    sum += v; n += Math.ceil(v);
+    var key = altName(k, it.caisse) || it.caisse;
+    sum[key] = (sum[key] || 0) + v; n[key] = (n[key] || 0) + Math.ceil(v);
   });
-  var count = ui.perCirc ? n : Math.ceil(sum);
-  if(count) r[it.caisse] = count;
+  Object.keys(sum).forEach(function(key){
+    var count = ui.perCirc ? n[key] : Math.ceil(sum[key]);
+    if(count) r[key] = count;
+  });
   return r;
 }
 
@@ -273,7 +312,7 @@ function itemHtml(it, done){
     list.circuits.forEach(function(ci){
       var v = it.circ[ci.id];
       if(v === undefined || v === 0) return;
-      tags.push('<span class="tag">' + esc(ci.court) + ' : ' + esc(circLabel(ci, v, it)) + '</span>');
+      tags.push('<span class="tag' + (typeof v === 'number' && altName(ci.id, it.caisse) ? ' alt' : '') + '">' + esc(ci.court) + ' : ' + esc(circLabel(ci, v, it)) + '</span>');
     });
     tags.push('<span class="tag">' + esc(it.zone) + '</span>');
     d = '<div class="detail">' + tags.join('') + '</div>';
@@ -317,11 +356,24 @@ function renderCrates(){
     });
   });
   var allT = 0, allR = 0;
-  $('#crateGrid').innerHTML = CRATES.map(function(c){
-    var t = tot[c[0]] || 0, r = rest[c[0]] || 0; allT += t; allR += r;
-    return '<div class="crate" data-c="' + c[0] + '"><span class="nm">' + c[1] + ' (' + c[0] + ')</span><b>' + r + '</b><span>' +
+  $('#crateGrid').innerHTML = crateKinds().map(function(k){
+    var t = tot[k.key] || 0, r = rest[k.key] || 0; allT += t; allR += r;
+    return '<div class="crate' + (k.alt ? ' alt' : '') + '" data-c="' + esc(k.key) + '"><span class="nm">' + esc(k.nm) + '</span><b>' + r + '</b><span>' +
       (t === r ? 'à remplir' : 'à remplir sur ' + t) + '</span></div>';
   }).join('');
+  // Rappel des circuits qui ont leur propre colisage
+  var groups = {};
+  list.circuits.forEach(function(ci){
+    var m = ci.colisage && list.colisages && list.colisages[ci.colisage];
+    if(!m || !usedCirc(ci)) return;
+    (groups[ci.colisage] = groups[ci.colisage] || []).push(ci.nom);
+  });
+  var notes = Object.keys(groups).map(function(g){
+    var m = list.colisages[g];
+    return groups[g].join(', ') + ' : ' + CRATES.filter(function(c){ return m[c[0]]; }).map(function(c){ return c[0] + ' → ' + m[c[0]].toLowerCase(); }).join(', ') + '.';
+  });
+  $('#crateAlt').hidden = !notes.length;
+  $('#crateAlt').textContent = notes.join(' ');
   $('#crateSum').textContent = '· ' + allR + (allR !== allT ? ' sur ' + allT : '') + ' à remplir';
 }
 

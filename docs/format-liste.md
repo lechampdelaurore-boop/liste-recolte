@@ -10,9 +10,13 @@ Un fichier par jour de récolte : `listes/AAAA-MM-JJ.json`. `listes/actuelle.jso
   "titre": "Récolte du mercredi 4 novembre",
   "pour": "Livraisons du jeudi 5 et marché du vendredi 6 novembre 2026",
   "source": "Cumul envoyé par François le 03/11/2026, ...",   // affiché en bas de page
+  "colisages": {                             // facultatif : autres colis que les caisses, par code de caisse
+    "bois": {"PB": "Petit colis bois", "PH": "Moyen colis bois", "GB": "Grand colis bois", "GH": "Grand colis bois"}
+  },
   "circuits": [                              // ordre d'affichage des circuits
     {"id": "ta", "nom": "Très Allier", "court": "TA"},
-    {"id": "mk", "nom": "Marché ven.", "court": "Marché"}
+    {"id": "mk", "nom": "Marché ven.", "court": "Marché"},
+    {"id": "lv", "nom": "Locavore", "court": "Locavore", "colisage": "bois"}   // ce circuit part en colis bois
   ],
   "items": [
     {
@@ -41,12 +45,19 @@ Un fichier par jour de récolte : `listes/AAAA-MM-JJ.json`. `listes/actuelle.jso
 |---|---|---|
 | `id` | oui | Date de récolte `AAAA-MM-JJ`. Changer d'`id` repart avec des cases vides. |
 | `titre`, `pour`, `source` | oui | Textes affichés. `source` doit dire d'où viennent les chiffres et à quelle date. |
-| `circuits[]` | oui | `id` court (sert de clé dans `circ`), `nom` (puce de filtre), `court` (vue Détail). Un circuit sans aucune quantité n'a pas de puce. |
+| `colisages` | non | Voir [Colisage par circuit](#colisage-par-circuit). |
+| `circuits[]` | oui | `id` court (sert de clé dans `circ`), `nom` (puce de filtre), `court` (vue Détail), `colisage` (facultatif, nom d'un colisage de `colisages`). Un circuit sans aucune quantité n'a pas de puce. |
 | `items[].id` | oui | Garder le même `id` d'une semaine à l'autre pour un même produit. |
 | `items[].zone` | oui | Libellés : `Tunnel`, `Plein champ`, `Stock` (lieu réel, d'après les planches Ouvre ta ferme : T = tunnel, B = plein champ). Ne pas inventer d'autre regroupement. L'ordre des puces suit le premier produit de chaque zone. |
 | `items[].caisse` | oui | Code du cumul. `null` pour les produits hors caisse (tomates « tout », persil en botte, courges à la pièce). |
 | `items[].circ` | oui | Nombre = colis ; texte = autre unité. Un circuit absent ou à 0 n'est pas affiché. |
 | `items[].total`, `items[].kg` | oui | Calculés à la main (colis × conditionnement, plus les autres unités). L'appli ne les recalcule pas. |
+
+## Colisage par circuit
+
+Par défaut, un colis part dans la caisse de son code (`caisse` : PB, PH, GB, GH). Un circuit qui livre dans d'autres colis porte `"colisage": "<nom>"`, et `colisages.<nom>` donne, pour chaque code de caisse, le colis à prendre à la place. Pour ce circuit, l'appli affiche et compte ce colis-là au lieu de la caisse ; les autres circuits du même produit gardent la caisse.
+
+Au Champ de l'Aurore (04/11/2026) : Paniers solidaires, Locavore et Ferme Deschamps sont en colis bois. Recopier `colisages` et les `colisage` des circuits depuis `referentiel/conditionnements.json` (clés `colisages` et `circuits_colisage`). Un autre colisage ou une autre ferme : ajouter une entrée dans `colisages`, sans toucher à l'appli.
 
 ## Règles pour remplir
 
