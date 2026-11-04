@@ -30,6 +30,8 @@ François précise que l'appli est une **preuve de concept** testée en conditio
 | 17 | Lien avec Ouvre ta ferme, en écriture (renseigner des informations dans leur logiciel) | Code | Opus 5.5 · Élevé (proposé) | **François** (vas-y exprès ; touche aux vraies données) | Idée lointaine, après 16 |
 | 18 | Préparer l'usage par plusieurs fermes : sortir de l'appli ce qui est propre à cette ferme (circuits, caisses, noms), accès par ferme | Code | Opus 5.5 · Élevé (proposé) | **François** (ouverture d'accès à d'autres personnes : vas-y exprès) | Idée lointaine, à cadrer avec l'étape 5 |
 
-Questions encore ouvertes (à régler avec François) : où vivent ces chantiers (ici ou dans `outils-de-la-ferme`), dans quel ordre, et comment les commandes arrivent dans le logiciel.
+Décidé le 4/11 : les chantiers restent dans ce dépôt pour l'instant ; déménagement à re-décider avant l'étape 12.
 
-Hors de cette feuille : l'emplacement des futurs outils (gestion de stock, etc.) est à re-décider avec François (voir « Questions encore ouvertes ») ; la note du 3/11 disait le dépôt `outils-de-la-ferme`.
+Questions encore ouvertes (à régler avec François) : dans quel ordre, et comment les commandes arrivent dans le logiciel.
+
+Hors de cette feuille : les chantiers restent ici pour l'instant (décision du 4/11) ; la note du 3/11 prévoyait le dépôt `outils-de-la-ferme`, à re-décider avant l'étape 12.
