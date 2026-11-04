@@ -13,9 +13,10 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 2. [Mise en route](#mise-en-route) (une seule fois)
 3. [Mettre la liste de la semaine](#mettre-la-liste-de-la-semaine) (chaque semaine)
 4. [Calcul des caisses](#calcul-des-caisses)
-5. [Fichiers du dépôt](#fichiers-du-dépôt)
-6. [Tests](#tests)
-7. [Limites connues](#limites-connues)
+5. [Barre de progression](#barre-de-progression)
+6. [Fichiers du dépôt](#fichiers-du-dépôt)
+7. [Tests](#tests)
+8. [Limites connues](#limites-connues)
 
 ## Utilisation au champ
 
@@ -27,6 +28,7 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 | **Appui long sur une ligne** (0,45 s, sans bouger) | La ligne se décolle (petite vibration) ; la glisser à sa place. Un geste rapide fait défiler la page normalement, sans rien déplacer. L'ordre est le même sur les deux téléphones. |
 | **Case à cocher** | La ligne part dans « Récoltes déjà effectuées », avec le prénom et l'heure. |
 | **Récoltes déjà effectuées ›** (en bas) | Déroule la liste de ce qui est fait. Toucher la case d'une ligne pour la décocher. |
+| **Récolté … %** (barre en haut de la liste) | Avance à chaque coche, sur les deux téléphones : kilos et unités additionnés (voir [Barre de progression](#barre-de-progression)). La petite flèche vers le bas déplie le détail : une barre pour les unités (bottes, bouquets, pièces…), une barre pour les kilos, avec ce qui reste. |
 | **Caisses ›** | Nombre de caisses PB, PH, GB, GH, et de colis bois, qui restent à remplir (voir [Calcul des caisses](#calcul-des-caisses)). |
 | **👤 prénom** (en haut à droite) | Change le prénom affiché sur les coches. Demandé à la première coche. |
 | **Remettre l'ordre par zone** (tout en bas) | Annule les glisser-déposer, pour les deux téléphones. |
@@ -90,6 +92,15 @@ Une ancienne liste reste consultable avec `?liste=AAAA-MM-JJ` à la fin de l'adr
 
 Liste du 4 novembre 2026, rien de coché : 2 PB, 19 PH, 2 GB, 10 GH, et 1 petit, 0 moyen, 4 grands colis bois (par circuit) ; ou 1 PB, 19 PH, 1 GB, 10 GH, et 1 petit, 0 moyen, 4 grands colis bois (regroupées).
 
+## Barre de progression
+
+- L'appli lit le champ `kg` de chaque ligne (par exemple « 5,5 kg + 34 bottes ») : les kilos (et les grammes) vont dans la barre **Kilos**, tout autre « nombre + mot » (bottes, bouquets, pièces, poireaux…) dans la barre **Unités**.
+- Une ligne compte quand elle est cochée, en entier. Une ligne sans nombre (les tomates « tout ») n'est pas comptée, et c'est écrit sous les barres.
+- Barre du haut : kilos et unités **additionnés** (1 unité compte comme 1 kg).
+- La barre porte toujours sur toute la liste, quels que soient les filtres de zone et de circuit.
+
+Liste du 4 novembre 2026 : 165 kg et 66 unités (41 bottes, 10 bouquets, 10 poireaux, 5 pièces), soit 231 en tout.
+
 ## Fichiers du dépôt
 
 | Fichier | Rôle |
@@ -114,7 +125,7 @@ npx playwright install chromium   # seulement la première fois
 node tests/deux-telephones.cjs
 ```
 
-Le test ouvre deux téléphones simulés (François et Aurore) reliés à un faux Firebase local (`tests/faux-firebase.cjs`) et vérifie : la coche passe d'un téléphone à l'autre avec le prénom, la ligne cochée quitte la liste principale, le glisser-déposer au doigt est partagé, le nombre de caisses et de colis bois (par circuit et regroupés), la vue Détail d'un circuit en colis bois, les filtres Locavore et Ferme Deschamps, le décochage, et l'absence d'erreur JavaScript. Il sort en erreur si une vérification échoue.
+Le test ouvre deux téléphones simulés (François et Aurore) reliés à un faux Firebase local (`tests/faux-firebase.cjs`) et vérifie : la coche passe d'un téléphone à l'autre avec le prénom, la ligne cochée quitte la liste principale, le glisser-déposer au doigt est partagé, le nombre de caisses et de colis bois (par circuit et regroupés), la vue Détail d'un circuit en colis bois, les filtres Locavore et Ferme Deschamps, le décochage, la barre de progression (globale, unités, kilos, mise à jour d'un téléphone à l'autre), et l'absence d'erreur JavaScript. Il sort en erreur si une vérification échoue.
 
 ## Limites connues
 
