@@ -15,6 +15,7 @@
 | 04/11/2026 | **Vision** (François) : l'appli est une preuve de concept testée en réel, destinée à devenir un logiciel durable pour plusieurs fermes. Chantiers inscrits dans `docs/ROADMAP.md` (étapes 10 à 18) : préparation de commandes, agrégation des commandes de plusieurs canaux, page stock du magasin, arbitrage hebdomadaire entre débouchés, historique, prise de temps, lien avec Ouvre ta ferme (lecture, puis écriture). Ordre et découpage restent à confirmer. |
 | 04/11/2026 | Les nouveaux chantiers (étapes 10 à 18) restent dans `liste-recolte` pour l'instant. Un éventuel déménagement vers `outils-de-la-ferme` se re-décide avant la page stock du magasin (étape 12). |
 | 04/11/2026 | Premier chantier de la vision : la préparation de commandes (étape 10). Les autres suivent après. |
+| 04/11/2026 | La page stock du magasin (étape 12) doit être ouverte aussi aux personnes du magasin. Cela suppose de renforcer d'abord l'accès à la base (étape 5) ; l'ouverture reste soumise au « vas-y » exprès de François. |
 
 ## Décisions de conception (reprises du prompt de reprise du 03/11/2026)
 
