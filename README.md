@@ -23,7 +23,7 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 | Geste | Effet |
 |---|---|
 | **Récolte / Détail** (en haut) | Récolte : produit, quantité totale. Détail : en plus le type de caisse, le conditionnement et la part de chaque circuit. |
-| **Puces de circuit** (Très Allier, Marché ven., Panier adéquat, Ellie, Locavore, Auvabio 03, Ferme Deschamps) | N'affiche que les produits de ce circuit, avec la quantité de ce circuit seulement. Pratique pour préparer une commande. |
+| **Puces de circuit** (Très Allier, Marché ven., Panier adéquat, Ellie, Locavore, Auvabio 03, Ferme Deschamps, Panier La Magic) | N'affiche que les produits de ce circuit, avec la quantité de ce circuit seulement. Pratique pour préparer une commande. |
 | **Appui long sur une ligne** (0,45 s, sans bouger) | La ligne se décolle (petite vibration) ; la glisser à sa place. Un geste rapide fait défiler la page normalement, sans rien déplacer. L'ordre est le même sur les deux téléphones. |
 | **Case à cocher** | La ligne part dans « Récoltes déjà effectuées », avec le prénom et l'heure. |
 | **Récoltes déjà effectuées ›** (en bas) | Déroule la liste de ce qui est fait. Toucher la case d'une ligne pour la décocher. |
@@ -88,7 +88,7 @@ Une ancienne liste reste consultable avec `?liste=AAAA-MM-JJ` à la fin de l'adr
 - **Colisage par débouché** : un circuit peut partir dans d'autres colis que les caisses. Panier adéquat, Locavore et Ferme Deschamps partent en **colis bois** (demande de François, 04/11/2026) : PB → petit colis bois, PH → moyen colis bois, GB et GH → grand colis bois. Seule l'étiquette change : un colis bois contient exactement la même chose que la caisse correspondante (10 bouquets de persil en PB = 10 bouquets en petit colis bois). Ces colis sont comptés à part, sous les caisses, et la vue Détail ou le filtre du circuit dit lequel prendre et ce qu'on y met (« Panier adéquat : 3,5 grands colis bois de 5 kg »). Comme pour les caisses, un demi-colis occupe un colis : 3,5 colis = 4 colis bois à préparer, dont un à moitié plein. Les autres circuits gardent PB, PH, GB, GH. Réglage dans la liste : voir [docs/format-liste.md](docs/format-liste.md#colisage-par-circuit).
 - Le chiffre affiché est ce qui **reste à remplir** : une ligne cochée sort du compte. Avec un filtre de zone ou de circuit, le calcul ne porte que sur ce qui est affiché.
 
-Liste du 4 novembre 2026, rien de coché : 2 PB, 19 PH, 2 GB, 10 GH, et 1 petit, 1 moyen, 4 grands colis bois (par circuit) ; ou 1 PB, 19 PH, 1 GB, 10 GH, et 1 petit, 1 moyen, 4 grands colis bois (regroupées).
+Liste du 4 novembre 2026, rien de coché : 2 PB, 20 PH, 2 GB, 10 GH, et 1 petit, 1 moyen, 4 grands colis bois (par circuit) ; ou 1 PB, 20 PH, 1 GB, 10 GH, et 1 petit, 1 moyen, 4 grands colis bois (regroupées).
 
 ## Barre de progression
 
@@ -97,7 +97,7 @@ Liste du 4 novembre 2026, rien de coché : 2 PB, 19 PH, 2 GB, 10 GH, et 1 petit,
 - Barre du haut : kilos et unités **additionnés** (1 unité compte comme 1 kg).
 - La barre porte toujours sur toute la liste, quels que soient les filtres de zone et de circuit.
 
-Liste du 4 novembre 2026 : 173 kg et 66 unités (41 bottes, 10 bouquets, 10 poireaux, 5 pièces), soit 239 en tout.
+Liste du 4 novembre 2026 : 183 kg et 66 unités (41 bottes, 10 bouquets, 10 poireaux, 5 pièces), soit 249 en tout.
 
 ## Fichiers du dépôt
 

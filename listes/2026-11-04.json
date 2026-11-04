@@ -2,7 +2,7 @@
   "id": "2026-11-04",
   "titre": "Récolte du mercredi 4 novembre",
   "pour": "Livraisons du jeudi 5 et marché du vendredi 6 novembre 2026",
-  "source": "Cumul envoyé par François le 03/11/2026, Panier adéquat, Ellie et Locavore ; commande Ferme Deschamps donnée par François le 04/11/2026. Emplacements d'après l'assolement Ouvre ta ferme du 14/10/2026, à vérifier sur place.",
+  "source": "Cumul envoyé par François le 03/11/2026, Panier adéquat, Ellie et Locavore ; commandes Ferme Deschamps et Panier La Magic données par François le 04/11/2026. Emplacements d'après l'assolement Ouvre ta ferme du 14/10/2026, à vérifier sur place.",
   "colisages": {
     "bois": {"PB": "Petit colis bois", "PH": "Moyen colis bois", "GB": "Grand colis bois", "GH": "Grand colis bois"}
   },
@@ -13,7 +13,8 @@
     {"id": "el", "nom": "Ellie", "court": "Ellie"},
     {"id": "lv", "nom": "Locavore", "court": "Locavore", "colisage": "bois"},
     {"id": "av", "nom": "Auvabio 03", "court": "Auvabio"},
-    {"id": "fd", "nom": "Ferme Deschamps", "court": "Deschamps", "colisage": "bois"}
+    {"id": "fd", "nom": "Ferme Deschamps", "court": "Deschamps", "colisage": "bois"},
+    {"id": "lm", "nom": "Panier La Magic", "court": "Panier La Magic"}
   ],
   "items": [
     {"id": "mesclun", "produit": "Mesclun", "zone": "Tunnel", "ou": "T1-3 (mesclun d'automne)", "caisse": "PH", "condit": "1 kg", "circ": {"ta": 1, "mk": 1}, "total": "2 colis", "kg": "2 kg"},
@@ -29,6 +30,7 @@
     {"id": "chou-rouge", "produit": "Chou rouge", "zone": "Plein champ", "ou": "B1-8/9, B2-3 à B2-5 (choux d'automne et d'hiver)", "caisse": "GH", "condit": "10 kg", "circ": {"mk": 0.5}, "total": "0,5 colis", "kg": "5 kg"},
     {"id": "poireau", "produit": "Poireau", "zone": "Plein champ", "ou": "B10-1", "caisse": "GH", "condit": "10 kg", "circ": {"mk": 1, "el": "10 poireaux"}, "total": "1 colis + 10 poireaux", "kg": "10 kg + 10 poireaux"},
     {"id": "radis", "produit": "Radis d'hiver en mélange", "zone": "Plein champ", "ou": "B3-1 à B3-3 (hiver), B2-1/2 (automne)", "caisse": "PH", "condit": "5 kg", "circ": {"mk": 1}, "total": "1 colis", "kg": "5 kg"},
+    {"id": "radis-noir", "produit": "Radis noir rond", "caisse": "PH", "condit": "5 kg", "circ": {"lm": 1}, "total": "1 colis", "kg": "5 kg"},
     {"id": "celeri-rave", "produit": "Céleri-rave", "zone": "Plein champ", "ou": "B9-9", "caisse": "PH", "condit": "5 kg", "circ": {"mk": 0.5}, "total": "0,5 colis", "kg": "2,5 kg"},
     {"id": "panais", "produit": "Panais", "zone": "Plein champ", "ou": "B9-10", "caisse": "PH", "condit": "5 kg", "circ": {"mk": 0.5}, "total": "0,5 colis", "kg": "2,5 kg"},
     {"id": "carotte", "produit": "Carotte lavée", "zone": "Plein champ", "ou": "B6-6 à B6-9 (conservation) ou stock", "caisse": "PH", "condit": "8 kg", "circ": {"mk": 2, "fd": 1}, "total": "3 colis", "kg": "24 kg"},
@@ -36,6 +38,6 @@
     {"id": "endive", "produit": "Endive", "zone": "Stock", "ou": "forçage, chambre froide", "caisse": "PH", "condit": "5 kg", "circ": {"ta": 2, "mk": 1, "av": 7}, "total": "10 colis", "kg": "50 kg"},
     {"id": "butternut", "produit": "Courge butternut", "zone": "Stock", "ou": "stock (B11-1 à 3)", "caisse": null, "condit": "pièce", "circ": {"lv": "2 pièces"}, "total": "2 pièces", "kg": "2 pièces"},
     {"id": "potimarron", "produit": "Courge potimarron", "zone": "Stock", "ou": "stock (B11-4 à 8)", "caisse": null, "condit": "pièce", "circ": {"lv": "3 pièces"}, "total": "3 pièces", "kg": "3 pièces"},
-    {"id": "patate-douce", "produit": "Patate douce", "zone": "Stock", "ou": "stock (récoltée en B3-9/10)", "caisse": "PH", "condit": "6 kg", "circ": {"mk": 1}, "total": "1 colis", "kg": "6 kg"}
+    {"id": "patate-douce", "produit": "Patate douce", "zone": "Stock", "ou": "stock (récoltée en B3-9/10)", "caisse": "PH", "condit": "6 kg", "circ": {"mk": 1, "lm": "5 kg"}, "total": "1 colis + 5 kg", "kg": "11 kg"}
   ]
 }
