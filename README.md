@@ -14,15 +14,16 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 3. [Mettre la liste de la semaine](#mettre-la-liste-de-la-semaine) (chaque semaine)
 4. [Calcul des caisses](#calcul-des-caisses)
 5. [Barre de progression](#barre-de-progression)
-6. [Fichiers du dépôt](#fichiers-du-dépôt)
-7. [Tests](#tests)
-8. [Limites connues](#limites-connues)
+6. [Préparation de commandes](#préparation-de-commandes)
+7. [Fichiers du dépôt](#fichiers-du-dépôt)
+8. [Tests](#tests)
+9. [Limites connues](#limites-connues)
 
 ## Utilisation au champ
 
 | Geste | Effet |
 |---|---|
-| **Récolte / Détail** (en haut) | Récolte : produit, quantité totale. Détail : en plus le type de caisse, le conditionnement et la part de chaque circuit. |
+| **Récolte / Détail / Préparation** (en haut) | Récolte : produit, quantité totale. Détail : en plus le type de caisse, le conditionnement et la part de chaque circuit. Préparation : la même liste, une ligne par produit et par client, à cocher pendant la préparation des commandes (voir [Préparation de commandes](#préparation-de-commandes)). |
 | **Puces de circuit** (Très Allier, Marché ven., Panier adéquat, Ellie, Locavore, Auvabio 03, Ferme Deschamps, Panier La Magic) | N'affiche que les produits de ce circuit, avec la quantité de ce circuit seulement. Pratique pour préparer une commande. |
 | **Appui long sur une ligne** (0,45 s, sans bouger) | La ligne se décolle (petite vibration) ; la glisser à sa place. Un geste rapide fait défiler la page normalement, sans rien déplacer. L'ordre est le même sur les deux téléphones. |
 | **Case à cocher** | La ligne part dans « Récoltes déjà effectuées », avec le prénom et l'heure. |
@@ -100,6 +101,19 @@ Liste du 4 novembre 2026, rien de coché : 2 PB, 21 PH, 2 GB, 10 GH, et 1 petit,
 
 Liste du 4 novembre 2026 : 183 kg et 66 unités (41 bottes, 10 bouquets, 10 poireaux, 5 pièces), soit 249 en tout.
 
+## Préparation de commandes
+
+Onglet **Préparation** (demande de François, 04/11/2026). Même liste du jour que l'onglet Récolte, mais **une ligne par produit et par client** (par exemple « Bette » pour Très Allier, pour le marché, pour Panier adéquat et pour Locavore : 4 lignes), avec la quantité de ce client (colis bois compris : « 3,5 grands colis bois de 5 kg »).
+
+- **Par client / Par produit** (sous les onglets) : un bloc par client, dans l'ordre des circuits de la liste ; ou un bloc par produit, dans l'ordre de la récolte.
+- **Récolté / Pas encore récolté** : sur chaque ligne (tri par client) ou en tête du produit (tri par produit). C'est la coche de l'onglet Récolte, lue telle quelle.
+- **Toucher une ligne** (n'importe où, pratique avec des gants) : la ligne est cochée, avec le prénom et l'heure ; la toucher de nouveau la décoche. Elle reste à sa place, barrée, pour ne pas mélanger les lignes.
+- **Case du client** (tri par client, dans le bandeau noir) : la commande est prête. Le client passe en vert dans « Commandes prêtes », en bas, et y reste visible avec ses lignes. Cocher le client ne coche pas ses lignes : s'il en reste, c'est écrit (« Attention : 1 ligne pas cochée »). Toucher de nouveau la case remet la commande dans la liste.
+- Les **puces de circuit** marchent aussi : « Ferme Deschamps » n'affiche que sa commande.
+- Les coches de préparation sont **partagées** entre les téléphones, comme celles de la récolte, mais rangées à part : cocher une préparation ne coche jamais la récolte, et l'inverse (voir [docs/base-partagee.md](docs/base-partagee.md)). La barre de progression et les caisses restent celles de la récolte.
+
+Liste du 4 novembre 2026 : 8 clients, 38 lignes.
+
 ## Fichiers du dépôt
 
 | Fichier | Rôle |
@@ -124,7 +138,7 @@ npx playwright install chromium   # seulement la première fois
 node tests/deux-telephones.cjs
 ```
 
-Le test ouvre deux téléphones simulés (François et Aurore) reliés à un faux Firebase local (`tests/faux-firebase.cjs`) et vérifie : la coche passe d'un téléphone à l'autre avec le prénom, la ligne cochée quitte la liste principale, le glisser-déposer au doigt est partagé, le nombre de caisses et de colis bois (par circuit et regroupés), la vue Détail d'un circuit en colis bois, les filtres Locavore et Ferme Deschamps, le décochage, la barre de progression (globale, unités, kilos, mise à jour d'un téléphone à l'autre), et l'absence d'erreur JavaScript. Il sort en erreur si une vérification échoue.
+Le test ouvre deux téléphones simulés (François et Aurore) reliés à un faux Firebase local (`tests/faux-firebase.cjs`) et vérifie : la coche passe d'un téléphone à l'autre avec le prénom, la ligne cochée quitte la liste principale, le glisser-déposer au doigt est partagé, le nombre de caisses et de colis bois (par circuit et regroupés), la vue Détail d'un circuit en colis bois, les filtres Locavore et Ferme Deschamps, le décochage, la barre de progression (globale, unités, kilos, mise à jour d'un téléphone à l'autre), l'onglet Préparation (tri par client et par produit, indicateur de récolte, coches de lignes et de clients partagées et gardées après rechargement, sans toucher aux coches de récolte), et l'absence d'erreur JavaScript. Il sort en erreur si une vérification échoue.
 
 ## Limites connues
 
