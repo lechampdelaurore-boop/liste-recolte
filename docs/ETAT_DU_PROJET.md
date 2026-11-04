@@ -16,7 +16,9 @@
   - le glisser-déposer à la souris sur ordinateur ;
   - le déploiement actuel sur Cloudflare Pages (non relu à la source).
 - **Limite connue** : le dépôt et la base sont publics, sans mot de passe.
-- **Vision du 4/11** : l'appli est une preuve de concept, appelée à devenir un logiciel durable pour plusieurs fermes. Dix chantiers sont inscrits dans la feuille de route (étapes 10 à 19) ; le premier (étape 10, préparation de commandes) est fait ; ordre et découpage sont à confirmer avec François.
+- **Vision du 4/11** : l'appli est une preuve de concept, appelée à devenir un logiciel durable pour plusieurs fermes. Onze chantiers sont inscrits dans la feuille de route (étapes 10 à 20) ; le premier (étape 10, préparation de commandes) est fait ; ordre et découpage sont à confirmer avec François.
+- **À réinterroger plus tard** : la vue Détail est peut-être redondante avec l'onglet Préparation (étape 20). Décision reportée par François le 4/11, rien à coder.
+- **Prévu** : base de données des produits et de leurs colisages, modifiable par l'utilisateur sans code (étape 19).
 - **Prochaine étape** : voir `docs/ROADMAP.md`.
 
 ## Ce qui existe
