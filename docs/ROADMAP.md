@@ -14,4 +14,25 @@ Réglage « Modèle · effort » : le code se fait en Opus 5.5, au niveau d'effo
 | 8 | Masquer le lieu des récoltes (emplacement et zones), réversible | Code | Opus 5.5 · Moyen (choisi par Claude, délégation de François du 4/11) | **François** (demande du 4/11/2026 ; zones cachées aussi, choisi le 4/11) | Fait (PR #5) |
 | 9 | Relier le lieu des récoltes à Ouvre ta ferme (lecture de l'assolement, au plus 4 requêtes par seconde), pour réafficher emplacement et zones | Code | À fixer | **François** (vas-y exprès ; accès à Ouvre ta ferme) | Idée, pas décidé |
 
-Hors de cette feuille : les futurs outils (gestion de stock, etc.) iront dans le dépôt `outils-de-la-ferme`, pas ici.
+## Vision du 4/11/2026 : de l'essai au logiciel durable
+
+François précise que l'appli est une **preuve de concept** testée en conditions réelles. Elle doit devenir un logiciel durable, pour plusieurs fermes (la sienne reste l'exemple et l'essai, jamais la limite). Les chantiers ci-dessous viennent de sa demande du 4/11 ; **ordre, découpage et modèle · effort sont des propositions à confirmer**. Rien n'est lancé. Le code se fait dans un seul fil à la fois.
+
+| N° | Étape | Type | Modèle · effort | Qui décide | État |
+|---|---|---|---|---|---|
+| 10 | Préparation de commandes : onglet ou bouton, mêmes informations que la liste de récolte, classées par produit ou par client ; cocher chaque colis, chaque produit chez chaque client, et chaque client terminé | Code | Opus 5.5 · Élevé (proposé) | **François** (annoncée pour l'après-midi du 4/11) | **Premier chantier** (choisi le 4/11), découpage à préciser |
+| 11 | Agréger les commandes des différents canaux dans le logiciel (aujourd'hui saisies à la main dans la liste de la semaine) | Code | Opus 5.5 · Élevé (proposé) | **François** (canaux à lister ; entrée des commandes à choisir) | Idée, à préciser |
+| 12 | Page stock du magasin : les personnes du magasin saisissent le stock à l'instant T | Code | Opus 5.5 · Élevé (proposé) | **François** (qui y accède : ouverture d'accès, vas-y exprès) | Accès voulu : François, Aurore et les personnes du magasin (choisi le 4/11) ; dépend de l'étape 5 |
+| 13 | Outil d'arbitrage hebdomadaire entre débouchés : à vendre au champ + stock de la ferme + stock du magasin, pour décider quoi mettre dans chaque canal (comme l'ancien tableau de cumul) | Code | Opus 5.5 · Élevé (proposé) | **François** (tableau de cumul complet à fournir) | Forme choisie le 4/11 : simple tableau, répartition faite à la main par François et Aurore ; dépend de 12 (et de 11 pour les commandes) |
+| 14 | Historique : garder les listes passées et ce qui a été récolté, préparé, vendu | Code | Opus 5.5 · Moyen (proposé) | **François** (vas-y avant toute migration ; sauvegarde d'abord, règle 14) | Idée, à préciser |
+| 15 | Prise de temps : durée entre deux récoltes, mesurée à partir des coches, et consultable dans l'historique | Code | Opus 5.5 · Moyen (proposé) | **François** | Idée, dépend de 14 |
+| 16 | Lien avec Ouvre ta ferme, en lecture (par exemple l'emplacement des cultures ; c'est l'étape 9 précisée), au plus 4 requêtes par seconde | Code | Opus 5.5 · Élevé (proposé) | **François** (vas-y exprès ; accès à Ouvre ta ferme, clé saisie par lui seul) | Idée, à préciser |
+| 17 | Lien avec Ouvre ta ferme, en écriture (renseigner des informations dans leur logiciel) | Code | Opus 5.5 · Élevé (proposé) | **François** (vas-y exprès ; touche aux vraies données) | Idée lointaine, après 16 |
+| 18 | Préparer l'usage par plusieurs fermes : sortir de l'appli ce qui est propre à cette ferme (circuits, caisses, noms), accès par ferme | Code | Opus 5.5 · Élevé (proposé) | **François** (ouverture d'accès à d'autres personnes : vas-y exprès) | Idée lointaine, à cadrer avec l'étape 5 |
+| 19 | Description du colisage, paramétrable par l'utilisateur : pour chaque produit, les types de colisage selon les débouchés (caisse PB/PH/GB/GH, colis bois, bouquets, kilos…), modifiables dans le logiciel au lieu des fichiers du dépôt (aujourd'hui `referentiel/conditionnements.json` et `colisages` dans la liste) | Code | Opus 5.5 · Élevé (proposé) | **François** (demande du 4/11/2026 ; sauvegarde avant toute migration, règle 14) | Idée, à préciser ; utile à l'étape 10 et à l'étape 18 (plusieurs fermes) |
+
+Décidé le 4/11 : la préparation de commandes passe en premier ; les chantiers restent dans ce dépôt pour l'instant ; déménagement à re-décider avant l'étape 12.
+
+Questions encore ouvertes (à régler avec François) : dans quel ordre, et comment les commandes arrivent dans le logiciel.
+
+Hors de cette feuille : les chantiers restent ici pour l'instant (décision du 4/11) ; la note du 3/11 prévoyait le dépôt `outils-de-la-ferme`, à re-décider avant l'étape 12.

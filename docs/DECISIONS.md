@@ -12,6 +12,12 @@
 | 04/11/2026 | Des kilos hors colis (ex. 1 colis de 6 kg + 5 kg) comptent pour une caisse de plus dans le total des caisses ; dans la liste on écrit « 1 colis + 5 kg ». |
 | 04/11/2026 | **Lieu des récoltes masqué pour l'instant** : ni emplacement (T1-3, B4…), ni puces de zone, ni zone en vue Détail. Raison donnée par François : ces lieux sont recopiés à la main depuis l'assolement, pas reliés à Ouvre ta ferme, donc pas fiables. Retrait réversible : les champs `zone` et `ou` restent dans les listes, un réglage `MONTRER_LIEU` dans `index.html` les réaffiche. Un lien direct avec Ouvre ta ferme pourra les remplacer plus tard. Le bouton « Remettre l'ordre par zone » est retiré (pas seulement renommé). |
 | 04/11/2026 | Barre de progression en haut de la liste : la barre globale additionne kilos et unités (1 unité compte comme 1 kg). Détail sous une flèche : une barre pour les unités, une pour les kilos. |
+| 04/11/2026 | **Vision** (François) : l'appli est une preuve de concept testée en réel, destinée à devenir un logiciel durable pour plusieurs fermes. Chantiers inscrits dans `docs/ROADMAP.md` (étapes 10 à 19) : préparation de commandes, agrégation des commandes de plusieurs canaux, page stock du magasin, arbitrage hebdomadaire entre débouchés, historique, prise de temps, lien avec Ouvre ta ferme (lecture, puis écriture). Ordre et découpage restent à confirmer. |
+| 04/11/2026 | Les nouveaux chantiers (étapes 10 à 19) restent dans `liste-recolte` pour l'instant. Un éventuel déménagement vers `outils-de-la-ferme` se re-décide avant la page stock du magasin (étape 12). |
+| 04/11/2026 | Premier chantier de la vision : la préparation de commandes (étape 10). Les autres suivent après. |
+| 04/11/2026 | La page stock du magasin (étape 12) doit être ouverte aussi aux personnes du magasin. Cela suppose de renforcer d'abord l'accès à la base (étape 5) ; l'ouverture reste soumise au « vas-y » exprès de François. |
+| 04/11/2026 | Arbitrage hebdomadaire (étape 13) : un simple tableau, sans suggestion automatique. François et Aurore renseignent les stocks qu'ils pensent avoir de disponibles dans la semaine (champ, ferme, magasin) et les répartissent eux-mêmes entre les canaux de commercialisation. François montrera le tableau de cumul plus tard. |
+| 04/11/2026 | Le colisage doit pouvoir se décrire et se modifier dans le logiciel, produit par produit et selon les débouchés (étape 19 de la feuille de route). |
 
 ## Décisions de conception (reprises du prompt de reprise du 03/11/2026)
 
