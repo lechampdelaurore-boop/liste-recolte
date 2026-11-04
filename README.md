@@ -22,8 +22,7 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 
 | Geste | Effet |
 |---|---|
-| **Récolte / Détail** (en haut) | Récolte : produit, emplacement, quantité totale. Détail : en plus le type de caisse, le conditionnement et la part de chaque circuit. |
-| **Puces de zone** (Tunnel, Plein champ, Stock) | N'affiche que cette zone. |
+| **Récolte / Détail** (en haut) | Récolte : produit, quantité totale. Détail : en plus le type de caisse, le conditionnement et la part de chaque circuit. |
 | **Puces de circuit** (Très Allier, Marché ven., Paniers solidaires, Ellie, Locavore, Auvabio 03, Ferme Deschamps) | N'affiche que les produits de ce circuit, avec la quantité de ce circuit seulement. Pratique pour préparer une commande. |
 | **Appui long sur une ligne** (0,45 s, sans bouger) | La ligne se décolle (petite vibration) ; la glisser à sa place. Un geste rapide fait défiler la page normalement, sans rien déplacer. L'ordre est le même sur les deux téléphones. |
 | **Case à cocher** | La ligne part dans « Récoltes déjà effectuées », avec le prénom et l'heure. |
@@ -31,7 +30,6 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 | **Récolté … %** (barre en haut de la liste) | Avance à chaque coche, sur les deux téléphones : kilos et unités additionnés (voir [Barre de progression](#barre-de-progression)). La petite flèche vers le bas déplie le détail : une barre pour les unités (bottes, bouquets, pièces…), une barre pour les kilos, avec ce qui reste. |
 | **Caisses ›** | Nombre de caisses PB, PH, GB, GH, et de colis bois, qui restent à remplir (voir [Calcul des caisses](#calcul-des-caisses)). |
 | **👤 prénom** (en haut à droite) | Change le prénom affiché sur les coches. Demandé à la première coche. |
-| **Remettre l'ordre par zone** (tout en bas) | Annule les glisser-déposer, pour les deux téléphones. |
 
 La pastille sous le titre dit l'état du partage :
 - **Partagé** (vert) : tout est envoyé.
@@ -77,7 +75,7 @@ Chaque semaine, la liste vient du **cumul** (colonnes total JEUDI, Très Allier 
 
 1. Créer `listes/AAAA-MM-JJ.json` (date du jour de récolte), au format décrit dans [docs/format-liste.md](docs/format-liste.md). Le plus simple : copier la liste précédente et changer les quantités.
 2. Dans `listes/actuelle.json`, mettre le nouvel identifiant : `{"liste": "AAAA-MM-JJ"}`.
-3. Ouvrir une **PR** (jamais d'envoi direct sur `main`), lancer le test, puis fusionner une fois les contrôles verts. Les téléphones affichent la nouvelle liste à la prochaine ouverture, avec des cases vides et l'ordre par zone (les coches et l'ordre sont rangés par liste).
+3. Ouvrir une **PR** (jamais d'envoi direct sur `main`), lancer le test, puis fusionner une fois les contrôles verts. Les téléphones affichent la nouvelle liste à la prochaine ouverture, avec des cases vides et l'ordre du fichier (les coches et l'ordre sont rangés par liste).
 
 Une ancienne liste reste consultable avec `?liste=AAAA-MM-JJ` à la fin de l'adresse.
 
@@ -132,4 +130,4 @@ Le test ouvre deux téléphones simulés (François et Aurore) reliés à un fau
 - **Dépôt et base publics** : quelqu'un qui connaît l'adresse peut lire la liste (produits, quantités, noms des circuits) et cocher des cases. Il n'y a pas de mot de passe. Acceptable pour une liste de récolte ; à revoir si on y met des données sensibles.
 - **Deux personnes qui glissent en même temps** : le dernier ordre envoyé gagne.
 - **Glisser-déposer à la souris** sur ordinateur : prévu pour le doigt, la souris n'a été testée qu'en simulation tactile.
-- **Emplacements** : ils viennent de l'assolement Ouvre ta ferme et peuvent avoir changé sur le terrain.
+- **Lieu des récoltes masqué** (depuis le 04/11/2026) : l'emplacement et les zones (Tunnel, Plein champ, Stock) étaient recopiés à la main depuis l'assolement, sans lien avec Ouvre ta ferme. Ils restent dans les listes mais ne s'affichent plus. Pour les réafficher : `var MONTRER_LIEU = true;` dans `index.html` (et changer `CACHE` dans `sw.js`).

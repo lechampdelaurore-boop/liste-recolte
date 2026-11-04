@@ -2,6 +2,7 @@
 
 ## 2026-11-04
 
+- **Lieu des récoltes masqué** (demande de François du 4/11) : plus d'emplacement sous les produits, plus de puces Tunnel / Plein champ / Stock, plus de zone dans la vue Détail. Les lieux venaient d'un assolement recopié à la main, pas d'Ouvre ta ferme. Rien n'est effacé : les champs `zone` et `ou` restent dans les listes, et `MONTRER_LIEU = true` dans `index.html` les réaffiche. Le bouton du bas « Remettre l'ordre par zone » est retiré (demande de François du 4/11) : l'ordre glissé reste jusqu'à la liste suivante, qui repart dans l'ordre du fichier. `CACHE` → `recolte-v11`. Test deux-téléphones : 28 vérifications (4 nouvelles).
 - Liste du 4/11 : la Ferme Deschamps ajoute 1 colis de carottes lavées (PH, 8 kg, donc 1 moyen colis bois de 8 kg, d'après le référentiel). Carotte : 3 colis, 24 kg ; liste : 173 kg et 66 unités. Pas de changement de l'appli, `CACHE` inchangé.
 - **Barre de progression** en haut de la liste (demande de François du 4/11) : « Récolté … % » avance à chaque coche, kilos et unités additionnés ; une flèche vers le bas déplie une barre pour les unités et une pour les kilos, avec ce qui reste. Lit le champ `kg` des lignes ; les tomates « tout » ne sont pas comptées. Liste du 4/11 : 165 kg et 66 unités.
 - `sw.js` : `CACHE` passe à `recolte-v9`. Test deux-téléphones : 24 vérifications (7 nouvelles) ; le test fait maintenant défiler jusqu'à la liste avant le glisser-déposer, car la barre pousse la bette hors de l'écran du téléphone simulé.

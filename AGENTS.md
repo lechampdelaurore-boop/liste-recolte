@@ -46,7 +46,7 @@ Appli web statique « Liste de récolte » du Champ de l'Aurore (GAEC, Tronget, 
 - Lancer `node tests/deux-telephones.cjs` avant d'ouvrir la PR et coller la sortie réelle dans la PR. Mettre à jour le test et `README.md` si le comportement change. Un contrôle omis l'est avec sa raison.
 - Textes de l'interface en français, phrases courtes, gros éléments tactiles (usage au champ, au soleil, avec des gants).
 - Charte « plein soleil » : fond blanc, texte noir, traits épais, pas de gris clair, aucun mode sombre. Glisser-déposer uniquement par appui long (0,45 s), sans poignée.
-- Zones : Tunnel, Plein champ, Stock, et seulement elles.
+- Zones : Tunnel, Plein champ, Stock, et seulement elles. Lieu des récoltes (zones et emplacements) masqué depuis le 04/11/2026 (`MONTRER_LIEU` dans `index.html`) : ne pas le réafficher sans l'accord de François.
 
 ## Accord de François nécessaire
 
