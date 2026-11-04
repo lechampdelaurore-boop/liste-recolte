@@ -73,11 +73,14 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
     await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
     await B.waitForTimeout(300);
   };
+  // Fait défiler pour que le haut de la liste soit juste sous la barre des filtres (la bette doit être à l'écran).
+  const voirListe = () => B.evaluate(() => scrollTo(0, document.querySelector('#todo').getBoundingClientRect().top + scrollY - document.querySelector('.controls').getBoundingClientRect().height - 20));
+  await voirListe(); await B.waitForTimeout(100);
   const avant = await ordre(B);
   const premiere = await (await B.$('#todo li.item')).boundingBox();
   await doigt('bette', premiere.y + 5, 50);
   verifie((await ordre(B)).join() === avant.join(), 'un glissement rapide (défilement) ne déplace pas la ligne');
-  await B.evaluate(() => scrollTo(0, 0));
+  await voirListe(); await B.waitForTimeout(100);
   const premiere2 = await (await B.$('#todo li.item')).boundingBox();
   await doigt('bette', premiere2.y + 5, 650);
   await A.waitForTimeout(500);
@@ -120,6 +123,21 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   await A.click('#done li[data-id="mesclun"] .box');
   await B.waitForTimeout(500);
   verifie((await B.textContent('#doneCount')) === '0', 'décocher chez François remet la ligne chez Aurore');
+
+  // 6. Barre de progression (liste du 4/11 : 165 kg et 66 unités ; tomates « tout » non comptées)
+  verifie((await B.textContent('#progPct')) === '0 %' && (await B.textContent('#progSum')) === '0 sur 165 kg, 0 sur 66 unités', 'barre globale à 0 % : 0 sur 165 kg, 0 sur 66 unités (obtenu ' + (await B.textContent('#progSum')) + ')');
+  verifie(!(await B.isVisible('#progU')), 'le détail est replié au départ');
+  await A.click('li[data-id="endive"] .box');
+  await A.click('li[data-id="celeri-branche"] .box');
+  await B.waitForTimeout(500);
+  // (50 + 5,5) kg + 34 bottes = 89,5 sur 231 → 39 %
+  verifie((await B.textContent('#progPct')) === '39 %', 'les coches de François font avancer la barre globale chez Aurore : 39 % (obtenu ' + (await B.textContent('#progPct')) + ')');
+  verifie((await B.getAttribute('#progBar', 'aria-valuenow')) === '39', 'la barre verte est remplie à 39 %');
+  await B.click('#prog .arrow');
+  const u = await B.textContent('#progU'), k = await B.textContent('#progK');
+  verifie(await B.isVisible('#progU') && u.includes('34 sur 66') && u.includes('52 %') && u.includes('Reste : 7 bottes, 10 bouquets, 10 poireaux, 5 pièces'), 'la flèche déplie la barre des unités : 34 sur 66, 52 % (obtenu ' + u.replace(/\s+/g, ' ').trim() + ')');
+  verifie(k.includes('55,5 sur 165 kg') && k.includes('34 %') && k.includes('Reste : 109,5 kg'), 'barre des kilos : 55,5 sur 165 kg, 34 % (obtenu ' + k.replace(/\s+/g, ' ').trim() + ')');
+  verifie((await B.textContent('#progNote')).includes('Non compté (pas de quantité) : Tomates'), 'les tomates « tout » sont signalées comme non comptées');
 
   verifie(erreurs.length === 0, 'aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));
   await nav.close(); site.close(); base.close();

@@ -62,6 +62,23 @@ details[open]>summary .chev{transform:rotate(90deg)}
 .crate-opt input{width:24px;height:24px;flex:none;margin:0;accent-color:var(--accent)}
 .crate-note{padding:0 14px 12px;margin:0;font-size:.85rem;color:var(--muted)}
 .hint{margin:0;font-size:.85rem;color:var(--muted)}
+/* Barre de progression : fond blanc, bord noir épais, remplissage vert foncé */
+details.prog>summary{list-style:none;cursor:pointer;padding:12px 14px;display:grid;gap:8px}
+details.prog>summary::-webkit-details-marker{display:none}
+.prog-top{display:flex;justify-content:space-between;align-items:center;gap:10px;font-weight:800}
+.prog-top b{font-size:1.35rem;font-weight:900;font-variant-numeric:tabular-nums}
+.arrow{width:40px;height:40px;flex:none;display:grid;place-items:center;border:var(--bw) solid var(--line);border-radius:10px}
+.arrow svg{width:24px;height:24px;transition:transform .2s}
+details.prog[open] .arrow svg{transform:rotate(180deg)}
+.bar{height:26px;border:var(--bw) solid var(--line);border-radius:999px;background:var(--surface);overflow:hidden}
+.bar>i{display:block;height:100%;width:0;background:var(--accent);transition:width .3s}
+.bar.small{height:20px}
+details.prog[hidden],.prog-row[hidden]{display:none}
+.prog-sum{color:var(--muted);font-weight:600;font-size:.9rem}
+.prog-rows{display:grid;gap:12px;padding:0 14px 12px}
+.prog-row{display:grid;gap:5px}
+.prog-row .prog-top{font-size:1rem}
+.prog-row .prog-top b{font-size:1.1rem}
 ul.list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
 li.item{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;padding:12px;background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--radius);touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:transform .15s}
 li.item.pressing{transform:scale(.97)}
@@ -118,6 +135,27 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
     <div class="chips" id="circs" aria-label="Circuit"></div>
   </div>
 
+  <details class="card prog" id="prog" hidden>
+    <summary>
+      <span class="prog-top"><span>Récolté <b id="progPct">0 %</b></span><span class="arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 9l7 7 7-7"/></svg></span></span>
+      <span class="bar" id="progBar" role="progressbar" aria-label="Récolte, kilos et unités" aria-valuemin="0" aria-valuemax="100"><i></i></span>
+      <span class="prog-sum" id="progSum"></span>
+    </summary>
+    <div class="prog-rows">
+      <div class="prog-row" id="progU">
+        <span class="prog-top"><span>Unités <span class="prog-sum"></span></span><b></b></span>
+        <span class="bar small" role="progressbar" aria-label="Récolte, unités" aria-valuemin="0" aria-valuemax="100"><i></i></span>
+        <span class="prog-sum prog-rest"></span>
+      </div>
+      <div class="prog-row" id="progK">
+        <span class="prog-top"><span>Kilos <span class="prog-sum"></span></span><b></b></span>
+        <span class="bar small" role="progressbar" aria-label="Récolte, kilos" aria-valuemin="0" aria-valuemax="100"><i></i></span>
+        <span class="prog-sum prog-rest"></span>
+      </div>
+      <p class="crate-note" id="progNote" style="padding:0"></p>
+    </div>
+  </details>
+
   <details class="card crates" id="crates">
     <summary><span>Caisses <span class="crate-sum" id="crateSum"></span></span><span class="chev">›</span></summary>
     <div class="crate-grid" id="crateGrid"></div>
@@ -164,7 +202,7 @@ function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'
 function fr(n){ return String(n).replace('.', ','); }
 
 var list = null, byId = {}, mirror = {order:null, done:{}};
-var ui = Object.assign({view:'recolte', zone:'', circ:'', perCirc:true, cratesOpen:false, doneOpen:false}, ls('recolte.ui') || {});
+var ui = Object.assign({view:'recolte', zone:'', circ:'', perCirc:true, cratesOpen:false, doneOpen:false, progOpen:false}, ls('recolte.ui') || {});
 var me = ls('recolte.qui');
 var pending = [];
 var MKEY;
@@ -233,6 +271,8 @@ function buildChips(){
   $('#perCirc').onchange = function(){ ui.perCirc = this.checked; saveUi(); renderCrates(); };
   $('#crates').open = ui.cratesOpen;
   $('#crates').ontoggle = function(){ ui.cratesOpen = this.open; saveUi(); };
+  $('#prog').open = ui.progOpen;
+  $('#prog').ontoggle = function(){ ui.progOpen = this.open; saveUi(); };
   $('#doneSec').open = ui.doneOpen;
   $('#doneSec').ontoggle = function(){ ui.doneOpen = this.open; saveUi(); };
 }
@@ -354,6 +394,7 @@ function render(){
   $('#doneCount').textContent = done.length;
   $('#who').textContent = me ? '👤 ' + me : '👤 Qui es-tu ?';
   renderCrates();
+  renderProgress();
 }
 
 function renderCrates(){
@@ -385,6 +426,67 @@ function renderCrates(){
   $('#crateAlt').hidden = !notes.length;
   $('#crateAlt').textContent = notes.join(' ');
   $('#crateSum').textContent = '· ' + allR + (allR !== allT ? ' sur ' + allT : '') + ' à remplir';
+}
+
+/* ---------- Barre de progression ---------- */
+// Lit le champ « kg » de chaque ligne (ex. « 5,5 kg + 34 bottes », « 10 bouquets + 1 botte », « 2 pièces »).
+// Les kilos (et grammes) vont dans la barre Kilos ; tout autre « nombre + mot » est une unité (bottes, bouquets, pièces…).
+// Une ligne sans nombre (ex. tomates « tout ») n'est pas comptée. Compte toute la liste, sans tenir compte des filtres.
+function num(s){ return parseFloat(String(s).replace(',', '.')); }
+function unitStem(w){ return w.toLowerCase().replace(/^(\S{3,}?)(s|x)?(?=\s|$)/, '$1'); }
+function unitName(stem, n){ return n < 2 ? stem : stem.replace(/^\S+/, function(w){ return w + (/(eau|eu)$/.test(w) ? 'x' : 's'); }); }
+function itemQty(it){
+  var q = {kg:0, u:{}, ok:false};
+  String(it.kg || '').split('+').forEach(function(part){
+    part = part.trim();
+    var m = part.match(/^(\d+(?:[.,]\d+)?)\s*(?:[×x]\s*(\d+(?:[.,]\d+)?)\s*)?(kg|g)$/i);
+    if(m){ var v = num(m[1]) * (m[2] ? num(m[2]) : 1); q.kg += m[3].toLowerCase() === 'g' ? v / 1000 : v; q.ok = true; return; }
+    m = part.match(/^(\d+(?:[.,]\d+)?)\s+(\D.*)$/);
+    if(m){ var k = unitStem(m[2]); q.u[k] = (q.u[k] || 0) + num(m[1]); q.ok = true; }
+  });
+  return q;
+}
+function pct(a, t){
+  if(!t) return 0;
+  var p = Math.round(a / t * 100);
+  if(p === 100 && a < t) p = 99;
+  if(p === 0 && a > 0) p = 1;
+  return p;
+}
+function setBar(bar, p){ bar.firstElementChild.style.width = p + '%'; bar.setAttribute('aria-valuenow', p); }
+function kgTxt(v){ return fr(Math.round(v * 10) / 10); }
+function sumU(u){ return Object.keys(u).reduce(function(a, k){ return a + u[k]; }, 0); }
+function renderProgress(){
+  var tot = {kg:0, u:{}}, got = {kg:0, u:{}}, skip = [];
+  list.items.forEach(function(it){
+    var q = itemQty(it);
+    if(!q.ok){ skip.push(it.produit); return; }
+    var dst = [tot]; if(isDone(it.id)) dst.push(got);
+    dst.forEach(function(d){ d.kg += q.kg; Object.keys(q.u).forEach(function(k){ d.u[k] = (d.u[k] || 0) + q.u[k]; }); });
+  });
+  var uT = sumU(tot.u), uG = sumU(got.u);
+  $('#prog').hidden = !(tot.kg || uT);
+  if(!(tot.kg || uT)) return;
+  // Barre globale : kilos et unités additionnés (1 unité compte comme 1 kg).
+  var p = pct(got.kg + uG, tot.kg + uT);
+  $('#progPct').textContent = p + ' %';
+  setBar($('#progBar'), p);
+  $('#progSum').textContent = (p === 100 ? 'Tout est récolté. ' : '') + (tot.kg ? kgTxt(got.kg) + ' sur ' + kgTxt(tot.kg) + ' kg' : '') +
+    (tot.kg && uT ? ', ' : '') + (uT ? fr(uG) + ' sur ' + fr(uT) + ' unités' : '');
+  function row(el, show, a, t, sumTxt, restTxt){
+    el.hidden = !show; if(!show) return;
+    var pp = pct(a, t);
+    el.querySelector('.prog-top b').textContent = pp + ' %';
+    el.querySelector('.prog-top .prog-sum').textContent = sumTxt;
+    setBar(el.querySelector('.bar'), pp);
+    el.querySelector('.prog-rest').textContent = restTxt;
+  }
+  var rest = Object.keys(tot.u).map(function(k){ var r = Math.round((tot.u[k] - (got.u[k] || 0)) * 10) / 10; return r > 0 ? fr(r) + ' ' + unitName(k, r) : ''; }).filter(Boolean);
+  row($('#progU'), uT > 0, uG, uT, fr(uG) + ' sur ' + fr(uT), rest.length ? 'Reste : ' + rest.join(', ') : 'Rien à récolter.');
+  var rk = tot.kg - got.kg;
+  row($('#progK'), tot.kg > 0, got.kg, tot.kg, kgTxt(got.kg) + ' sur ' + kgTxt(tot.kg) + ' kg', rk > 0.05 ? 'Reste : ' + kgTxt(rk) + ' kg' : 'Rien à récolter.');
+  $('#progNote').textContent = 'Toute la liste, sans tenir compte des filtres. Barre du haut : kilos et unités additionnés.' +
+    (skip.length ? ' Non compté (pas de quantité) : ' + skip.join(', ') + '.' : '');
 }
 
 /* ---------- Cocher ---------- */
