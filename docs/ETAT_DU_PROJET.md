@@ -6,7 +6,7 @@
 
 - **En ligne** : la liste du mercredi 4 novembre 2026 (`listes/2026-11-04.json`, 21 produits), sur https://liste-recolte.pages.dev.
 - **Ajouté le 4/11** : colisage par débouché (colis bois pour Paniers solidaires, Locavore, Ferme Deschamps) et la commande Ferme Deschamps (persil). Voir `CHANGELOG.md`.
-- **En cours (PR ouverte)** : barre de progression en haut de la liste (globale, puis unités et kilos sous une flèche). En attente : le choix de François sur la façon de mélanger kilos et unités dans la barre globale (fait en attendant : les additionner).
+- **Ajouté le 4/11** : barre de progression en haut de la liste (globale, kilos et unités additionnés, choix de François du 4/11 ; puis unités et kilos sous une flèche).
 - **Vérifié** : le test `tests/deux-telephones.cjs` passe (24 vérifications sur 24, lancé le 4/11/2026, barre de progression comprise). Il utilise un faux Firebase local.
 - **Non vérifié en réel** :
   - le partage par Firebase entre les deux vrais téléphones (la pastille affiche-t-elle « Partagé » en vert, et une coche passe-t-elle bien de l'un à l'autre ?) ;

@@ -7,6 +7,7 @@
 | 03/11/2026 | `AGENTS.md` et les registres vivent dans `liste-recolte` ; `CLAUDE.md` renvoie vers `AGENTS.md`. |
 | 04/11/2026 | Locavore, Paniers solidaires et Ferme Deschamps partent toujours en colis bois : GH et GB → grand colis bois, PH → moyen colis bois, PB → petit colis bois. Seule l'étiquette change, le contenu reste celui de la caisse (6 bouquets en PB = 6 bouquets en petit colis bois). Les autres circuits gardent PB, PH, GB, GH. Le colisage se règle par circuit dans la liste (pas réservé à cette ferme). |
 | 04/11/2026 | Nouveau débouché « Ferme Deschamps » (orthographe confirmée par François). Persil : colis de 10 bouquets, en petit colis bois. |
+| 04/11/2026 | Barre de progression en haut de la liste : la barre globale additionne kilos et unités (1 unité compte comme 1 kg). Détail sous une flèche : une barre pour les unités, une pour les kilos. |
 
 ## Décisions de conception (reprises du prompt de reprise du 03/11/2026)
 
