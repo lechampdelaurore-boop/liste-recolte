@@ -1,21 +1,3 @@
 # Consignes pour les agents IA
 
-Appli web statique (GitHub Pages) de liste de récolte partagée pour François et Aurore, Le Champ de l'Aurore. Lire `README.md` d'abord.
-
-## Ajouter la liste de la semaine
-
-- Suivre `docs/format-liste.md`. Créer `listes/AAAA-MM-JJ.json`, puis mettre à jour `listes/actuelle.json`.
-- Caisse et conditionnement : les prendre dans `referentiel/conditionnements.json`. Un produit absent : demander à François, puis l'ajouter au référentiel.
-- Ne jamais inventer une quantité, un conditionnement ou un emplacement : s'il manque, demander à François.
-- Garder le vocabulaire maison tel quel : cumul, colis, PB / PH / GB / GH, noms des circuits (Très Allier, Marché, Paniers solidaires, Ellie, Locavore, Auvabio 03).
-- Martin est salarié à temps partiel : ne jamais parler de prestation de service.
-
-## Modifier l'appli
-
-- Tout tient dans `index.html`, sans bibliothèque ni étape de construction. Garder ça.
-- Après toute modification de `index.html`, `config.js` ou des icônes : changer `CACHE` dans `sw.js`.
-- Prompt de reprise complet (historique des décisions de François) : `docs/reprise.md`.
-- Lancer `node tests/deux-telephones.cjs` avant d'envoyer, et mettre à jour le test et `README.md` si le comportement change.
-- Textes de l'interface en français, phrases courtes, gros éléments tactiles (usage au champ, au soleil, avec des gants).
-- Charte « plein soleil » demandée par François : fond blanc, texte noir, traits épais, pas de gris clair, et aucun mode sombre (un seul affichage). Glisser-déposer uniquement par appui long (pas de poignée : risque de déplacement involontaire en défilant au pouce).
-- Ne pas mettre de secret dans le dépôt : il est public.
+Toutes les consignes sont dans [`AGENTS.md`](AGENTS.md). Les lire en premier, puis la section « Où on en est » de `docs/ETAT_DU_PROJET.md`.

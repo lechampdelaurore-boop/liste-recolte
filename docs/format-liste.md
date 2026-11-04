@@ -56,3 +56,4 @@ Un fichier par jour de récolte : `listes/AAAA-MM-JJ.json`. `listes/actuelle.jso
 - Ne jamais inventer une quantité ou un conditionnement : si une valeur manque (par exemple un conditionnement affiché « 0% » dans le cumul), demander à François.
 - Les emplacements viennent de la liste d'assolement Ouvre ta ferme ; indiquer sa date dans `source`.
 - Vérifier le fichier avant d'envoyer : `python3 -c "import json;json.load(open('listes/AAAA-MM-JJ.json'))"`.
+- Envoyer le fichier **par une PR**, jamais directement sur `main` (décision du 03/11/2026) : `listes/AAAA-MM-JJ.json` et `listes/actuelle.json` dans la même PR, test vert avant de fusionner.
