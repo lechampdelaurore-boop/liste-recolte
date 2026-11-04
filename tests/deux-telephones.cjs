@@ -86,7 +86,7 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   await A.waitForTimeout(500);
   verifie((await ordre(A))[0] === 'bette', 'après un appui long, la bette glissée en tête chez Aurore est en tête chez François');
 
-  // 3. Caisses (mesclun coché : 2 PH en moins). Paniers solidaires, Locavore et Ferme Deschamps sont en colis bois :
+  // 3. Caisses (mesclun coché : 2 PH en moins). Panier adéquat, Locavore et Ferme Deschamps sont en colis bois :
   //    la bette des paniers (3,5 colis GH) compte 4 grands colis bois, le persil Deschamps (1 colis PB) 1 petit colis bois.
   const noms = await B.$$eval('.crate .nm', (e) => e.map((x) => x.textContent));
   verifie(noms.slice(4).join(',') === 'Petit colis bois,Moyen colis bois,Grand colis bois', 'les colis bois s\'ajoutent aux caisses (obtenu ' + noms.join(' / ') + ')');
@@ -96,12 +96,12 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   await B.click('#perCirc');
   const regroupees = await B.$$eval('.crate', (e) => e.map((x) => x.querySelector('b').textContent));
   verifie(regroupees.join(',') === '1,17,1,10,1,1,4', 'demi-colis regroupés = 1,17,1,10,1,1,4 (obtenu ' + regroupees.join(',') + ')');
-  verifie((await B.textContent('#crateAlt')).includes('Paniers solidaires, Locavore, Ferme Deschamps : PB → petit colis bois, PH → moyen colis bois, GB → grand colis bois, GH → grand colis bois'), 'le rappel du colisage bois est affiché');
+  verifie((await B.textContent('#crateAlt')).includes('Panier adéquat, Locavore, Ferme Deschamps : PB → petit colis bois, PH → moyen colis bois, GB → grand colis bois, GH → grand colis bois'), 'le rappel du colisage bois est affiché');
 
   // 3 bis. Vue Détail : le circuit en colis bois dit lequel, les autres gardent « colis »
   await B.click('[data-view="detail"]');
   const tagsBette = await B.$$eval('li[data-id="bette"] .tag', (e) => e.map((x) => x.textContent));
-  verifie(tagsBette.includes('Paniers : 3,5 grands colis bois de 5 kg') && tagsBette.includes('TA : 1 colis') && tagsBette.includes('GH · 5 kg'), 'détail bette : Paniers en grands colis bois de 5 kg (même contenu que GH), TA en colis (obtenu ' + tagsBette.join(' / ') + ')');
+  verifie(tagsBette.includes('Panier adéquat : 3,5 grands colis bois de 5 kg') && tagsBette.includes('TA : 1 colis') && tagsBette.includes('GH · 5 kg'), 'détail bette : Panier adéquat en grands colis bois de 5 kg (même contenu que GH), TA en colis (obtenu ' + tagsBette.join(' / ') + ')');
   const tagsPersil = await B.$$eval('li[data-id="persil"] .tag', (e) => e.map((x) => x.textContent));
   verifie(tagsPersil.includes('Deschamps : 1 petit colis bois de 10 bouquets'), 'détail persil : 1 petit colis bois de 10 bouquets (obtenu ' + tagsPersil.join(' / ') + ')');
   await B.click('[data-view="recolte"]');
@@ -115,7 +115,7 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   verifie(fd.join() === 'persil 1 petit colis boisde 10 bouquets,carotte 1 moyen colis boisde 8 kg', 'filtre Ferme Deschamps : persil en petit colis bois de 10 bouquets, carotte en moyen colis bois de 8 kg (obtenu ' + fd.join() + ')');
   await B.click('[data-c="ps"]');
   const betteps = await B.$eval('li[data-id="bette"] .qty', (x) => x.textContent);
-  verifie(betteps === '3,5 grands colis boisde 5 kg · 17,5 kg', 'filtre Paniers : bette 3,5 grands colis bois de 5 kg, 17,5 kg comme en GH (obtenu ' + betteps + ')');
+  verifie(betteps === '3,5 grands colis boisde 5 kg · 17,5 kg', 'filtre Panier adéquat : bette 3,5 grands colis bois de 5 kg, 17,5 kg comme en GH (obtenu ' + betteps + ')');
   await B.click('[data-c=""]');
 
   // 5. Décocher

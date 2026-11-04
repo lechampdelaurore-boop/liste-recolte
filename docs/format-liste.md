@@ -57,7 +57,7 @@ Un fichier par jour de récolte : `listes/AAAA-MM-JJ.json`. `listes/actuelle.jso
 
 Par défaut, un colis part dans la caisse de son code (`caisse` : PB, PH, GB, GH). Un circuit qui livre dans d'autres colis porte `"colisage": "<nom>"`, et `colisages.<nom>` donne, pour chaque code de caisse, le colis à prendre à la place. Pour ce circuit, l'appli affiche et compte ce colis-là au lieu de la caisse ; les autres circuits du même produit gardent la caisse.
 
-Au Champ de l'Aurore (04/11/2026) : Paniers solidaires, Locavore et Ferme Deschamps sont en colis bois. Recopier `colisages` et les `colisage` des circuits depuis `referentiel/conditionnements.json` (clés `colisages` et `circuits_colisage`). Un autre colisage ou une autre ferme : ajouter une entrée dans `colisages`, sans toucher à l'appli.
+Au Champ de l'Aurore (04/11/2026) : Panier adéquat, Locavore et Ferme Deschamps sont en colis bois. Recopier `colisages` et les `colisage` des circuits depuis `referentiel/conditionnements.json` (clés `colisages` et `circuits_colisage`). Un autre colisage ou une autre ferme : ajouter une entrée dans `colisages`, sans toucher à l'appli.
 
 ## Règles pour remplir
 

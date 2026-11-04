@@ -2,14 +2,14 @@
   "id": "2026-11-04",
   "titre": "Récolte du mercredi 4 novembre",
   "pour": "Livraisons du jeudi 5 et marché du vendredi 6 novembre 2026",
-  "source": "Cumul envoyé par François le 03/11/2026, paniers solidaires, Ellie et Locavore ; commande Ferme Deschamps donnée par François le 04/11/2026. Emplacements d'après l'assolement Ouvre ta ferme du 14/10/2026, à vérifier sur place.",
+  "source": "Cumul envoyé par François le 03/11/2026, Panier adéquat, Ellie et Locavore ; commande Ferme Deschamps donnée par François le 04/11/2026. Emplacements d'après l'assolement Ouvre ta ferme du 14/10/2026, à vérifier sur place.",
   "colisages": {
     "bois": {"PB": "Petit colis bois", "PH": "Moyen colis bois", "GB": "Grand colis bois", "GH": "Grand colis bois"}
   },
   "circuits": [
     {"id": "ta", "nom": "Très Allier", "court": "TA"},
     {"id": "mk", "nom": "Marché ven.", "court": "Marché"},
-    {"id": "ps", "nom": "Paniers solidaires", "court": "Paniers", "colisage": "bois"},
+    {"id": "ps", "nom": "Panier adéquat", "court": "Panier adéquat", "colisage": "bois"},
     {"id": "el", "nom": "Ellie", "court": "Ellie"},
     {"id": "lv", "nom": "Locavore", "court": "Locavore", "colisage": "bois"},
     {"id": "av", "nom": "Auvabio 03", "court": "Auvabio"},
