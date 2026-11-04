@@ -48,7 +48,7 @@ Un fichier par jour de récolte : `listes/AAAA-MM-JJ.json`. `listes/actuelle.jso
 | `colisages` | non | Voir [Colisage par circuit](#colisage-par-circuit). |
 | `circuits[]` | oui | `id` court (sert de clé dans `circ`), `nom` (puce de filtre), `court` (vue Détail), `colisage` (facultatif, nom d'un colisage de `colisages`). Un circuit sans aucune quantité n'a pas de puce. |
 | `items[].id` | oui | Garder le même `id` d'une semaine à l'autre pour un même produit. |
-| `items[].zone` | oui | Libellés : `Tunnel`, `Plein champ`, `Stock` (lieu réel, d'après les planches Ouvre ta ferme : T = tunnel, B = plein champ). Ne pas inventer d'autre regroupement. L'ordre des puces suit le premier produit de chaque zone. |
+| `items[].zone` | non (masqué depuis le 04/11/2026) | Libellés : `Tunnel`, `Plein champ`, `Stock` (lieu réel, d'après les planches Ouvre ta ferme : T = tunnel, B = plein champ). Ne pas inventer d'autre regroupement. L'ordre des puces suit le premier produit de chaque zone. |
 | `items[].caisse` | oui | Code du cumul. `null` pour les produits hors caisse (tomates « tout », persil en botte, courges à la pièce). |
 | `items[].circ` | oui | Nombre = colis ; texte = autre unité. Un circuit absent ou à 0 n'est pas affiché. |
 | `items[].total`, `items[].kg` | oui | Calculés à la main (colis × conditionnement, plus les autres unités). L'appli ne les recalcule pas. La barre de progression lit `kg` : écrire « N kg », « N g » ou « N mot » (bottes, bouquets, pièces…), reliés par « + ». Un texte sans nombre (« tout ») n'est pas compté. |
@@ -65,6 +65,6 @@ Au Champ de l'Aurore (04/11/2026) : Paniers solidaires, Locavore et Ferme Descha
 
 - Les quantités viennent du **cumul** (colis × conditionnement) et des commandes des circuits. Locavore : quantité = Qté × Format (500 g, 1 kg, 1 u).
 - Ne jamais inventer une quantité ou un conditionnement : si une valeur manque (par exemple un conditionnement affiché « 0% » dans le cumul), demander à François.
-- Les emplacements viennent de la liste d'assolement Ouvre ta ferme ; indiquer sa date dans `source`.
+- Lieu masqué dans l'appli depuis le 04/11/2026 : `zone` et `ou` sont facultatifs. Si on les remplit quand même, ils viennent de l'assolement Ouvre ta ferme ; indiquer sa date dans `source`.
 - Vérifier le fichier avant d'envoyer : `python3 -c "import json;json.load(open('listes/AAAA-MM-JJ.json'))"`.
 - Envoyer le fichier **par une PR**, jamais directement sur `main` (décision du 03/11/2026) : `listes/AAAA-MM-JJ.json` et `listes/actuelle.json` dans la même PR, test vert avant de fusionner.

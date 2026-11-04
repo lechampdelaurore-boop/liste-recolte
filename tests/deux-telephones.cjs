@@ -139,6 +139,15 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   verifie(k.includes('55,5 sur 165 kg') && k.includes('34 %') && k.includes('Reste : 109,5 kg'), 'barre des kilos : 55,5 sur 165 kg, 34 % (obtenu ' + k.replace(/\s+/g, ' ').trim() + ')');
   verifie((await B.textContent('#progNote')).includes('Non compté (pas de quantité) : Tomates'), 'les tomates « tout » sont signalées comme non comptées');
 
+  // 5. Lieu des récoltes masqué pour l'instant (décision du 4/11/2026)
+  verifie((await B.$$('li.item .ou')).length === 0, 'aucun emplacement (T1-3, B4…) sous les produits');
+  verifie(!(await B.isVisible('#zones')), 'les puces de zone sont cachées');
+  await B.click('[data-view="detail"]');
+  const tags = await B.$$eval('li.item .tag', (e) => e.map((x) => x.textContent.trim()));
+  verifie(tags.length > 0 && !tags.some((t) => ['Tunnel', 'Plein champ', 'Stock'].includes(t)), 'la vue Détail n\'affiche plus la zone');
+  await B.click('[data-view="recolte"]');
+  verifie((await B.textContent('#resetOrder')).trim() === "Remettre l'ordre de départ", 'le bouton du bas dit « Remettre l\'ordre de départ »');
+
   verifie(erreurs.length === 0, 'aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));
   await nav.close(); site.close(); base.close();
   process.exit(echecs ? 1 : 0);

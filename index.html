@@ -42,6 +42,7 @@ h1{font-size:1.45rem;margin:0;line-height:1.15;font-weight:800}
 .seg button{border:0;background:var(--surface);padding:10px;font-weight:800;cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
 .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+.chips[hidden]{display:none}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;border:var(--bw) solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:.9rem;font-weight:700;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
@@ -175,7 +176,7 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
   <footer>
     <p class="note" id="noShare" hidden>Le partage n'est pas encore activé : les coches et l'ordre restent sur ce téléphone.</p>
     <p id="source"></p>
-    <button type="button" id="resetOrder">Remettre l'ordre par zone</button>
+    <button type="button" id="resetOrder">Remettre l'ordre de départ</button>
   </footer>
 </div>
 
@@ -195,6 +196,10 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 (function(){
 'use strict';
 var DB = (window.RECOLTE_DB_URL || '').replace(/\/+$/, '');
+/* Lieu des récoltes (emplacement « ou » et zone) : masqué pour l'instant, décision du 4/11/2026.
+   Il était recopié à la main depuis l'assolement, pas relié à Ouvre ta ferme. Les données restent
+   dans les listes ; passer à true pour le réafficher. */
+var MONTRER_LIEU = false;
 var CRATES = [['PB','Petite basse'],['PH','Petite haute'],['GB','Grande basse'],['GH','Grande haute']];
 var $ = function(s){ return document.querySelector(s); };
 function ls(k, v){ try{ if(v === undefined){ var x = localStorage.getItem(k); return x ? JSON.parse(x) : null; } localStorage.setItem(k, JSON.stringify(v)); }catch(e){ return null; } }
@@ -244,7 +249,7 @@ function order(){
 }
 function isDone(id){ return !!(mirror.done && mirror.done[id]); }
 function visible(it){
-  if(ui.zone && it.zone !== ui.zone) return false;
+  if(MONTRER_LIEU && ui.zone && it.zone !== ui.zone) return false;
   if(ui.circ && (it.circ[ui.circ] === undefined || it.circ[ui.circ] === 0)) return false;
   return true;
 }
@@ -255,6 +260,7 @@ function buildChips(){
   list.items.forEach(function(it){ if(zones.indexOf(it.zone) < 0) zones.push(it.zone); });
   if(ui.zone && zones.indexOf(ui.zone) < 0) ui.zone = '';
   var z = $('#zones');
+  z.hidden = !MONTRER_LIEU;
   z.innerHTML = '<button class="chip" type="button" data-z="">Toutes zones</button>' +
     zones.map(function(n){ return '<button class="chip" type="button" data-z="' + esc(n) + '">' + esc(n) + '</button>'; }).join('');
   z.onclick = function(e){ var b = e.target.closest('[data-z]'); if(!b) return; ui.zone = b.dataset.z; saveUi(); render(); };
@@ -364,7 +370,7 @@ function itemHtml(it, done){
       if(v === undefined || v === 0) return;
       tags.push('<span class="tag' + (typeof v === 'number' && altName(ci.id, it.caisse) ? ' alt' : '') + '">' + esc(ci.court) + ' : ' + esc(circLabel(ci, v, it)) + '</span>');
     });
-    tags.push('<span class="tag">' + esc(it.zone) + '</span>');
+    if(MONTRER_LIEU) tags.push('<span class="tag">' + esc(it.zone) + '</span>');
     d = '<div class="detail">' + tags.join('') + '</div>';
   }
   var by = '';
@@ -375,7 +381,7 @@ function itemHtml(it, done){
   }
   return '<li class="item' + (done ? ' done' : '') + '" data-id="' + it.id + '">' +
     '<button class="box" type="button" aria-label="' + (done ? 'Décocher ' : 'Cocher ') + esc(it.produit) + '">' + CHECK + '</button>' +
-    '<div class="main"><div class="prod">' + esc(it.produit) + '</div><div class="ou">' + esc(it.ou) + '</div></div>' +
+    '<div class="main"><div class="prod">' + esc(it.produit) + '</div>' + (MONTRER_LIEU && it.ou ? '<div class="ou">' + esc(it.ou) + '</div>' : '') + '</div>' +
     '<div class="qty">' + qtyHtml(it) + '</div>' + d + by + '</li>';
 }
 
@@ -601,7 +607,7 @@ function endDrag(){
 }
 
 $('#resetOrder').onclick = function(){
-  if(confirm('Remettre toutes les lignes dans l\'ordre des zones, pour tout le monde ?')) write('order', null);
+  if(confirm('Remettre toutes les lignes dans l\'ordre de départ, pour tout le monde ?')) write('order', null);
 };
 
 /* ---------- Partage (Firebase Realtime Database, sans bibliothèque) ---------- */
