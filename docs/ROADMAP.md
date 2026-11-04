@@ -20,7 +20,7 @@ François précise que l'appli est une **preuve de concept** testée en conditio
 
 | N° | Étape | Type | Modèle · effort | Qui décide | État |
 |---|---|---|---|---|---|
-| 10 | Préparation de commandes : onglet ou bouton, mêmes informations que la liste de récolte, classées par produit ou par client ; cocher chaque colis, chaque produit chez chaque client, et chaque client terminé | Code | Opus 5.5 · Élevé (proposé) | **François** (annoncée pour l'après-midi du 4/11) | Demandée, découpage à préciser |
+| 10 | Préparation de commandes : onglet ou bouton, mêmes informations que la liste de récolte, classées par produit ou par client ; cocher chaque colis, chaque produit chez chaque client, et chaque client terminé | Code | Opus 5.5 · Élevé (proposé) | **François** (annoncée pour l'après-midi du 4/11) | **Premier chantier** (choisi le 4/11), découpage à préciser |
 | 11 | Agréger les commandes des différents canaux dans le logiciel (aujourd'hui saisies à la main dans la liste de la semaine) | Code | Opus 5.5 · Élevé (proposé) | **François** (canaux à lister ; entrée des commandes à choisir) | Idée, à préciser |
 | 12 | Page stock du magasin : les personnes du magasin saisissent le stock à l'instant T | Code | Opus 5.5 · Élevé (proposé) | **François** (qui y accède : ouverture d'accès, vas-y exprès) | Idée, à préciser |
 | 13 | Outil d'arbitrage hebdomadaire entre débouchés : à vendre au champ + stock de la ferme + stock du magasin, pour décider quoi mettre dans chaque canal (comme l'ancien tableau de cumul) | Code | Opus 5.5 · Élevé (proposé) | **François** (tableau de cumul complet à fournir) | Idée, dépend de 11 et 12 |
@@ -30,7 +30,7 @@ François précise que l'appli est une **preuve de concept** testée en conditio
 | 17 | Lien avec Ouvre ta ferme, en écriture (renseigner des informations dans leur logiciel) | Code | Opus 5.5 · Élevé (proposé) | **François** (vas-y exprès ; touche aux vraies données) | Idée lointaine, après 16 |
 | 18 | Préparer l'usage par plusieurs fermes : sortir de l'appli ce qui est propre à cette ferme (circuits, caisses, noms), accès par ferme | Code | Opus 5.5 · Élevé (proposé) | **François** (ouverture d'accès à d'autres personnes : vas-y exprès) | Idée lointaine, à cadrer avec l'étape 5 |
 
-Décidé le 4/11 : les chantiers restent dans ce dépôt pour l'instant ; déménagement à re-décider avant l'étape 12.
+Décidé le 4/11 : la préparation de commandes passe en premier ; les chantiers restent dans ce dépôt pour l'instant ; déménagement à re-décider avant l'étape 12.
 
 Questions encore ouvertes (à régler avec François) : dans quel ordre, et comment les commandes arrivent dans le logiciel.
 
