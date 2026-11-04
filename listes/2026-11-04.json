@@ -31,7 +31,7 @@
     {"id": "radis", "produit": "Radis d'hiver en mélange", "zone": "Plein champ", "ou": "B3-1 à B3-3 (hiver), B2-1/2 (automne)", "caisse": "PH", "condit": "5 kg", "circ": {"mk": 1}, "total": "1 colis", "kg": "5 kg"},
     {"id": "celeri-rave", "produit": "Céleri-rave", "zone": "Plein champ", "ou": "B9-9", "caisse": "PH", "condit": "5 kg", "circ": {"mk": 0.5}, "total": "0,5 colis", "kg": "2,5 kg"},
     {"id": "panais", "produit": "Panais", "zone": "Plein champ", "ou": "B9-10", "caisse": "PH", "condit": "5 kg", "circ": {"mk": 0.5}, "total": "0,5 colis", "kg": "2,5 kg"},
-    {"id": "carotte", "produit": "Carotte lavée", "zone": "Plein champ", "ou": "B6-6 à B6-9 (conservation) ou stock", "caisse": "PH", "condit": "8 kg", "circ": {"mk": 2}, "total": "2 colis", "kg": "16 kg"},
+    {"id": "carotte", "produit": "Carotte lavée", "zone": "Plein champ", "ou": "B6-6 à B6-9 (conservation) ou stock", "caisse": "PH", "condit": "8 kg", "circ": {"mk": 2, "fd": 1}, "total": "3 colis", "kg": "24 kg"},
     {"id": "betterave", "produit": "Betterave rouge", "zone": "Plein champ", "ou": "B5-10 (conservation) ou stock", "caisse": "PH", "condit": "7 kg", "circ": {"mk": 0.5}, "total": "0,5 colis", "kg": "3,5 kg"},
     {"id": "endive", "produit": "Endive", "zone": "Stock", "ou": "forçage, chambre froide", "caisse": "PH", "condit": "5 kg", "circ": {"ta": 2, "mk": 1, "av": 7}, "total": "10 colis", "kg": "50 kg"},
     {"id": "butternut", "produit": "Courge butternut", "zone": "Stock", "ou": "stock (B11-1 à 3)", "caisse": null, "condit": "pièce", "circ": {"lv": "2 pièces"}, "total": "2 pièces", "kg": "2 pièces"},
