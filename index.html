@@ -307,18 +307,28 @@ function crateKinds(){
 function usedCirc(ci){ return list.items.some(function(it){ return it.circ[ci.id] !== undefined && it.circ[ci.id] !== 0; }); }
 
 /* ---------- Quantités ---------- */
-function circLabel(ci, v, it){
+// Le colis change d'étiquette selon le circuit, jamais de contenu : un colis bois contient
+// exactement le conditionnement du produit (ex. 10 bouquets en PB = 10 bouquets en petit colis bois).
+function circLabel(ci, v, it, short){
   if(typeof v === 'number'){
     var alt = ci && altName(ci.id, it.caisse);
-    return fr(v) + ' ' + (alt ? plural(alt.charAt(0).toLowerCase() + alt.slice(1), v) : 'colis');
+    if(!alt) return fr(v) + ' colis';
+    return fr(v) + ' ' + plural(alt.charAt(0).toLowerCase() + alt.slice(1), v) + (short ? '' : ' de ' + it.condit);
   }
   return v;
 }
+// Contenu total d'une quantité en colis : 3,5 colis de « 5 kg » = 17,5 kg ; 1 colis de « 10 bouquets » = 10 bouquets.
+function content(v, it){
+  var m = typeof v === 'number' && /^([\d,.]+) (.+)$/.exec(it.condit || '');
+  return m ? fr(Math.round(v * parseFloat(m[1].replace(',', '.')) * 10) / 10) + ' ' + m[2] : '';
+}
 function qtyHtml(it){
   if(ui.circ){
-    var v = it.circ[ui.circ];
-    var kg = (typeof v === 'number' && /^[\d,.]+ kg$/.test(it.condit)) ? '<small>' + fr(Math.round(v * parseFloat(it.condit.replace(',', '.')) * 10) / 10) + ' kg</small>' : '';
-    return esc(circLabel(circById[ui.circ], v, it)) + kg;
+    var v = it.circ[ui.circ], ci = circById[ui.circ];
+    var tot = content(v, it), alt = typeof v === 'number' && altName(ui.circ, it.caisse), small = [];
+    if(alt) small.push('de ' + it.condit);           // même contenu que la caisse
+    if(tot && !(alt && v === 1)) small.push(tot);    // total, sauf s'il redit le contenu
+    return esc(circLabel(ci, v, it, true)) + (small.length ? '<small>' + esc(small.join(' · ')) + '</small>' : '');
   }
   return esc(it.total) + (it.kg && it.kg !== it.total ? '<small>' + esc(it.kg) + '</small>' : '');
 }
@@ -411,7 +421,7 @@ function renderCrates(){
   });
   var notes = Object.keys(groups).map(function(g){
     var m = list.colisages[g];
-    return groups[g].join(', ') + ' : ' + CRATES.filter(function(c){ return m[c[0]]; }).map(function(c){ return c[0] + ' → ' + m[c[0]].toLowerCase(); }).join(', ') + '.';
+    return groups[g].join(', ') + ' : ' + CRATES.filter(function(c){ return m[c[0]]; }).map(function(c){ return c[0] + ' → ' + m[c[0]].toLowerCase(); }).join(', ') + '. Même contenu que dans la caisse.';
   });
   $('#crateAlt').hidden = !notes.length;
   $('#crateAlt').textContent = notes.join(' ');

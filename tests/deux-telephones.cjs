@@ -101,7 +101,9 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   // 3 bis. Vue Détail : le circuit en colis bois dit lequel, les autres gardent « colis »
   await B.click('[data-view="detail"]');
   const tagsBette = await B.$$eval('li[data-id="bette"] .tag', (e) => e.map((x) => x.textContent));
-  verifie(tagsBette.includes('Paniers : 3,5 grands colis bois') && tagsBette.includes('TA : 1 colis') && tagsBette.includes('GH · 5 kg'), 'détail bette : Paniers en grands colis bois, TA en colis (obtenu ' + tagsBette.join(' / ') + ')');
+  verifie(tagsBette.includes('Paniers : 3,5 grands colis bois de 5 kg') && tagsBette.includes('TA : 1 colis') && tagsBette.includes('GH · 5 kg'), 'détail bette : Paniers en grands colis bois de 5 kg (même contenu que GH), TA en colis (obtenu ' + tagsBette.join(' / ') + ')');
+  const tagsPersil = await B.$$eval('li[data-id="persil"] .tag', (e) => e.map((x) => x.textContent));
+  verifie(tagsPersil.includes('Deschamps : 1 petit colis bois de 10 bouquets'), 'détail persil : 1 petit colis bois de 10 bouquets (obtenu ' + tagsPersil.join(' / ') + ')');
   await B.click('[data-view="recolte"]');
 
   // 4. Filtre circuit
@@ -110,7 +112,10 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   verifie(lv === 7, 'filtre Locavore : 7 lignes (obtenu ' + lv + ')');
   await B.click('[data-c="fd"]');
   const fd = await B.$$eval('#todo li.item', (e) => e.map((x) => x.dataset.id + ' ' + x.querySelector('.qty').textContent));
-  verifie(fd.join() === 'persil 1 petit colis bois', 'filtre Ferme Deschamps : persil, 1 petit colis bois (obtenu ' + fd.join() + ')');
+  verifie(fd.join() === 'persil 1 petit colis boisde 10 bouquets', 'filtre Ferme Deschamps : persil, 1 petit colis bois de 10 bouquets (obtenu ' + fd.join() + ')');
+  await B.click('[data-c="ps"]');
+  const betteps = await B.$eval('li[data-id="bette"] .qty', (x) => x.textContent);
+  verifie(betteps === '3,5 grands colis boisde 5 kg · 17,5 kg', 'filtre Paniers : bette 3,5 grands colis bois de 5 kg, 17,5 kg comme en GH (obtenu ' + betteps + ')');
   await B.click('[data-c=""]');
 
   // 5. Décocher
