@@ -5,7 +5,7 @@
 *Au 4 novembre 2026, matin. Source : lecture du dépôt et demandes de François du 4/11.*
 
 - **En ligne** : la liste du mercredi 4 novembre 2026 (`listes/2026-11-04.json`, 21 produits), sur https://liste-recolte.pages.dev.
-- **Ajouté le 4/11** : colisage par débouché (colis bois pour Paniers solidaires, Locavore, Ferme Deschamps) et la commande Ferme Deschamps (persil). Voir `CHANGELOG.md`.
+- **Ajouté le 4/11** : colisage par débouché (colis bois pour Panier adéquat, Locavore, Ferme Deschamps) et la commande Ferme Deschamps (persil). Voir `CHANGELOG.md`.
 - **Ajouté le 4/11** : barre de progression en haut de la liste (globale, kilos et unités additionnés, choix de François du 4/11 ; puis unités et kilos sous une flèche).
 - **Ajouté le 4/11** : le lieu des récoltes (emplacement et zones) est masqué, car il n'est pas relié à Ouvre ta ferme. Données gardées, réglage `MONTRER_LIEU` dans `index.html`. Le bouton « Remettre l'ordre par zone » est retiré.
 - **Vérifié** : le test `tests/deux-telephones.cjs` passe (28 vérifications sur 28, lancé le 4/11/2026, barre de progression et lieu masqué compris). Il utilise un faux Firebase local.
