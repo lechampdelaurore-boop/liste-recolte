@@ -23,6 +23,7 @@
 | 04/11/2026 | Le logiciel aura une base de données des produits : pour chacun, conditionnements selon les débouchés et kilos par colis, que l'utilisateur ajoute, retire et modifie sans passer par le code (étape 19). |
 | 04/11/2026 | **Décision reportée** : réinterroger l'utilité de la vue Détail, redondante avec l'onglet Préparation (étape 20). François y reviendra plus tard ; la vue Détail reste telle quelle. |
 | 04/11/2026 (soir) | L'onglet Détail est retiré « pour l'instant » (demande de François) : caché, code gardé, réglage `MONTRER_DETAIL` pour le remettre. À sa place, dans l'onglet Récolte, une petite flèche en bas à droite de chaque produit déplie la répartition par client, avec le colisage et le poids (demande de François). Choix de Claude, à confirmer à l'essai : une ligne « Colis » en tête, tous les clients affichés même avec un filtre de circuit, ouvert ou fermé sur chaque téléphone sans partage. |
+| 05/11/2026 | **Mode hors ligne** (étape 21) : François demande de l'inscrire à la feuille de route et de le réaliser tout de suite, selon le plan présenté le 5/11 : liste gardée sur le téléphone, coches mises en attente puis envoyées au retour du réseau, règle « la dernière action gagne » en cas de conflit, indicateur « hors ligne, N coches en attente ». |
 
 ## Décisions de conception (reprises du prompt de reprise du 03/11/2026)
 

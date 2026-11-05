@@ -1,5 +1,9 @@
 # Historique des changements
 
+## 2026-11-05
+
+- **Feuille de route** (sans code) : étape 21, mode hors ligne (demande de François du 5/11), en Opus 5.5 · Élevé. Aucun changement de l'appli.
+
 ## 2026-11-04
 
 - **Onglet Détail retiré pour l'instant, remplacé par une petite flèche sous chaque produit** (demandes de François du 4/11 au soir). L'onglet Détail est caché : il ne reste que Récolte et Préparation. Rien n'est effacé : `MONTRER_DETAIL = true` dans `index.html` le remet tel quel ; un téléphone resté sur Détail rouvre sur Récolte. Dans l'onglet Récolte, chaque produit a une petite flèche en bas à droite qui déplie sa répartition par client : le colis (« GH de 5 kg »), puis chaque client avec son nombre de colis (colis bois compris) et le poids ou les unités (« Panier adéquat : 3,5 grands colis bois de 5 kg · 17,5 kg »). La flèche ne coche pas le produit et ne lance pas le glisser-déposer. `CACHE` → `recolte-v14`. Test deux-téléphones : 64 vérifications (11 nouvelles).
