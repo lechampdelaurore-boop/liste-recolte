@@ -35,8 +35,11 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 
 La pastille sous le titre dit l'état du partage :
 - **Partagé** (vert) : tout est envoyé.
-- **Hors ligne, envoi en attente** (orange) : pas de réseau. Les coches sont gardées sur le téléphone et partent toutes seules au retour du réseau.
+- **Hors ligne · 3 coches en attente** (orange) : pas de réseau. Les coches sont affichées tout de suite, gardées sur le téléphone, et partent toutes seules au retour du réseau. Le chiffre dit combien attendent (« changement » s'il y a aussi un changement d'ordre).
+- **Envoi… 3 coches en attente** (orange) : le réseau est revenu, l'envoi est en cours.
 - **Sur ce téléphone seulement** : la base partagée n'est pas encore configurée (`config.js` vide).
+
+**Mode hors ligne** : la dernière liste reçue est gardée sur le téléphone, avec ses coches, et s'ouvre sans réseau. Si deux personnes touchent la même ligne pendant qu'une d'elles est hors ligne, **la dernière action gagne** (d'après l'heure du téléphone où elle a été faite) : par exemple, si Aurore décoche le persil après que François l'a coché sans réseau, le persil reste décoché quand François retrouve le réseau. Une liste ouverte depuis la copie du téléphone est remplacée toute seule par la nouvelle liste de la semaine au retour du réseau, une fois les coches envoyées.
 
 **Installer sur l'écran d'accueil** : Chrome sur Android, menu ⋮ puis « Ajouter à l'écran d'accueil » ; Safari sur iPhone, Partager puis « Sur l'écran d'accueil ». L'appli s'ouvre alors en plein écran et marche sans réseau avec la dernière liste chargée.
 

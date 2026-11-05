@@ -17,6 +17,9 @@ listes/
         mesclun: {"by": "Aurore", "at": 1793731000000}   // ligne mesclun × Très Allier préparée
     prepClient/
       el: {"by": "François", "at": 1793732000000}        // commande Ellie prête
+    maj/                                        // heure de la dernière action sur chaque chemin (depuis le 05/11/2026)
+      done/mesclun: 1793730000000               // même après une décoche : sert à « la dernière action gagne »
+      prep/ta/mesclun: 1793731000000
 ```
 
 Seuls l'ordre et les coches sont dans la base. Les coches de préparation (`prep`, `prepClient`) sont à part des coches de récolte (`done`) : l'une ne modifie jamais l'autre. Les produits et quantités restent dans `listes/*.json` sur GitHub.
@@ -24,9 +27,10 @@ Seuls l'ordre et les coches sont dans la base. Les coches de préparation (`prep
 ## Comment l'appli s'en sert
 
 - **Lecture en temps réel** : `EventSource` sur `<base>/listes/<id>.json` (flux REST de Firebase, événements `put` et `patch`).
-- **Écriture** : `PUT <base>/listes/<id>/done/<produit>.json` pour cocher, `DELETE` pour décocher, `PUT .../order.json` pour l'ordre. Préparation : `PUT`/`DELETE` sur `.../prep/<circuit>/<produit>.json` et `.../prepClient/<circuit>.json`.
-- **Hors ligne** : chaque écriture est appliquée tout de suite sur l'écran, gardée dans le téléphone (`localStorage`, clé `recolte.pending.<id>`), et renvoyée au retour du réseau (événement `online`, puis toutes les 15 s). Les écritures en attente gardent la priorité sur ce qui arrive de la base.
-- **Copie locale** : le dernier état connu est gardé (`recolte.liste.<id>`) pour ouvrir l'appli sans réseau.
+- **Écriture** (depuis le 05/11/2026) : chaque action est notée avec son heure, puis envoyée en deux temps : `GET <base>/listes/<id>.json` pour relire la base, puis un seul `PATCH <base>/listes/<id>.json` qui écrit plusieurs chemins d'un coup, par exemple `{"done/mesclun": {"by":"François","at":…}, "maj/done/mesclun": …}`. `null` décoche. Mêmes chemins qu'avant : `done/<produit>`, `order`, `prep/<circuit>/<produit>`, `prepClient/<circuit>`.
+- **La dernière action gagne** : avant d'envoyer, l'appli compare l'heure de son action à l'heure de la dernière action de la base sur le même chemin (`maj/<chemin>`, ou à défaut le champ `at` de la coche). Si la base a plus récent, l'action du téléphone est abandonnée et l'écran reprend la valeur de la base. L'heure est celle du téléphone : deux téléphones à l'heure du réseau suffisent.
+- **Hors ligne** : chaque action est appliquée tout de suite sur l'écran, gardée dans le téléphone (`localStorage`, clé `recolte.pending.<id>`), et envoyée au retour du réseau (événement `online`, à la reconnexion du flux, puis toutes les 15 s). En attendant, elle reste affichée par-dessus ce qui arrive de la base. Le flux temps réel est rouvert s'il s'est fermé.
+- **Copie locale** : le dernier état connu des coches est gardé (`recolte.liste.<id>`), et la dernière liste reçue aussi (`recolte.copie`), pour ouvrir l'appli sans réseau même si le cache de la page n'a pas la liste du jour.
 - Autres clés locales : `recolte.qui` (prénom), `recolte.ui` (vue, filtres, panneaux ouverts).
 
 ## Règles de sécurité
