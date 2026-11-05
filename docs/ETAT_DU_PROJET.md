@@ -2,7 +2,7 @@
 
 ## Où on en est
 
-*Au 4 novembre 2026, soir. Source : lecture du dépôt et demandes de François du 4/11.*
+*Au 5 novembre 2026, matin. Source : lecture du dépôt et demandes de François du 4/11 et du 5/11.*
 
 - **En ligne** : la liste du mercredi 4 novembre 2026 (`listes/2026-11-04.json`, 21 produits), sur https://liste-recolte.pages.dev.
 - **Ajouté le 4/11** : colisage par débouché (colis bois pour Panier adéquat, Locavore, Ferme Deschamps) et la commande Ferme Deschamps (persil). Voir `CHANGELOG.md`.
@@ -20,6 +20,7 @@
 - **Vision du 4/11** : l'appli est une preuve de concept, appelée à devenir un logiciel durable pour plusieurs fermes. Onze chantiers sont inscrits dans la feuille de route (étapes 10 à 20) ; le premier (étape 10, préparation de commandes) est fait ; ordre et découpage sont à confirmer avec François.
 - **Onglet Détail** : caché « pour l'instant » le 4/11 au soir (étape 20), remplacé par la flèche de répartition. Le retirer pour de bon ou le remettre reste à décider plus tard.
 - **Prévu** : base de données des produits et de leurs colisages, modifiable par l'utilisateur sans code (étape 19).
+- **En cours (5/11)** : mode hors ligne (étape 21, demande de François du 5/11). Une partie existe déjà dans le code : la page s'ouvre sans réseau (`sw.js`), les coches sont gardées sur le téléphone et renvoyées au retour du réseau. Restent : garder aussi la liste du jour sur le téléphone, la règle « la dernière action gagne », et l'indicateur du nombre de coches en attente.
 - **Prochaine étape** : voir `docs/ROADMAP.md`.
 
 ## Ce qui existe
