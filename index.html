@@ -268,13 +268,33 @@ var MKEY;
 function saveUi(){ ls('recolte.ui', ui); }
 
 /* ---------- Chargement ---------- */
+// La liste du jour vient du site ; la dernière reçue est gardée sur le téléphone (clé recolte.copie)
+// pour s'ouvrir sans réseau, même si le cache de la page a été vidé.
+var depuisCopie = false, demande = null;
 function start(){
-  var q = new URLSearchParams(location.search).get('liste');
-  var p = q ? Promise.resolve({liste:q}) : fetch('listes/actuelle.json', {cache:'no-cache'}).then(function(r){ return r.json(); });
+  demande = new URLSearchParams(location.search).get('liste');
+  var p = demande ? Promise.resolve({liste:demande}) : fetch('listes/actuelle.json', {cache:'no-cache'}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); });
   p.then(function(a){ return fetch('listes/' + encodeURIComponent(a.liste) + '.json', {cache:'no-cache'}); })
    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
-   .then(init)
-   .catch(function(){ $('#todo').innerHTML = '<li class="empty">Impossible de charger la liste. Vérifie la connexion.</li>'; });
+   .then(function(data){ ls('recolte.copie', data); return data; }, function(){
+     var c = ls('recolte.copie');
+     if(c && c.id && (!demande || c.id === demande)){ depuisCopie = true; return c; }
+     return null;
+   })
+   .then(function(data){
+     if(data) init(data);
+     else $('#todo').innerHTML = '<li class="empty">Impossible de charger la liste. Vérifie la connexion.</li>';
+   });
+}
+// Liste ouverte depuis la copie du téléphone : au retour du réseau, si une autre liste est sortie
+// et que rien n'attend d'être envoyé, on recharge la page pour l'ouvrir.
+function verifierNouvelleListe(){
+  if(!depuisCopie || demande || pending.length) return;
+  fetch('listes/actuelle.json', {cache:'no-cache'}).then(function(r){ return r.ok ? r.json() : null; }).then(function(a){
+    if(!a || !a.liste) return;
+    depuisCopie = false;
+    if(a.liste !== list.id && !pending.length) location.reload();
+  }).catch(function(){});
 }
 
 function init(data){
@@ -790,9 +810,40 @@ function endDrag(){
 /* ---------- Partage (Firebase Realtime Database, sans bibliothèque) ---------- */
 function setStatus(cls, txt){ var s = $('#sync'); s.className = 'pill ' + cls; s.lastElementChild.textContent = txt; }
 
+// État affiché dans la pastille : en ligne ou non, et ce qui attend d'être envoyé.
+var enLigne = false, refuse = false, connu = false;
+function enAttente(){
+  var n = pending.length;
+  var coches = pending.every(function(p){ return p.path !== 'order'; });
+  return n + ' ' + (coches ? (n > 1 ? 'coches' : 'coche') : (n > 1 ? 'changements' : 'changement')) + ' en attente';
+}
+function majStatut(){
+  if(!DB) return;
+  if(refuse) return setStatus('err', 'Accès refusé par la base');
+  if(!enLigne){
+    if(!connu && !pending.length && !depuisCopie) return setStatus('wait', 'Connexion…');
+    return setStatus('wait', 'Hors ligne' + (pending.length ? ' · ' + enAttente() : ''));
+  }
+  if(pending.length) return setStatus('wait', 'Envoi… ' + enAttente());
+  setStatus('ok', 'Partagé');
+}
+
+function lireA(o, path){
+  var parts = path.split('/').filter(Boolean);
+  for(var i = 0; i < parts.length; i++){ if(!o || typeof o !== 'object') return null; o = o[parts[i]]; }
+  return o === undefined ? null : o;
+}
+// Heure de la dernière action connue de la base sur ce chemin : l'heure notée sous « maj »,
+// ou à défaut l'heure de la coche elle-même (coches faites avant le mode hors ligne).
+function heureBase(srv, path){
+  var t = lireA(srv, 'maj/' + path), v = lireA(srv, path);
+  return Math.max(typeof t === 'number' ? t : 0, v && typeof v.at === 'number' ? v.at : 0);
+}
+
 function setAt(path, val){
   var parts = path.split('/').filter(Boolean);
   if(!parts.length){ mirror = {order: (val && val.order) || null, done: (val && val.done) || {}, prep: (val && val.prep) || {}, prepClient: (val && val.prepClient) || {}}; return; }
+  if(parts[0] === 'maj') return;
   var o = mirror;
   for(var i = 0; i < parts.length - 1; i++){ if(!o[parts[i]] || typeof o[parts[i]] !== 'object') o[parts[i]] = {}; o = o[parts[i]]; }
   var last = parts[parts.length - 1];
@@ -801,47 +852,70 @@ function setAt(path, val){
 }
 function persist(){ ls(MKEY, mirror); ls('recolte.pending.' + list.id, pending); }
 
+// Chaque action est appliquée tout de suite à l'écran, gardée sur le téléphone avec son heure,
+// puis envoyée (tout de suite, ou au retour du réseau).
 function write(path, val){
   setAt(path, val);
   pending = pending.filter(function(p){ return p.path !== path; });
-  pending.push({path:path, val:val});
-  persist(); render(); flush();
+  pending.push({path:path, val:val, at:Date.now()});
+  persist(); render(); majStatut(); flush();
 }
 
+// Envoi : on relit la base, puis on n'envoie que les actions plus récentes que celle de la base
+// sur le même chemin. Règle « la dernière action gagne » : si un autre téléphone a agi après,
+// c'est son action qui reste, et l'écran la reprend.
 var flushing = false;
 function flush(){
   if(!DB || flushing || !pending.length) return;
   flushing = true;
-  var p = pending[0];
-  fetch(DB + '/listes/' + list.id + '/' + p.path + '.json', {method: p.val === null ? 'DELETE' : 'PUT', body: p.val === null ? undefined : JSON.stringify(p.val)})
-    .then(function(r){
-      if(!r.ok) throw new Error(r.status);
-      pending = pending.filter(function(x){ return x !== p; });
-      persist(); flushing = false;
-      if(!pending.length) setStatus('ok', 'Partagé'); else flush();
+  var lot = pending.slice(), base = DB + '/listes/' + list.id;
+  fetch(base + '.json', {cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(srv){
+      var corps = {}, perdus = [], n = 0;
+      lot.forEach(function(p){
+        if(p.at && heureBase(srv, p.path) > p.at){ perdus.push(p); return; }
+        corps[p.path] = p.val; corps['maj/' + p.path] = p.at || Date.now(); n++;
+      });
+      var envoi = n ? fetch(base + '.json', {method:'PATCH', body: JSON.stringify(corps)}).then(function(r){ if(!r.ok) throw new Error(r.status); }) : Promise.resolve();
+      return envoi.then(function(){
+        pending = pending.filter(function(x){ return lot.indexOf(x) < 0; });
+        perdus.forEach(function(p){ setAt(p.path, lireA(srv, p.path)); });
+        pending.forEach(function(p){ setAt(p.path, p.val); });
+        if(es && es.readyState === 1) enLigne = true;
+        flushing = false;
+        persist(); if(!drag) render(); majStatut();
+        if(pending.length) flush(); else verifierNouvelleListe();
+      });
     })
-    .catch(function(){ flushing = false; setStatus('wait', 'Hors ligne, envoi en attente'); });
+    .catch(function(){ flushing = false; enLigne = false; majStatut(); });
 }
-addEventListener('online', flush);
-setInterval(flush, 15000);
 
+var es = null;
 function connect(){
   if(!DB){ setStatus('', 'Sur ce téléphone seulement'); $('#noShare').hidden = false; return; }
   if(!window.EventSource){ setStatus('err', 'Navigateur trop ancien'); return; }
-  setStatus('wait', 'Connexion…');
-  var es = new EventSource(DB + '/listes/' + list.id + '.json');
+  majStatut();
+  ouvrir();
+  addEventListener('online', function(){ if(es && es.readyState === 2) ouvrir(); flush(); });
+  addEventListener('offline', function(){ enLigne = false; majStatut(); });
+  setInterval(function(){ if(es && es.readyState === 2) ouvrir(); flush(); }, 15000);
+}
+function ouvrir(){
+  if(es) es.close();
+  es = new EventSource(DB + '/listes/' + list.id + '.json');
   function apply(ev, patch){
     var m = JSON.parse(ev.data); if(!m) return;
     if(patch) Object.keys(m.data || {}).forEach(function(k){ setAt(m.path.replace(/\/$/, '') + '/' + k, m.data[k]); });
     else setAt(m.path, m.data);
-    // Les écritures pas encore envoyées gardent la priorité sur ce qui arrive.
+    // Les actions pas encore envoyées restent affichées ; l'envoi tranchera (la dernière action gagne).
     pending.forEach(function(p){ setAt(p.path, p.val); });
     persist(); if(!drag) render();
   }
-  es.addEventListener('put', function(ev){ apply(ev, false); setStatus(pending.length ? 'wait' : 'ok', pending.length ? 'Envoi…' : 'Partagé'); flush(); });
+  es.addEventListener('put', function(ev){ apply(ev, false); enLigne = true; connu = true; majStatut(); flush(); verifierNouvelleListe(); });
   es.addEventListener('patch', function(ev){ apply(ev, true); });
-  es.addEventListener('cancel', function(){ setStatus('err', 'Accès refusé par la base'); });
-  es.onerror = function(){ setStatus('wait', 'Hors ligne, reconnexion…'); };
+  es.addEventListener('cancel', function(){ refuse = true; majStatut(); });
+  es.onerror = function(){ enLigne = false; connu = true; majStatut(); };
 }
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});

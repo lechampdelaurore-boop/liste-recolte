@@ -10,7 +10,6 @@
 - **Ajouté le 4/11** : le lieu des récoltes (emplacement et zones) est masqué, car il n'est pas relié à Ouvre ta ferme. Données gardées, réglage `MONTRER_LIEU` dans `index.html`. Le bouton « Remettre l'ordre par zone » est retiré.
 - **Ajouté le 4/11 après-midi** : onglet « Préparation » (étape 10) : une ligne par produit et par client, tri par client ou par produit, indicateur « Récolté / Pas encore récolté », coche de chaque ligne et de chaque client (commande prête, rangée en bas). Coches partagées, rangées à part des coches de récolte.
 - **Ajouté le 4/11 au soir** : l'onglet Détail est caché (réglage `MONTRER_DETAIL` dans `index.html`, code gardé) ; à sa place, une petite flèche en bas à droite de chaque produit de l'onglet Récolte déplie la répartition par client, avec colisage et poids.
-- **Vérifié** : le test `tests/deux-telephones.cjs` passe (64 vérifications sur 64, lancé le 4/11/2026 au soir, préparation de commandes et flèche de répartition comprises). Il utilise un faux Firebase local.
 - **Non vérifié en réel** : l'onglet Préparation et la flèche de répartition sur les vrais téléphones (essai à faire par François).
 - **Non vérifié en réel** :
   - le partage par Firebase entre les deux vrais téléphones (la pastille affiche-t-elle « Partagé » en vert, et une coche passe-t-elle bien de l'un à l'autre ?) ;
@@ -20,7 +19,9 @@
 - **Vision du 4/11** : l'appli est une preuve de concept, appelée à devenir un logiciel durable pour plusieurs fermes. Onze chantiers sont inscrits dans la feuille de route (étapes 10 à 20) ; le premier (étape 10, préparation de commandes) est fait ; ordre et découpage sont à confirmer avec François.
 - **Onglet Détail** : caché « pour l'instant » le 4/11 au soir (étape 20), remplacé par la flèche de répartition. Le retirer pour de bon ou le remettre reste à décider plus tard.
 - **Prévu** : base de données des produits et de leurs colisages, modifiable par l'utilisateur sans code (étape 19).
-- **En cours (5/11)** : mode hors ligne (étape 21, demande de François du 5/11). Une partie existe déjà dans le code : la page s'ouvre sans réseau (`sw.js`), les coches sont gardées sur le téléphone et renvoyées au retour du réseau. Restent : garder aussi la liste du jour sur le téléphone, la règle « la dernière action gagne », et l'indicateur du nombre de coches en attente.
+- **Ajouté le 5/11** : mode hors ligne (étape 21). La dernière liste et ses coches sont gardées sur le téléphone ; les coches faites sans réseau attendent et partent seules au retour du réseau ; « la dernière action gagne » (heure du téléphone) ; pastille « Hors ligne · N coches en attente ». Nouveau nœud `maj` dans la base (heure de chaque action), voir `docs/base-partagee.md`.
+- **Vérifié** : le test `tests/deux-telephones.cjs` passe (82 vérifications sur 82, lancé trois fois le 5/11/2026, coupures du réseau simulées comprises).
+- **Non vérifié en réel** : le mode hors ligne sur deux vrais téléphones en coupant le réseau (essai à faire par François) ; l'écriture `PATCH` sur la vraie base Firebase (seulement sur le faux Firebase du test).
 - **Prochaine étape** : voir `docs/ROADMAP.md`.
 
 ## Ce qui existe
@@ -30,7 +31,7 @@
 - Référentiel `referentiel/conditionnements.json` : 74 produits, type de caisse et contenu d'un colis ; colisages par circuit (colis bois).
 - Base partagée Firebase Realtime Database (europe-west1), appelée par l'API REST sans SDK ; adresse dans `config.js`. Règles : lecture et écriture ouvertes sous `listes`. Détails : `docs/base-partagee.md`.
 - Barre de progression : lit le champ `kg` des lignes (kilos d'un côté, bottes, bouquets, pièces de l'autre).
-- Hors ligne : `sw.js`, `CACHE` à `recolte-v14`.
+- Hors ligne : `sw.js` (page en cache), `CACHE` à `recolte-v15` ; liste, coches et actions en attente gardées dans le téléphone (`localStorage`).
 - Préparation de commandes : onglet « Préparation » ; coches dans la base sous `prep/<circuit>/<produit>` et `prepClient/<circuit>`.
 - Hébergement : Cloudflare Pages, relié à `main`.
 

@@ -1,5 +1,6 @@
 // Test de bout en bout : deux téléphones (François et Aurore) ouvrent l'appli,
-// partagent les coches et l'ordre via un faux Firebase, et on vérifie les caisses et les filtres.
+// partagent les coches et l'ordre via un faux Firebase, et on vérifie les caisses et les filtres,
+// puis le mode hors ligne (coches en attente, « la dernière action gagne », liste gardée sur le téléphone).
 // Lancement depuis la racine du dépôt : npm install --no-save playwright && node tests/deux-telephones.cjs
 const http = require('http');
 const fs = require('fs');
@@ -16,6 +17,8 @@ function serveurSite() {
     const s = http.createServer((q, r) => {
       let f = decodeURIComponent(new URL(q.url, 'http://x').pathname);
       if (f.endsWith('/')) f += 'index.html';
+      // L'appli utilise le faux Firebase au lieu de l'adresse de config.js (servi ici pour que le service worker l'ait aussi).
+      if (f === '/config.js') { r.writeHead(200, { 'Content-Type': 'text/javascript' }); return r.end(`window.RECOLTE_DB_URL='http://localhost:${PORT_BASE}';`); }
       const chemin = path.join(RACINE, f);
       if (!chemin.startsWith(RACINE) || !fs.existsSync(chemin)) { r.writeHead(404); return r.end(); }
       r.writeHead(200, { 'Content-Type': TYPES[path.extname(chemin)] || 'application/octet-stream' });
@@ -37,8 +40,6 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   const telephone = async (nom, montrerDetail) => {
     const ctx = await nav.newContext({ ...devices['Pixel 7'], serviceWorkers: 'block' });
     await ctx.addInitScript((n) => localStorage.setItem('recolte.qui', JSON.stringify(n)), nom);
-    // L'appli utilise le faux Firebase au lieu de l'adresse de config.js.
-    await ctx.route('**/config.js', (r) => r.fulfill({ contentType: 'text/javascript', body: `window.RECOLTE_DB_URL='http://localhost:${PORT_BASE}';` }));
     // Pour vérifier que le réglage MONTRER_DETAIL remet l'onglet Détail, on sert la page avec le réglage à true.
     if (montrerDetail) {
       await ctx.route(`http://localhost:${PORT_SITE}/`, async (r) => {
@@ -55,7 +56,7 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   };
   const ordre = (p) => p.$$eval('#todo li.item', (e) => e.map((x) => x.dataset.id));
 
-  const A = (await telephone('François')).p;
+  const { p: A, ctx: ctxA } = await telephone('François');
   const { p: B, ctx: ctxB } = await telephone('Aurore');
   await A.waitForTimeout(500);
   verifie((await A.textContent('#sync')).includes('Partagé'), 'François est connecté à la base');
@@ -234,12 +235,98 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   verifie((await B.textContent('#prepDoneCount')) === '1' && await garde('lv/bette') && await garde('ta/mesclun'), 'après rechargement, Ellie est toujours prête, le mesclun TA et la bette Locavore cochés');
   // Rouvrir la commande, décocher une ligne
   await A.click('#prepDone section[data-circ="el"] .box[data-client]');
+  await A.waitForTimeout(300); // l'écho de la base redessine la liste
   await (await ligne(A, 'ta/mesclun')).click();
   await B.waitForTimeout(500);
   verifie((await B.textContent('#prepDoneCount')) === '0' && !(await (await ligne(B, 'ta/mesclun')).evaluate((x) => x.classList.contains('done'))), 'rouvrir la commande et décocher une ligne chez François se voit chez Aurore');
   verifie(await B.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'pas de défilement de côté dans la préparation');
   await B.click('[data-view="recolte"]');
   verifie((await B.textContent('#doneCount')) === recolteAvant && await B.isVisible('#todo'), 'retour à l\'onglet Récolte : les coches de récolte sont inchangées');
+
+  // 8. Mode hors ligne (étape 21). Endive et céleri-branche sont récoltés à ce stade, rien d'autre.
+  await A.click('[data-view="recolte"]');
+  const pastille = async (p) => (await p.textContent('#sync')).trim();
+  const partage = (p) => p.waitForFunction(() => document.querySelector('#sync').textContent.includes('Partagé'), null, { timeout: 15000 });
+  const estCoche = (p, id) => p.$$eval('#done li', (e, i) => e.some((x) => x.dataset.id === i), id);
+  const cocher = (p, id) => p.click(`#todo li[data-id="${id}"] .box`);
+  const decocher = async (p, id) => {
+    if (!(await p.$eval('#doneSec', (d) => d.open))) await p.click('#doneSec summary');
+    await p.click(`#done li[data-id="${id}"] .box`);
+  };
+  const enAttente = (p) => p.evaluate((k) => JSON.parse(localStorage.getItem(k) || '[]').length, 'recolte.pending.2026-11-04');
+  // Coupure du réseau d'un téléphone : plus aucune requête, et le flux temps réel est fermé.
+  const couper = async (ctx) => { await ctx.setOffline(true); base.couperFlux(); await partage(B); };
+  const LISTE = 'listes/2026-11-04';
+
+  await couper(ctxA);
+  await A.waitForTimeout(300);
+  verifie((await pastille(A)) === 'Hors ligne', 'sans réseau, la pastille dit « Hors ligne » (obtenu « ' + (await pastille(A)) + ' »)');
+  await cocher(A, 'mesclun');
+  await cocher(A, 'carotte');
+  verifie((await pastille(A)) === 'Hors ligne · 2 coches en attente', 'deux coches sans réseau : « Hors ligne · 2 coches en attente » (obtenu « ' + (await pastille(A)) + ' »)');
+  verifie((await A.textContent('#doneCount')) === '4' && await estCoche(A, 'mesclun'), 'les coches faites sans réseau s\'affichent tout de suite sur le téléphone');
+  await A.click('[data-view="prep"]');
+  await A.click('li.pitem[data-k="ta/bette"]');
+  await A.click('[data-view="recolte"]');
+  verifie((await pastille(A)) === 'Hors ligne · 3 coches en attente', 'une coche de préparation s\'ajoute à l\'attente : 3 coches (obtenu « ' + (await pastille(A)) + ' »)');
+  verifie((await enAttente(A)) === 3, 'les 3 coches en attente sont gardées dans le téléphone');
+  await B.waitForTimeout(500);
+  verifie((await B.textContent('#doneCount')) === '2' && base.lire(LISTE + '/done/mesclun') === null, 'tant que François est hors ligne, rien n\'est parti : Aurore ne voit pas ses coches');
+  await ctxA.setOffline(false);
+  await partage(A);
+  await B.waitForTimeout(500);
+  verifie((await B.textContent('#doneCount')) === '4' && await estCoche(B, 'carotte') && (await B.textContent('#done li[data-id="mesclun"] .by')).includes('François'), 'au retour du réseau, les coches partent seules : Aurore voit mesclun et carotte cochés par François');
+  verifie(base.lire(LISTE + '/prep/ta/bette') !== null, 'la coche de préparation faite hors ligne est arrivée dans la base');
+  verifie(typeof base.lire(LISTE + '/maj/done/mesclun') === 'number', 'la base garde l\'heure de chaque action (maj), pour trancher les conflits');
+  verifie((await pastille(A)) === 'Partagé', 'la pastille repasse à « Partagé » (obtenu « ' + (await pastille(A)) + ' »)');
+
+  // Conflits : « la dernière action gagne ». Aurore coche le chou vert, puis François passe hors ligne.
+  await cocher(B, 'chou-vert');
+  await A.waitForTimeout(500);
+  await couper(ctxA);
+  await cocher(A, 'persil');            // François coche le persil hors ligne…
+  await A.waitForTimeout(50);
+  await decocher(A, 'chou-vert');       // … et décoche le chou vert, après la coche d'Aurore
+  verifie((await pastille(A)) === 'Hors ligne · 2 coches en attente', 'deux actions en attente chez François (obtenu « ' + (await pastille(A)) + ' »)');
+  await B.waitForTimeout(50);
+  await cocher(B, 'persil');            // Aurore, en ligne, coche puis décoche le persil, après François
+  await B.waitForTimeout(400);
+  await decocher(B, 'persil');
+  await B.waitForTimeout(400);
+  await ctxA.setOffline(false);
+  await partage(A);
+  await B.waitForTimeout(500);
+  verifie(!(await estCoche(A, 'persil')) && !(await estCoche(B, 'persil')), 'persil : Aurore l\'a décoché après la coche hors ligne de François ; sa décoche (la dernière action) gagne sur les deux téléphones');
+  verifie(!(await estCoche(A, 'chou-vert')) && !(await estCoche(B, 'chou-vert')), 'chou vert : François l\'a décoché hors ligne après la coche d\'Aurore ; sa décoche (la dernière action) gagne sur les deux téléphones');
+  verifie((await pastille(A)) === 'Partagé' && (await enAttente(A)) === 0, 'plus rien en attente chez François');
+
+  // La liste reste sur le téléphone : un téléphone qui a la page en cache mais pas la liste du jour
+  // (par exemple juste après une première visite) s'ouvre quand même sans réseau, avec la copie gardée.
+  const ctxD = await nav.newContext({ ...devices['Pixel 7'] });
+  await ctxD.addInitScript(() => localStorage.setItem('recolte.qui', JSON.stringify('Martin')));
+  const D = await ctxD.newPage();
+  D.on('pageerror', (e) => erreurs.push('Martin : ' + e.message));
+  await D.goto(`http://localhost:${PORT_SITE}/`);
+  await D.waitForSelector('li.item');
+  await D.evaluate(() => navigator.serviceWorker.ready);
+  await D.evaluate(async () => {
+    for (const k of await caches.keys()) {
+      const c = await caches.open(k);
+      for (const r of await c.keys()) if (r.url.includes('/listes/2026-')) await c.delete(r);
+    }
+  });
+  await ctxD.setOffline(true);
+  await D.reload();
+  await D.waitForSelector('li.item', { timeout: 5000 }).catch(() => {});
+  verifie((await D.textContent('#titre')) === 'Récolte du mercredi 4 novembre' && (await D.$$('#todo li.item')).length > 0, 'sans réseau, la liste du jour gardée sur le téléphone s\'ouvre (obtenu « ' + (await D.textContent('#titre')) + ' »)');
+  verifie((await D.textContent('#doneCount')) === '4' && (await pastille(D)) === 'Hors ligne', 'avec les dernières coches connues et la pastille « Hors ligne » (obtenu ' + (await D.textContent('#doneCount')) + ' coches, « ' + (await pastille(D)) + ' »)');
+  await cocher(D, 'radis');
+  verifie((await pastille(D)) === 'Hors ligne · 1 coche en attente', 'une coche sur la liste gardée : « Hors ligne · 1 coche en attente » (obtenu « ' + (await pastille(D)) + ' »)');
+  await ctxD.setOffline(false);
+  await partage(D);
+  await B.waitForTimeout(500);
+  verifie(await estCoche(B, 'radis') && (await B.textContent('#done li[data-id="radis"] .by')).includes('Martin'), 'au retour du réseau, la coche de Martin arrive chez Aurore');
+  await ctxD.close();
 
   verifie(erreurs.length === 0, 'aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));
   await nav.close(); site.close(); base.close();
