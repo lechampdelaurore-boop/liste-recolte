@@ -124,6 +124,19 @@ Notation : « kg » ou unités = contenu d'**un colis** ; caisse = PB, PH, GB, G
 
 **Précision sur les fiches elles-mêmes** : la page 46 du PDF est un doublon exact de la fiche « Mâche » (page 43). Elle devait peut-être porter une autre salade (le mesclun, la roquette ?). Je ne devine pas : à vérifier avec l'auteur du PDF si le mesclun ou la roquette est attendu.
 
+## Réponses de François (6/11/2026, dictées à la voix)
+
+Message dicté, deux mots à confirmer (marqués « à confirmer »). Le référentiel `conditionnements.json` n'est pas modifié par cette PR.
+
+| Produit | Réponse | Effet sur le référentiel |
+|---|---|---|
+| Aubergine | Grande basse (GB) | Rien à changer |
+| Céleri-branche (« le rebranch », à confirmer) | Plutôt grande haute (GH), comme Auvabio | À changer (GB → GH) |
+| Mâche | Petite basse (PB) | Rien à changer |
+| Oignon en botte | Grande basse (GB) | Rien à changer |
+| Patate douce (« la tête douce », à confirmer) | Petite haute (PH), 6 kg | Rien à changer |
+| Bouquets (persil, à confirmer) | Par 6 | À changer (10 bouquets → 6) |
+
 ## Écarts avec la fiche des prix (PR #15, `docs/tableau-cumul.md`)
 
 Le dépôt **ne contient pas** la fiche des prix elle-même, seulement sa description : elle dit que la liste des produits, avec « Colis » (PB, PH, GB, GH) et « Unité / Colis », vient du même onglet que le référentiel (« Liste produits » du cumul, capture du 3/11). Je n'ai donc pas pu comparer ligne à ligne avec le tableur ; **la comparaison ci-dessus avec `conditionnements.json` en tient lieu**, en supposant que le référentiel reprend bien le tableur. Constats qui rejoignent `docs/tableau-cumul.md` :

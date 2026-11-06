@@ -42,3 +42,4 @@
 - Ne jamais donner l'adresse `*.github.io` de ce compte (elle ouvre l'appli d'un autre membre de la famille sur les téléphones).
 - Martin est salarié à temps partiel : jamais « prestation de service ».
 | 06/11/2026 | Pas de message de félicitations dans l'appli (« Bravo », « Tout est récolté »…) : quand tout est fait, la liste reste vide. Les alertes utiles restent. |
+| 06/11/2026 | Colisage confirmé par François (dicté, à confirmer pour deux mots) : aubergine GB, mâche PB, oignon en botte GB, patate douce PH 6 kg (référentiel inchangé) ; céleri-branche plutôt GH et bouquets par 6 (référentiel à modifier plus tard). Détail : `docs/colisage-fiches-agreage.md`. |
