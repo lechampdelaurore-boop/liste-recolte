@@ -510,7 +510,7 @@ function render(){
   var done = o.filter(function(it){ return isDone(it.id); });
   done.sort(function(a, b){ return (mirror.done[b.id].at || 0) - (mirror.done[a.id].at || 0); });
   $('#todo').innerHTML = todo.length ? todo.map(function(it){ return itemHtml(it, false); }).join('') :
-    '<li class="empty">' + (o.length ? 'Tout est récolté. Bravo.' : 'Rien pour ce filtre.') + '</li>';
+    (o.length ? '' : '<li class="empty">Rien pour ce filtre.</li>');
   $('#done').innerHTML = done.map(function(it){ return itemHtml(it, true); }).join('');
   $('#doneCount').textContent = done.length;
   $('#who').textContent = me ? '👤 ' + me : '👤 Qui es-tu ?';
@@ -577,13 +577,13 @@ function renderPrep(){
     }
     var it = byId[g.key];
     head = '<div class="grp-head nobox"><div><div class="grp-name">' + esc(it.produit) + '</div>' + recBadge(it) +
-      '<div class="grp-sum">' + (n === t ? 'Tout est préparé · ' : '') + countTxt(n, t) + '</div></div></div>';
+      '<div class="grp-sum">' + countTxt(n, t) + '</div></div></div>';
     return {ready:false, html:'<section class="card grp" data-item="' + esc(it.id) + '">' + head + '<ul class="plist">' + g.lines.map(function(l){ return prepLineHtml(l, false); }).join('') + '</ul></section>'};
   }
   var out = groups.map(groupHtml);
   var open = out.filter(function(g){ return !g.ready; }), shut = out.filter(function(g){ return g.ready; });
   $('#prepList').innerHTML = open.length ? open.map(function(g){ return g.html; }).join('') :
-    '<p class="empty">' + (lines.length ? 'Toutes les commandes sont prêtes. Bravo.' : 'Rien pour ce filtre.') + '</p>';
+    (lines.length ? '' : '<p class="empty">Rien pour ce filtre.</p>');
   $('#prepDone').innerHTML = shut.map(function(g){ return g.html; }).join('');
   $('#prepDoneCount').textContent = shut.length;
   $('#prepDoneSec').hidden = !byClient;
@@ -666,7 +666,7 @@ function renderProgress(){
   var p = pct(got.kg + uG, tot.kg + uT);
   $('#progPct').textContent = p + ' %';
   setBar($('#progBar'), p);
-  $('#progSum').textContent = (p === 100 ? 'Tout est récolté. ' : '') + (tot.kg ? kgTxt(got.kg) + ' sur ' + kgTxt(tot.kg) + ' kg' : '') +
+  $('#progSum').textContent = (tot.kg ? kgTxt(got.kg) + ' sur ' + kgTxt(tot.kg) + ' kg' : '') +
     (tot.kg && uT ? ', ' : '') + (uT ? fr(uG) + ' sur ' + fr(uT) + ' unités' : '');
   function row(el, show, a, t, sumTxt, restTxt){
     el.hidden = !show; if(!show) return;

@@ -38,3 +38,4 @@
 - Tout dans `index.html`, sans bibliothèque ni étape de construction ; Firebase par l'API REST sans SDK.
 - Ne jamais donner l'adresse `*.github.io` de ce compte (elle ouvre l'appli d'un autre membre de la famille sur les téléphones).
 - Martin est salarié à temps partiel : jamais « prestation de service ».
+| 06/11/2026 | Pas de message de félicitations dans l'appli (« Bravo », « Tout est récolté »…) : quand tout est fait, la liste reste vide. Les alertes utiles restent. |

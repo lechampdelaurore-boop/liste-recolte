@@ -20,7 +20,8 @@
 - **Onglet Détail** : caché « pour l'instant » le 4/11 au soir (étape 20), remplacé par la flèche de répartition. Le retirer pour de bon ou le remettre reste à décider plus tard.
 - **Prévu** : base de données des produits et de leurs colisages, modifiable par l'utilisateur sans code (étape 19).
 - **Ajouté le 5/11** : mode hors ligne (étape 21). La dernière liste et ses coches sont gardées sur le téléphone ; les coches faites sans réseau attendent et partent seules au retour du réseau ; « la dernière action gagne » (heure du téléphone) ; pastille « Hors ligne · N coches en attente ». Nouveau nœud `maj` dans la base (heure de chaque action), voir `docs/base-partagee.md`.
-- **Vérifié** : le test `tests/deux-telephones.cjs` passe (82 vérifications sur 82, lancé trois fois le 5/11/2026, coupures du réseau simulées comprises).
+- **Vérifié** : le test `tests/deux-telephones.cjs` passe (84 vérifications sur 84, lancé le 6/11/2026, coupures du réseau simulées comprises).
+- **Retiré le 6/11** : les messages de félicitations (« Tout est récolté. Bravo. », « Toutes les commandes sont prêtes. Bravo. », « Tout est récolté. » dans la barre, « Tout est préparé · » en Préparation), à la demande de François.
 - **Non vérifié en réel** : le mode hors ligne sur deux vrais téléphones en coupant le réseau (essai à faire par François) ; l'écriture `PATCH` sur la vraie base Firebase (seulement sur le faux Firebase du test).
 - **Reçu le 6/11** : l'ancien tableau de cumul et la fiche des prix de François, décrits dans `docs/tableau-cumul.md` (calculs devinés, doublons, erreurs sur les tomates). Pas encore de code. Le calcul des prix est exclu de l'outil (décision du 6/11).
 - **Prochaine étape** : voir `docs/ROADMAP.md`.
@@ -32,7 +33,7 @@
 - Référentiel `referentiel/conditionnements.json` : 74 produits, type de caisse et contenu d'un colis ; colisages par circuit (colis bois).
 - Base partagée Firebase Realtime Database (europe-west1), appelée par l'API REST sans SDK ; adresse dans `config.js`. Règles : lecture et écriture ouvertes sous `listes`. Détails : `docs/base-partagee.md`.
 - Barre de progression : lit le champ `kg` des lignes (kilos d'un côté, bottes, bouquets, pièces de l'autre).
-- Hors ligne : `sw.js` (page en cache), `CACHE` à `recolte-v15` ; liste, coches et actions en attente gardées dans le téléphone (`localStorage`).
+- Hors ligne : `sw.js` (page en cache), `CACHE` à `recolte-v16` ; liste, coches et actions en attente gardées dans le téléphone (`localStorage`).
 - Préparation de commandes : onglet « Préparation » ; coches dans la base sous `prep/<circuit>/<produit>` et `prepClient/<circuit>`.
 - Hébergement : Cloudflare Pages, relié à `main`.
 
