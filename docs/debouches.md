@@ -1,6 +1,6 @@
 # Débouchés de la ferme (description de François, 6/11/2026)
 
-Source : message de François du 6/11/2026 (dicté à la voix ; les noms ci-dessous sont corrigés d'après les registres : « Ovabio » = Auvabio, « Trongé » = Tronget, « colibois » = colis bois, « Très Allié » = Très Allier). Aucun code. Jours de livraison complétés le 6/11 (Locavore, Panier adéquat, Panier La Magic, Ellie). Prépare les étapes 11, 13 et 22 de `docs/ROADMAP.md`.
+Source : message de François du 6/11/2026 (dicté à la voix ; les noms ci-dessous sont corrigés d'après les registres : « Ovabio » = Auvabio, « Trongé » = Tronget, « colibois » = colis bois, « Très Allié » = Très Allier). Aucun code. Jours de livraison complétés le 6/11 (Locavore, Panier adéquat, Panier La Magic, Élie). Prépare les étapes 11, 13 et 22 de `docs/ROADMAP.md`.
 
 | Débouché | Priorité | Colisage | Livraison |
 |---|---|---|---|
@@ -22,7 +22,7 @@ Source : message de François du 6/11/2026 (dicté à la voix ; les noms ci-dess
 ## À préciser plus tard (pas encore demandé à François)
 
 - Priorité : seulement Très Allier est dit prioritaire ; faut-il un ordre pour les autres ?
-- Nom du client individuel : **Élie** (confirmé par François le 6/11). L'appli et les listes affichent encore « Ellie » (`listes/2026-11-04.json`, `README.md`, test) : renommage à faire dans une PR de données séparée, avec son accord.
+- Nom du client individuel : **Élie** (confirmé par François le 6/11). Renommé dans l'appli, la liste du 04/11, le `README.md` et le test le 6/11 (oui de François) ; identifiant interne `el` gardé, donc commandes et coches conservées.
 - Un jour « variable » (Élie : n'importe quand ; Panier La Magic : mardi ou jeudi selon la semaine) : la fiche de débouché doit permettre un jour au choix à chaque semaine, en plus des jours fixes, alors que « chaque débouché a un jour de livraison » reste la règle.
 - Heure ou moment de la journée (mercredi soir, mercredi début d'après-midi) : champ facultatif de la fiche ?
 - Suppression d'un débouché qui a déjà des commandes ou des coches : le garder en archive plutôt que l'effacer (données réelles, règle 14).

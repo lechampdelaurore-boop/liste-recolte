@@ -206,12 +206,13 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   verifie((await (await ligne(B, 'ta/mesclun')).textContent()).includes('Préparé par François'), 'Aurore voit qui a préparé');
   verifie(!(await (await ligne(B, 'mk/mesclun')).evaluate((x) => x.classList.contains('done'))), 'le mesclun du marché reste à préparer (une coche par client)');
   verifie((await B.textContent('#doneCount')) === recolteAvant && (await (await ligne(B, 'ta/mesclun')).textContent()).includes('Pas encore récolté'), 'cocher la préparation ne coche pas la récolte');
-  // Commande prête : Ellie (poireau) part en bas, dans « Commandes prêtes », et reste visible
+  // Commande prête : Élie (poireau) part en bas, dans « Commandes prêtes », et reste visible
   await B.click('section[data-circ="el"] .box[data-client]');
   await A.waitForTimeout(500);
-  verifie((await A.$$('#prepList section[data-circ="el"]')).length === 0 && (await A.textContent('#prepDoneCount')) === '1', 'la commande Ellie prête chez Aurore passe en bas chez François');
+  verifie((await A.$$('#prepList section[data-circ="el"]')).length === 0 && (await A.textContent('#prepDoneCount')) === '1', 'la commande Élie prête chez Aurore passe en bas chez François');
   await A.click('#prepDoneSec summary');
   const ellie = await A.textContent('#prepDone section[data-circ="el"]');
+  verifie(ellie.includes('Élie') && !ellie.includes('Ellie'), 'le client s\'appelle « Élie » (identifiant « el » inchangé, coches gardées)');
   verifie(ellie.includes('Poireau') && ellie.includes('Attention : 1 ligne pas cochée'), 'la commande prête reste visible en bas, avec l\'alerte de la ligne pas cochée');
   // Tri par produit : cocher la bette de Locavore, la voir cochée chez François dans le tri par client
   await B.click('[data-sort="produit"]');
@@ -232,7 +233,7 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   verifie((await B.getAttribute('[data-sort="produit"]', 'aria-pressed')) === 'true', 'après rechargement, l\'onglet et le tri choisis sont gardés');
   await B.click('[data-sort="client"]');
   const garde = async (k) => (await ligne(B, k)).evaluate((x) => x.classList.contains('done'));
-  verifie((await B.textContent('#prepDoneCount')) === '1' && await garde('lv/bette') && await garde('ta/mesclun'), 'après rechargement, Ellie est toujours prête, le mesclun TA et la bette Locavore cochés');
+  verifie((await B.textContent('#prepDoneCount')) === '1' && await garde('lv/bette') && await garde('ta/mesclun'), 'après rechargement, Élie est toujours prête, le mesclun TA et la bette Locavore cochés');
   // Rouvrir la commande, décocher une ligne
   await A.click('#prepDone section[data-circ="el"] .box[data-client]');
   await A.waitForTimeout(300); // l'écho de la base redessine la liste

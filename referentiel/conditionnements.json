@@ -1,5 +1,5 @@
 {
- "source": "Onglet « Liste produits » du cumul, envoyé par François le 03/11/2026 (capture). Poireau : 10 kg confirmé par François le 03/11/2026 (la ligne vide du cumul est un doublon). Persil frisé : colis de 10 bouquets en petit colis bois, donné par François le 04/11/2026 (commande Ferme Deschamps). Colisage bois : François, 04/11/2026.",
+ "source": "Onglet « Liste produits » du cumul, envoyé par François le 03/11/2026 (capture). Poireau : 10 kg confirmé par François le 03/11/2026 (la ligne vide du cumul est un doublon). Persil frisé : colis de 10 bouquets donné par François le 04/11/2026 (commande Ferme Deschamps), passé à 6 bouquets par colis le 06/11/2026. Céleri-branche : caisse GH (grande haute) au lieu de GB, François le 06/11/2026. Colisage bois : François, 04/11/2026.",
  "caisses": {
   "PB": "petite basse",
   "PH": "petite haute",
@@ -100,7 +100,7 @@
   },
   {
    "produit": "Céleri-branche",
-   "caisse": "GB",
+   "caisse": "GH",
    "unite": "5 kg",
    "kg": 5.0
   },
@@ -315,8 +315,8 @@
   {
    "produit": "Persil frisé (bouquet)",
    "caisse": "PB",
-   "unite": "Bouquet (x10)",
-   "par_colis": 10,
+   "unite": "Bouquet (x6)",
+   "par_colis": 6,
    "type": "bouquet"
   },
   {

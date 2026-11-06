@@ -16,7 +16,7 @@ listes/
       ta/                                       // identifiant du circuit (client)
         mesclun: {"by": "Aurore", "at": 1793731000000}   // ligne mesclun × Très Allier préparée
     prepClient/
-      el: {"by": "François", "at": 1793732000000}        // commande Ellie prête
+      el: {"by": "François", "at": 1793732000000}        // commande Élie prête
     maj/                                        // heure de la dernière action sur chaque chemin (depuis le 05/11/2026)
       done/mesclun: 1793730000000               // même après une décoche : sert à « la dernière action gagne »
       prep/ta/mesclun: 1793731000000

@@ -126,16 +126,16 @@ Notation : « kg » ou unités = contenu d'**un colis** ; caisse = PB, PH, GB, G
 
 ## Réponses de François (6/11/2026, dictées à la voix)
 
-Message dicté ; les trois mots douteux (« le rebranch », « la tête douce », « les bouquets ») ont été confirmés par François. Le référentiel `conditionnements.json` n'est pas modifié par cette PR.
+Message dicté ; les trois mots douteux (« le rebranch », « la tête douce », « les bouquets ») ont été confirmés par François. Le référentiel `conditionnements.json` n'était pas modifié par cette PR ; les deux changements ont été faits ensuite le 6/11, après le « oui » de François.
 
 | Produit | Réponse | Effet sur le référentiel |
 |---|---|---|
 | Aubergine | Grande basse (GB) | Rien à changer |
-| Céleri-branche | Plutôt grande haute (GH), comme Auvabio | À changer (GB → GH) |
+| Céleri-branche | Plutôt grande haute (GH), comme Auvabio | Fait le 6/11 (GB → GH) |
 | Mâche | Petite basse (PB) | Rien à changer |
 | Oignon en botte | Grande basse (GB) | Rien à changer |
 | Patate douce | Petite haute (PH), 6 kg | Rien à changer |
-| Bouquets de persil frisé | Par 6 | À changer (10 bouquets → 6) |
+| Bouquets de persil frisé | Par 6 | Fait le 6/11 (10 bouquets → 6) |
 
 ## Écarts avec la fiche des prix (PR #15, `docs/tableau-cumul.md`)
 

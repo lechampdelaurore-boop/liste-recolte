@@ -33,7 +33,7 @@ Appli web statique « Liste de récolte » du Champ de l'Aurore (GAEC, Tronget, 
 - Suivre `docs/format-liste.md`. Créer `listes/AAAA-MM-JJ.json`, puis mettre à jour `listes/actuelle.json`, **dans une PR** (pas d'envoi direct sur `main`, décision du 3/11/2026). La PR se fusionne une fois le test vert.
 - Caisse et conditionnement : les prendre dans `referentiel/conditionnements.json`. Un produit absent : demander à François, puis l'ajouter au référentiel.
 - Ne jamais inventer une quantité, un conditionnement, un emplacement ou un regroupement : s'il manque, poser **une seule** question à François.
-- Garder le vocabulaire maison : cumul, colis, PB / PH / GB / GH, colis bois (petit, moyen, grand), circuits (Très Allier, Marché, Panier adéquat (ex-Paniers solidaires), Ellie, Locavore, Auvabio 03, Ferme Deschamps, Panier La Magic).
+- Garder le vocabulaire maison : cumul, colis, PB / PH / GB / GH, colis bois (petit, moyen, grand), circuits (Très Allier, Marché, Panier adéquat (ex-Paniers solidaires), Élie, Locavore, Auvabio 03, Ferme Deschamps, Panier La Magic).
 - Colisage par circuit : Panier adéquat, Locavore et Ferme Deschamps partent en colis bois. Le recopier dans chaque liste depuis le référentiel (voir `docs/format-liste.md`, « Colisage par circuit »).
 - Citer la source des chiffres (cumul, date) dans `source`.
 - Martin est salarié à temps partiel : ne jamais parler de prestation de service.
