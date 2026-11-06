@@ -2,6 +2,8 @@
 
 ## 2026-11-06
 
+- **Étape 13 découpée** (sans code) : onglet « Semaine » validé par François, morceaux 13A à 13D avec modèle et effort proposés. `docs/ROADMAP.md` et `DECISIONS.md` mis à jour. Aucun changement de l'appli.
+
 - **Jours de livraison** : Auvabio 03 et 63 le jeudi ; chaque débouché doit avoir un jour de livraison (demande de François). `docs/debouches.md` et `DECISIONS.md` mis à jour. Aucun changement de l'appli.
 
 - **Colisage relevé dans les fiches d'agréage Auvabio** (PDF de 69 pages envoyé par François) : `docs/colisage-fiches-agreage.md`, avec les écarts par rapport à `referentiel/conditionnements.json`. Aucun changement du référentiel ni de l'appli.

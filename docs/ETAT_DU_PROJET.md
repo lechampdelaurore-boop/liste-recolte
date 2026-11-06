@@ -25,6 +25,7 @@
 - **Premier retour réel** : le 6/11/2026 au soir, François écrit que le mode hors ligne « semble bien fonctionner ». Le détail de l'essai n'est pas connu (nombre de téléphones, conflit entre deux téléphones essayé ou non) : la règle « la dernière action gagne » reste non vérifiée en réel.
 - **Reçu le 6/11** : l'ancien tableau de cumul et la fiche des prix de François, décrits dans `docs/tableau-cumul.md` (calculs devinés, doublons, erreurs sur les tomates). Pas encore de code. Le calcul des prix est exclu de l'outil (décision du 6/11).
 - **Reçu le 6/11 au soir** : les fiches d'agréage Auvabio (magasins), dont le colisage est relevé dans `docs/colisage-fiches-agreage.md` avec les écarts à trancher par François (aubergine, céleri-branche, mâche, oignon botte, patate douce, persil). C'est le colisage d'un débouché (Auvabio), pas de tous. Référentiel inchangé.
+- **Validé le 6/11** : l'onglet « Semaine » (étape 13, morceaux 13A à 13D). Rien n'est codé ; le premier morceau (13A) attend le « vas-y » de François.
 - **Prochaine étape** : voir `docs/ROADMAP.md`.
 
 ## Ce qui existe
