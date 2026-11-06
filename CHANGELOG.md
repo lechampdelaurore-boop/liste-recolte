@@ -2,6 +2,8 @@
 
 ## 2026-11-06
 
+- **Prix hors de l'outil** (décision de François) : la description de la fiche des prix est réduite à la liste des produits ; formules et marges retirées de `docs/tableau-cumul.md` et de la feuille de route. Aucun changement de l'appli.
+
 - **Tableau de cumul et fiche des prix** décrits dans `docs/tableau-cumul.md` (document seulement, calculs devinés à confirmer). Étapes 13 et 19 de la feuille de route renvoient vers lui. Aucun changement de l'appli.
 
 ## 2026-11-05
