@@ -6,7 +6,7 @@ Source : message de François du 6/11/2026 (dicté à la voix ; les noms ci-dess
 |---|---|---|---|
 | **Très Allier** (magasin) | **Prioritaire** | Caisses plastique (PB, PH, GB, GH) | Mardi et jeudi |
 | **Locavore** | Ensuite | Colis bois | Mercredi soir |
-| **Clients individuels** (par exemple Ellie, orthographe à confirmer : « avec un seul L ») | | Non précisé | N'importe quel jour |
+| **Clients individuels** (par exemple **Élie**, avec un seul L) | | Non précisé | N'importe quel jour |
 | **Auvabio 03** | | Non précisé | Jeudi (le 63 reprend le reste) |
 | **Auvabio 63** | | Non précisé | Jeudi aussi (seconde livraison) |
 | **Marché de Tronget** | | Colis plastique | Tous les vendredis |
@@ -22,7 +22,7 @@ Source : message de François du 6/11/2026 (dicté à la voix ; les noms ci-dess
 ## À préciser plus tard (pas encore demandé à François)
 
 - Priorité : seulement Très Allier est dit prioritaire ; faut-il un ordre pour les autres ?
-- Orthographe du client individuel : « Ellie » (registres actuels) ou un nom à un seul L (Élise ? Élie ?) : une question posée à François.
-- Un jour « variable » (Ellie : n'importe quand ; Panier La Magic : mardi ou jeudi selon la semaine) : la fiche de débouché doit permettre un jour au choix à chaque semaine, en plus des jours fixes, alors que « chaque débouché a un jour de livraison » reste la règle.
+- Nom du client individuel : **Élie** (confirmé par François le 6/11). L'appli et les listes affichent encore « Ellie » (`listes/2026-11-04.json`, `README.md`, test) : renommage à faire dans une PR de données séparée, avec son accord.
+- Un jour « variable » (Élie : n'importe quand ; Panier La Magic : mardi ou jeudi selon la semaine) : la fiche de débouché doit permettre un jour au choix à chaque semaine, en plus des jours fixes, alors que « chaque débouché a un jour de livraison » reste la règle.
 - Heure ou moment de la journée (mercredi soir, mercredi début d'après-midi) : champ facultatif de la fiche ?
 - Suppression d'un débouché qui a déjà des commandes ou des coches : le garder en archive plutôt que l'effacer (données réelles, règle 14).
