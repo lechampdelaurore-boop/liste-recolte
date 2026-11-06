@@ -1,5 +1,9 @@
 # Historique des changements
 
+## 2026-11-06
+
+- **Tableau de cumul et fiche des prix** décrits dans `docs/tableau-cumul.md` (document seulement, calculs devinés à confirmer). Étapes 13 et 19 de la feuille de route renvoient vers lui. Aucun changement de l'appli.
+
 ## 2026-11-05
 
 - **Mode hors ligne** (étape 21, demande de François du 5/11). Une partie existait déjà (page en cache, coches gardées et renvoyées) ; ajouté : la dernière liste reçue est gardée sur le téléphone et s'ouvre sans réseau ; la pastille dit « Hors ligne · 3 coches en attente », puis « Envoi… » et « Partagé » ; règle « la dernière action gagne » (avant, le téléphone resté hors ligne gagnait toujours, même s'il avait agi en premier) : chaque action est notée avec son heure, aussi dans la base (`maj`), et l'envoi relit la base avant d'écrire ; le flux temps réel se rouvre s'il s'est fermé ; une liste ouverte depuis la copie est remplacée par la nouvelle au retour du réseau. `CACHE` → `recolte-v15`. Test deux-téléphones : 82 vérifications (18 nouvelles, avec coupure du réseau) ; le faux Firebase sait lire en JSON, écrire en `PATCH` et couper les flux.
