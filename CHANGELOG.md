@@ -2,6 +2,8 @@
 
 ## 2026-11-06
 
+- **Céleri-branche, persil et nom Élie** (« oui » de François) : dans le référentiel, céleri-branche en caisse GH (grande haute) au lieu de GB, persil frisé en colis de 6 bouquets au lieu de 10. Client « Ellie » renommé « Élie » dans la liste du 04/11, le README, `AGENTS.md` et le test ; identifiant interne `el` gardé, donc commandes et coches conservées. La liste du 04/11 garde son céleri en GB et son colis de persil de 10 bouquets (commande passée). `CACHE` passé à `recolte-v17`.
+
 - **Jours de livraison complétés** (François) : Locavore mercredi soir, Panier adéquat mercredi début d'après-midi, Panier La Magic mardi ou jeudi, client individuel Élie n'importe quand. `docs/debouches.md` et `DECISIONS.md` mis à jour. Aucun changement de l'appli.
 
 - **Étape 13 découpée** (sans code) : onglet « Semaine » validé par François, morceaux 13A à 13D avec modèle et effort proposés. `docs/ROADMAP.md` et `DECISIONS.md` mis à jour. Aucun changement de l'appli.

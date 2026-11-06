@@ -24,7 +24,7 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 | Geste | Effet |
 |---|---|
 | **Récolte / Préparation** (en haut) | Récolte : produit, quantité totale. Préparation : la même liste, une ligne par produit et par client, à cocher pendant la préparation des commandes (voir [Préparation de commandes](#préparation-de-commandes)). |
-| **Puces de circuit** (Très Allier, Marché ven., Panier adéquat, Ellie, Locavore, Auvabio 03, Ferme Deschamps, Panier La Magic) | N'affiche que les produits de ce circuit, avec la quantité de ce circuit seulement. Pratique pour préparer une commande. |
+| **Puces de circuit** (Très Allier, Marché ven., Panier adéquat, Élie, Locavore, Auvabio 03, Ferme Deschamps, Panier La Magic) | N'affiche que les produits de ce circuit, avec la quantité de ce circuit seulement. Pratique pour préparer une commande. |
 | **Petite flèche en bas à droite d'un produit** (onglet Récolte) | Déplie la répartition du produit par client : le colis (ex. « GH de 5 kg »), puis pour chaque client le nombre de colis (colis bois compris) et le poids ou le nombre d'unités correspondant. Toucher à nouveau pour replier. Ouvert ou fermé sur ce téléphone seulement. Remplace l'onglet Détail, caché depuis le 04/11/2026 (`MONTRER_DETAIL` dans `index.html`, à passer à `true` pour le remettre). |
 | **Appui long sur une ligne** (0,45 s, sans bouger) | La ligne se décolle (petite vibration) ; la glisser à sa place. Un geste rapide fait défiler la page normalement, sans rien déplacer. L'ordre est le même sur les deux téléphones. |
 | **Case à cocher** | La ligne part dans « Récoltes déjà effectuées », avec le prénom et l'heure. |
@@ -76,7 +76,7 @@ Puis changer `CACHE` dans `sw.js` (par exemple `recolte-v1` → `recolte-v2`) po
 
 ## Mettre la liste de la semaine
 
-Chaque semaine, la liste vient du **cumul** (colonnes total JEUDI, Très Allier Jeudi, Marché Vendredi, AUVABIO 03) et des commandes des autres circuits (Panier adéquat, Ellie, Locavore).
+Chaque semaine, la liste vient du **cumul** (colonnes total JEUDI, Très Allier Jeudi, Marché Vendredi, AUVABIO 03) et des commandes des autres circuits (Panier adéquat, Élie, Locavore).
 
 1. Créer `listes/AAAA-MM-JJ.json` (date du jour de récolte), au format décrit dans [docs/format-liste.md](docs/format-liste.md). Le plus simple : copier la liste précédente et changer les quantités.
 2. Dans `listes/actuelle.json`, mettre le nouvel identifiant : `{"liste": "AAAA-MM-JJ"}`.
@@ -90,7 +90,7 @@ Une ancienne liste reste consultable avec `?liste=AAAA-MM-JJ` à la fin de l'adr
 - Chaque produit porte un code de caisse (champ `caisse`), repris de [referentiel/conditionnements.json](referentiel/conditionnements.json). **Une caisse par colis.**
 - Par défaut, **une caisse par circuit** : un demi-colis pour Très Allier et un demi-colis pour le marché font 2 caisses, parce qu'ils partent à deux endroits. En décochant l'option, les demi-colis d'un même produit sont regroupés (ici, 1 caisse).
 - **Kilos hors colis** (demande de François, 04/11/2026) : une quantité écrite seulement en kilos pour un circuit (`"5 kg"`) prend une caisse de plus, du type du produit. Exemple : patate douce, 1 colis de 6 kg pour le marché + 5 kg pour Panier La Magic = 2 PH. Regroupées, ces kilos comptent pour leur part de colis (5 kg sur 6). Dans la vue Récolte, on garde l'écriture « 1 colis + 5 kg ».
-- Les sachets Locavore, les bottes, les pièces (Ellie, courges) et les tomates (« tout ») ne sont pas comptés.
+- Les sachets Locavore, les bottes, les pièces (Élie, courges) et les tomates (« tout ») ne sont pas comptés.
 - **Colisage par débouché** : un circuit peut partir dans d'autres colis que les caisses. Panier adéquat, Locavore et Ferme Deschamps partent en **colis bois** (demande de François, 04/11/2026) : PB → petit colis bois, PH → moyen colis bois, GB et GH → grand colis bois. Seule l'étiquette change : un colis bois contient exactement la même chose que la caisse correspondante (10 bouquets de persil en PB = 10 bouquets en petit colis bois). Ces colis sont comptés à part, sous les caisses, et la flèche de répartition ou le filtre du circuit dit lequel prendre et ce qu'on y met (« Panier adéquat : 3,5 grands colis bois de 5 kg »). Comme pour les caisses, un demi-colis occupe un colis : 3,5 colis = 4 colis bois à préparer, dont un à moitié plein. Les autres circuits gardent PB, PH, GB, GH. Réglage dans la liste : voir [docs/format-liste.md](docs/format-liste.md#colisage-par-circuit).
 - Le chiffre affiché est ce qui **reste à remplir** : une ligne cochée sort du compte. Avec un filtre de zone ou de circuit, le calcul ne porte que sur ce qui est affiché.
 
