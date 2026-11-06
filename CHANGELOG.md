@@ -2,6 +2,8 @@
 
 ## 2026-11-06
 
+- **Colisage relevé dans les fiches d'agréage Auvabio** (PDF de 69 pages envoyé par François) : `docs/colisage-fiches-agreage.md`, avec les écarts par rapport à `referentiel/conditionnements.json`. Aucun changement du référentiel ni de l'appli.
+
 - **Historique voulu** (demande de François) : étape 14 précisée, historique des récoltes et des répartitions entre débouchés ; l'étape 13 devra enregistrer ses répartitions. Aucun changement de l'appli.
 
 - **Débouchés décrits** dans `docs/debouches.md` et étape 22 notée (débouchés paramétrables : ajout, suppression, colisage plastique ou bois, jours de livraison), demande de François. Aucun changement de l'appli.
