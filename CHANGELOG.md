@@ -2,6 +2,8 @@
 
 ## 2026-11-06
 
+- **Réponses de François sur le tableau de cumul** : sens de « tout » (tout chez Très Allier), AUVABIO 03 et 63 = un débouché en deux livraisons. `docs/tableau-cumul.md` et `DECISIONS.md` mis à jour. Aucun changement de l'appli.
+
 - **Groupe non repris** (décision de François) : la colonne « Groupe » du tableur, priorité de récolte, est remplacée par le glisser-déposer. Documents mis à jour, aucun changement de l'appli.
 
 - **Mode hors ligne, premier retour réel** (sans code) : François écrit le 6/11 au soir qu'il « semble bien fonctionner ». Registres à jour ; la règle « la dernière action gagne » reste non vérifiée en réel. Aucun changement de l'appli.
