@@ -2,6 +2,8 @@
 
 ## 2026-11-06
 
+- **Colisage relevé dans les fiches d'agréage Auvabio** (PDF de 69 pages envoyé par François) : `docs/colisage-fiches-agreage.md`, avec les écarts par rapport à `referentiel/conditionnements.json`. Aucun changement du référentiel ni de l'appli.
+
 - **Débouchés décrits** dans `docs/debouches.md` et étape 22 notée (débouchés paramétrables : ajout, suppression, colisage plastique ou bois, jours de livraison), demande de François. Aucun changement de l'appli.
 
 - **Réponses de François sur le tableau de cumul** : sens de « tout » (tout chez Très Allier), AUVABIO 03 et 63 = un débouché en deux livraisons. `docs/tableau-cumul.md` et `DECISIONS.md` mis à jour. Aucun changement de l'appli.
