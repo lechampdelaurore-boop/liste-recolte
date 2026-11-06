@@ -32,6 +32,7 @@
 | 06/11/2026 | **Historique voulu** (étape 14) : le logiciel garde les récoltes et les répartitions entre débouchés semaine après semaine. Conséquence pour l'étape 13 : l'outil d'arbitrage enregistre ses répartitions au lieu de les recalculer et les oublier. |
 | 06/11/2026 | Chaque débouché doit avoir un jour de livraison (champ obligatoire de la fiche de débouché, étape 22). Auvabio 03 et Auvabio 63 : le jeudi. |
 | 06/11/2026 | **Onglet « Semaine » validé** (étape 13, document de proposition accepté par François) : onglet dans la Liste de récolte, pas une appli à part ; colis, kilos ou unités au choix ; case « tout » ; AUVABIO en un débouché à deux livraisons, reste 03 → 63 calculé automatiquement, affiché à part et modifiable ; stock Très Allier toujours modifiable par la ferme (nom et heure, dernière modification gagne) ; compte du magasin seulement après l'étape 5 et son « vas-y » exprès ; but final : la répartition remplit les listes de récolte (morceau 13D), après un premier essai de la répartition seule ; historique des répartitions (étape 14). Découpage en morceaux 13A à 13D dans la feuille de route. |
+| 06/11/2026 | Jours de livraison (étape 22) : Locavore le mercredi soir ; Panier adéquat toujours le mercredi, début d'après-midi ; Panier La Magic avec l'une des livraisons Très Allier (mardi ou jeudi selon la semaine) ; client individuel (Ellie) n'importe quel jour. Conséquence : la fiche de débouché permet un jour variable choisi chaque semaine. |
 
 ## Décisions de conception (reprises du prompt de reprise du 03/11/2026)
 

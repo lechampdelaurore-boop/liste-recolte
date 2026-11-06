@@ -2,6 +2,8 @@
 
 ## 2026-11-06
 
+- **Jours de livraison complétés** (François) : Locavore mercredi soir, Panier adéquat mercredi début d'après-midi, Panier La Magic mardi ou jeudi, client individuel n'importe quand. `docs/debouches.md` et `DECISIONS.md` mis à jour. Aucun changement de l'appli.
+
 - **Étape 13 découpée** (sans code) : onglet « Semaine » validé par François, morceaux 13A à 13D avec modèle et effort proposés. `docs/ROADMAP.md` et `DECISIONS.md` mis à jour. Aucun changement de l'appli.
 
 - **Jours de livraison** : Auvabio 03 et 63 le jeudi ; chaque débouché doit avoir un jour de livraison (demande de François). `docs/debouches.md` et `DECISIONS.md` mis à jour. Aucun changement de l'appli.
