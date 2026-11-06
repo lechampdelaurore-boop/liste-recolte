@@ -326,6 +326,15 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   await partage(D);
   await B.waitForTimeout(500);
   verifie(await estCoche(B, 'radis') && (await B.textContent('#done li[data-id="radis"] .by')).includes('Martin'), 'au retour du réseau, la coche de Martin arrive chez Aurore');
+
+  // Plus de message de félicitations (demande de François du 6/11) : tout cocher ne fait apparaître aucun texte.
+  for (const id of await D.$$eval('#todo li.item', (ls) => ls.map((l) => l.dataset.id))) await cocher(D, id);
+  await D.waitForTimeout(300);
+  const corps = await D.textContent('body');
+  verifie((await D.$$('#todo li')).length === 0 && (await D.textContent('#progPct')) === '100 %' && !/Bravo|Tout est récolté/.test(corps),
+    'tout coché : la liste à faire reste vide, sans « Tout est récolté. Bravo. » (barre à ' + (await D.textContent('#progPct')) + ', obtenu « ' + (await D.textContent('#progSum')) + ' »)');
+  const source = fs.readFileSync(path.join(__dirname, '..', 'index.html'), 'utf8');
+  verifie(!/Bravo|Tout est préparé|Toutes les commandes sont prêtes|Tout est récolté/.test(source), 'aucun message de félicitations dans l\'appli (Préparation comprise)');
   await ctxD.close();
 
   verifie(erreurs.length === 0, 'aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));
