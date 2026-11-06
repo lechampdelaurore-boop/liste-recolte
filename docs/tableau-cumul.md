@@ -12,7 +12,7 @@ Source : deux feuilles du même classeur tableur de François, recopiées par lu
 | Colis | Type de caisse : PB, PH, GB, GH | Comme dans le référentiel de l'appli |
 | Conditionnement / Unité | Contenu d'un colis (1 kg, 5 kg, Botte x6…) | Texte libre, pas toujours le même format (« 5kg », « Colis 5 kg ») |
 | Prix TTC / kg-Unité | Prix client TTC | **Hors de l'outil** (décision du 6/11) : colonne non reprise |
-| Groupe | Numéro de 1 à 5 | Sens à confirmer (catégorie de produits ?) |
+| Groupe | Numéro de 1 à 5 | **Priorité de récolte** (les légumes fragiles se récoltent tôt le matin, surtout en été). **Pas repris** dans l'outil : le glisser-déposer de la liste donne l'ordre voulu (décision du 6/11) |
 | dispo de semaine | Quantité disponible dans la semaine | Remplie seulement pour les tomates (12 et 4) |
 
 **Bloc MARDI** : total MARDI, Très Allier Mardi, DISPO AUVABIO 63, AUVABIO 63 (vendu).
@@ -38,10 +38,10 @@ Autres constats : « Marché Vendredi » est dans le bloc JEUDI (le marché a li
 
 Cette feuille calcule les prix (prix HT AUVABIO, prix client TTC et HT). **Décision de François du 6/11/2026 : le calcul des prix n'entre pas dans cet outil**, il existe déjà dans un autre outil. Les formules, marges et prix ne sont donc ni décrits ni repris ici.
 
-Seule partie utile à l'outil : la liste des produits, avec **Colis** (PB, PH, GB, GH), **Unité / Colis** et **Groupe**. À reprendre dans la base des produits (étape 19), après nettoyage : la liste contient des doublons (Poireau trois fois ; Chou frisé, Chou rouge, Radis d'hiver, Panais, Rutabaga, Betterave, Navet, Céleri, Ail en double), des unités écrites de plusieurs façons (« 5 kg », « 5kg », « Colis 5 kg ») et des lignes sans unité ni groupe.
+Seule partie utile à l'outil : la liste des produits, avec **Colis** (PB, PH, GB, GH) et **Unité / Colis** (le groupe n'est pas repris). À reprendre dans la base des produits (étape 19), après nettoyage : la liste contient des doublons (Poireau trois fois ; Chou frisé, Chou rouge, Radis d'hiver, Panais, Rutabaga, Betterave, Navet, Céleri, Ail en double), des unités écrites de plusieurs façons (« 5 kg », « 5kg », « Colis 5 kg ») et des lignes sans unité ni groupe.
 
 ## Ce que cela implique pour la roadmap
 
 - Étape 13 : le tableau de cumul est un arbitrage **par débouché et par jour** (Très Allier mardi et jeudi, Marché vendredi, AUVABIO 03 et 63). Les débouchés de l'appli (`ta`, `ma`, etc.) et ceux du tableur ne sont pas les mêmes ; à rapprocher.
-- Étape 19 : la base des produits porte produit, colis, unité par colis, groupe et colisage selon les débouchés. **Pas de prix.**
+- Étape 19 : la base des produits porte produit, colis, unité par colis et colisage selon les débouchés. **Pas de prix.**
 - Cas « tout » : à prévoir dans l'outil.
