@@ -2,6 +2,8 @@
 
 ## 2026-11-06
 
+- **Historique voulu** (demande de François) : étape 14 précisée, historique des récoltes et des répartitions entre débouchés ; l'étape 13 devra enregistrer ses répartitions. Aucun changement de l'appli.
+
 - **Débouchés décrits** dans `docs/debouches.md` et étape 22 notée (débouchés paramétrables : ajout, suppression, colisage plastique ou bois, jours de livraison), demande de François. Aucun changement de l'appli.
 
 - **Réponses de François sur le tableau de cumul** : sens de « tout » (tout chez Très Allier), AUVABIO 03 et 63 = un débouché en deux livraisons. `docs/tableau-cumul.md` et `DECISIONS.md` mis à jour. Aucun changement de l'appli.
