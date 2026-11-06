@@ -20,17 +20,19 @@ Source : deux feuilles du même classeur tableur de François, recopiées par lu
 
 Les colonnes Très Allier, Marché et « Vendu » sont les **quantités réparties par François et Aurore** entre les débouchés ; les colonnes « total » et « dispo » sont calculées.
 
-### Calculs devinés (à confirmer)
+### Calculs devinés (confirmés en partie)
 
 - *total MARDI* = Très Allier Mardi (+ vendu AUVABIO 63 du mardi, vide dans la copie).
 - *DISPO AUVABIO 63 (mardi)* = dispo de semaine − total MARDI. Vide = 0, donc un **nombre négatif = ce qui manque** (aromatiques : −0,5).
 - *total JEUDI* = Très Allier Jeudi + Marché Vendredi + vendu AUVABIO 03. Vérifié sur l'endive : 2 + 1 + 7 = 10.
 - *dispo AUVABIO 03* = dispo de semaine − total MARDI − (Très Allier Jeudi + Marché). Vérifié sur aromatiques (−1,5), mesclun (−3), endive (−5).
-- *dispo AUVABIO 63 (jeudi)* : **ne suit pas une règle unique**. Égale à dispo 03 pour aromatiques, mesclun, céleri-rave ; plus haute de 1 pour l'épinard (−4 au lieu de −5), de 1,5 pour la bette (−2 au lieu de −3,5) ; endive −11 au lieu de −12. Formules probablement modifiées à la main selon les lignes.
+- *dispo AUVABIO 63 (jeudi)* : **AUVABIO 63 est le reste à vendre après la vente d'AUVABIO 03** (réponse de François, 6/11). C'est un seul débouché en deux livraisons ; tout ce qui n'est pas parti dans la 03 part dans la 63. Seuls les légumes proposés à AUVABIO en font partie. Les écarts du tableur entre lignes (épinard, bette, endive) sont des formules modifiées à la main, qu'on ne reprend pas.
 
 ### Les erreurs #VALEUR! (tomates)
 
 Les trois tomates (ronde rouge, cerise, ancienne) ont le mot **« tout »** écrit dans la colonne Très Allier (mardi et jeudi). Les totaux additionnent cette colonne : un mot dans une addition donne l'erreur #VALEUR!, et elle se propage aux colonnes calculées (total, dispo). Sens devinée de « tout » : toute la quantité disponible part chez Très Allier. Le logiciel devra gérer ce cas explicitement (case « tout »), pas par un mot dans un nombre.
+
+**Réponse de François (6/11)** : certaines cultures (courgettes, aubergines, tomates) se récoltent toutes les semaines, et on répartit en estimant d'après la semaine précédente. Quand la récolte est trop faible pour un seul créneau de vente (cas actuel des tomates, quelques kilos), **tout va chez Très Allier, quelle que soit la quantité**. L'outil aura donc une case « tout », sans chiffre, qui n'entre pas dans les additions.
 
 Autres constats : « Marché Vendredi » est dans le bloc JEUDI (le marché a lieu le vendredi, la préparation le jeudi) ; la dispo de semaine est vide pour 16 des 18 produits (donc chaque dispo est négative : le tableau sert surtout à voir ce qui est engagé).
 
@@ -44,4 +46,5 @@ Seule partie utile à l'outil : la liste des produits, avec **Colis** (PB, PH, G
 
 - Étape 13 : le tableau de cumul est un arbitrage **par débouché et par jour** (Très Allier mardi et jeudi, Marché vendredi, AUVABIO 03 et 63). Les débouchés de l'appli (`ta`, `ma`, etc.) et ceux du tableur ne sont pas les mêmes ; à rapprocher.
 - Étape 19 : la base des produits porte produit, colis, unité par colis et colisage selon les débouchés. **Pas de prix.**
-- Cas « tout » : à prévoir dans l'outil.
+- Cas « tout » : case dédiée, sans quantité (voir plus haut).
+- AUVABIO : **un débouché, deux livraisons** (03 puis 63) ; la 63 reprend le reste de la 03 (choix de François, 6/11). Le reste pour la 63 est **calculé automatiquement, affiché séparément et modifiable** : François ne remet pas toujours à la vente tout ce qui n'est pas parti dans la 03, parfois il laisse tomber (6/11). Les produits proposés à AUVABIO sont une liste à part (à préciser à l'étape 13).

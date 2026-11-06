@@ -27,6 +27,7 @@
 | 05/11/2026 | Choix de Claude pour le mode hors ligne, à confirmer par François à l'essai : « la dernière action » se juge à l'heure du téléphone où elle a été faite ; la règle vaut ligne par ligne (récolte, préparation, commande prête) et pour l'ordre entier ; une action perdue disparaît sans message (la ligne montre le prénom et l'heure de l'action gagnante) ; une liste ouverte depuis la copie du téléphone est remplacée toute seule par la nouvelle liste au retour du réseau, une fois les coches envoyées. |
 | 06/11/2026 | **Pas de calcul des prix dans cet outil** : il n'a rien à voir avec lui et existe déjà dans un autre outil. Ni prix HT, ni marges, ni prix client dans la base des produits. Le tableau de cumul sert à répartir les quantités entre débouchés. |
 | 06/11/2026 | La colonne « Groupe » de l'ancien tableur (priorité de récolte : fragiles tôt le matin) n'est pas reprise : le glisser-déposer de la liste donne l'ordre de récolte. Pas de champ « groupe » dans la base des produits. |
+| 06/11/2026 | Arbitrage hebdomadaire (étape 13) : la case « tout » (tomates, courgettes, aubergines…) envoie toute la récolte chez Très Allier sans quantité, quand elle est trop faible pour un créneau. AUVABIO est **un débouché en deux livraisons** : la 63 reprend le reste de la 03, et seuls les légumes proposés à AUVABIO y figurent. Ce reste est calculé automatiquement, affiché à part et modifiable (François laisse parfois tomber une partie). |
 
 ## Décisions de conception (reprises du prompt de reprise du 03/11/2026)
 
