@@ -11,7 +11,7 @@ Source : deux feuilles du même classeur tableur de François, recopiées par lu
 | Produit | Nom | |
 | Colis | Type de caisse : PB, PH, GB, GH | Comme dans le référentiel de l'appli |
 | Conditionnement / Unité | Contenu d'un colis (1 kg, 5 kg, Botte x6…) | Texte libre, pas toujours le même format (« 5kg », « Colis 5 kg ») |
-| Prix TTC / kg-Unité | Prix client TTC | Pris dans la feuille 2 (voir plus bas) |
+| Prix TTC / kg-Unité | Prix client TTC | **Hors de l'outil** (décision du 6/11) : colonne non reprise |
 | Groupe | Numéro de 1 à 5 | Sens à confirmer (catégorie de produits ?) |
 | dispo de semaine | Quantité disponible dans la semaine | Remplie seulement pour les tomates (12 et 4) |
 
@@ -34,29 +34,14 @@ Les trois tomates (ronde rouge, cerise, ancienne) ont le mot **« tout »** écr
 
 Autres constats : « Marché Vendredi » est dans le bloc JEUDI (le marché a lieu le vendredi, la préparation le jeudi) ; la dispo de semaine est vide pour 16 des 18 produits (donc chaque dispo est négative : le tableau sert surtout à voir ce qui est engagé).
 
-## Feuille 2 : la fiche des prix (une ligne par produit)
+## Feuille 2 : la fiche des prix (hors de cet outil)
 
-Colonnes : Produits, Colis, Unité / Colis, Groupe, Prix HT AUVABIO, Prix client TTC (33 %), Prix client TTC (20 %), Prix client HT. Environ 90 lignes.
+Cette feuille calcule les prix (prix HT AUVABIO, prix client TTC et HT). **Décision de François du 6/11/2026 : le calcul des prix n'entre pas dans cet outil**, il existe déjà dans un autre outil. Les formules, marges et prix ne sont donc ni décrits ni repris ici.
 
-### Calculs devinés, vérifiés sur plusieurs lignes (mesclun, aromatiques, endive, tomates)
-
-- *Prix client HT* = Prix HT AUVABIO ÷ 0,67 (marge de 33 % sur le prix de vente). Mesclun : 9,90 ÷ 0,67 = 14,78.
-- *Prix client TTC (33 %)* = Prix client HT × 1,055 (TVA 5,5 %). Mesclun : 15,59.
-- *Prix client TTC (20 %)* = Prix HT AUVABIO ÷ 0,75 × 1,055. Mesclun : 13,93. **Le nom « 20 % » ne correspond pas à ce calcul** (÷ 0,75 = marge de 25 % sur le prix de vente, ou +33 % ajoutés au prix d'achat) : à confirmer.
-
-### Quel prix va dans le tableau de cumul ?
-
-Le prix du tableau de cumul est tantôt celui de la colonne « 33 % » (aromatiques, mesclun, tomates), tantôt celui de la colonne « 20 % » (carotte, bette, épinard, céleri-branche, choux, endive…). Le choix semble se faire **produit par produit**.
-
-### Points à signaler
-
-- **Doublons** : Poireau trois fois (GH sans unité, groupe 3, 3,20 € ; GH 10 kg, groupe 4, 2,60 € ; GH 10 kg, groupe 4, sans prix) ; Chou frisé, Chou rouge, Radis d'hiver en mélange, Panais, Rutabaga, Betterave, Navet, Céleri, Ail, Radis noir : deux lignes avec des prix différents (la seconde série, sans unité ni groupe, ressemble à des prix de légumes de garde).
-- **Prix à 0** : Oignon blanc demi-sec (0,00 €) ; dernier Poireau (prix HT vide).
-- **Ligne incohérente** : Rabiole (TTC 33 % = 3,60 €, TTC 20 % = 3,38 €, HT client = 3,41 €) ne suit pas les formules ci-dessus.
-- **Unités variées** : kilos (« 5 kg », « 5kg », « 12kg »), bottes (x5, x6, x8, x10, x12), pièces (x8, x10), sachets (x10), unité vide.
+Seule partie utile à l'outil : la liste des produits, avec **Colis** (PB, PH, GB, GH), **Unité / Colis** et **Groupe**. À reprendre dans la base des produits (étape 19), après nettoyage : la liste contient des doublons (Poireau trois fois ; Chou frisé, Chou rouge, Radis d'hiver, Panais, Rutabaga, Betterave, Navet, Céleri, Ail en double), des unités écrites de plusieurs façons (« 5 kg », « 5kg », « Colis 5 kg ») et des lignes sans unité ni groupe.
 
 ## Ce que cela implique pour la roadmap
 
 - Étape 13 : le tableau de cumul est un arbitrage **par débouché et par jour** (Très Allier mardi et jeudi, Marché vendredi, AUVABIO 03 et 63). Les débouchés de l'appli (`ta`, `ma`, etc.) et ceux du tableur ne sont pas les mêmes ; à rapprocher.
-- Étape 19 : la base des produits doit porter aussi le **prix d'achat HT, le groupe et la règle de marge par produit** (et pas seulement le colisage).
+- Étape 19 : la base des produits porte produit, colis, unité par colis, groupe et colisage selon les débouchés. **Pas de prix.**
 - Cas « tout » : à prévoir dans l'outil.
