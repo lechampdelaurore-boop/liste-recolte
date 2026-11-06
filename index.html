@@ -209,6 +209,33 @@ details.sem-tab>summary::-webkit-details-marker{display:none}
 #semTable td.r-aplacer{background:#ffb000;font-weight:900}
 #semTable td.r-manque{background:#b00000;color:#fff;font-weight:900}
 #semTable .rep{border-style:dashed}
+/* Onglet Semaine sur ordinateur : grille façon tableur, sur toute la largeur */
+body.sem-pc .wrap{max-width:1600px}
+body.sem-pc .sem-add{justify-self:start;padding:12px 26px}
+.g-wrap{overflow:auto;max-height:78vh;border:var(--bw) solid var(--line);border-radius:var(--radius)}
+#semGrid{border-collapse:separate;border-spacing:0;width:100%;font-size:.95rem;font-variant-numeric:tabular-nums}
+#semGrid th,#semGrid td{border-right:1.5px solid var(--line);border-bottom:1.5px solid var(--line);padding:0;vertical-align:middle;background:#fff}
+#semGrid thead th{position:sticky;top:0;z-index:2;background:var(--surface2);padding:7px 6px;font-weight:800;text-align:center;font-size:.85rem;line-height:1.15;border-bottom:var(--bw) solid var(--line)}
+#semGrid th small{display:block;font-weight:600;font-size:.8rem}
+#semGrid .g-prod{position:sticky;left:0;z-index:1;padding:6px 10px;font-weight:800;text-align:left;min-width:11em;border-right:var(--bw) solid var(--line)}
+#semGrid thead .g-prod{z-index:3}
+.g-prod small{display:block;font-weight:600;color:var(--muted);font-size:.8rem}
+.g-in{display:block;width:100%;min-width:4.4em;border:0;border-radius:0;padding:11px 7px;text-align:right;font-weight:800;font-size:1rem;background:transparent}
+.g-in:focus{outline:3px solid var(--accent);outline-offset:-3px;background:#fff}
+.g-in.err{outline:3px solid #b00000;outline-offset:-3px;background:var(--warn-bg)}
+.g-in.auto{font-style:italic;font-weight:600}
+.g-in.tout{text-align:center}
+#semGrid td.g-dispo{background:var(--surface2)}
+#semGrid td.g-reste{padding:6px 9px;font-weight:900;min-width:11em;line-height:1.2;font-size:.9rem}
+#semGrid td.g-reste.place{background:var(--accent);color:#fff}
+#semGrid td.g-reste.aplacer{background:#ffb000}
+#semGrid td.g-reste.manque{background:#b00000;color:#fff}
+#semGrid td.rep,#semGrid th.rep{border-left:3px dashed var(--line)}
+.g-rep{display:flex;align-items:center;gap:2px;padding-left:6px}
+.g-rep input[type="checkbox"]{width:20px;height:20px;flex:none;margin:0;accent-color:var(--accent)}
+.g-x{border:0;background:none;font-size:1.25rem;font-weight:900;cursor:pointer;padding:6px 10px;min-height:40px}
+#semErrs{display:grid;gap:6px}
+.visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 dialog.big{max-width:min(460px,94vw);width:100%}
 .add-list{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px;max-height:50vh;overflow-y:auto}
 .add-list button{width:100%;text-align:left;padding:11px 12px;display:grid;gap:2px}
@@ -297,6 +324,11 @@ dialog.big{max-width:min(460px,94vw);width:100%}
     <button type="button" class="sem-add" data-a="ajouter">＋ Ajouter un produit</button>
     <div id="semVide" hidden></div>
     <div class="sem-list" id="semList"></div>
+    <div id="semPc" hidden>
+      <p class="hint">Taper dans une case : « 3 » (colis), « 12 kg », « 36 bottes » ou « tout ». <b>Entrée</b> ou flèche du bas : case du dessous ; <b>Tab</b> : case de droite ; <b>Échap</b> : annuler la saisie ; case vidée : effacée.</p>
+      <div id="semErrs"></div>
+      <div class="g-wrap" id="semGridWrap"><table id="semGrid"></table></div>
+    </div>
     <details class="card sem-tab" id="semTab">
       <summary><span>Tableau de la semaine</span><span class="chev">›</span></summary>
       <div class="sem-scroll"><table id="semTable"></table></div>
@@ -596,6 +628,7 @@ function render(){
   ['#circs', '#crates', '#source'].forEach(function(s){ $(s).hidden = semV; });
   $('#zones').hidden = !MONTRER_LIEU || semV;
   $('#semView').hidden = !semV;
+  document.body.classList.toggle('sem-pc', semV && PC.matches);
   document.querySelectorAll('#zones .chip').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.z === ui.zone)); });
   document.querySelectorAll('#circs .chip').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.c === ui.circ)); });
   var o = order().map(function(id){ return byId[id]; }).filter(visible);
@@ -916,6 +949,9 @@ var REF = null, CREN = null, refCharge = null;
 var sem = {id:null, data:{}, pending:ls('recolte.semaine.pending') || [], es:null, flushing:false};
 var semOuvert = {}, semUnite = {}, semErr = {}, semAttente = false;
 var EPS = 1e-6;
+// Ordinateur (écran d'au moins 1000 px de large) : l'onglet Semaine passe en grille façon tableur.
+var PC = window.matchMedia ? matchMedia('(min-width: 1000px)') : {matches:false};
+if(PC.addEventListener) PC.addEventListener('change', function(){ render(); });
 var ARROW_SEM = '<span class="arrow" aria-hidden="true">' + ARROW + '</span>';
 
 function chargerRef(){
@@ -1053,6 +1089,7 @@ function sansAccent(s){ return s.normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 function lireSaisie(txt, f, defU){
   var t = sansAccent(String(txt).trim().toLowerCase()).replace(',', '.');
   if(!t) return {vide:true};
+  if(t === 'tout') return {tout:true};
   var m = /^(\d+(?:\.\d+)?|\.\d+)\s*([a-z.]*)$/.exec(t);
   if(!m) return {err:'Écrire un nombre, par exemple 3, 12 kg ou 36 bottes.'};
   var n = parseFloat(m[1]), w = m[2].replace(/\.$/, ''), u, c = contenu(f);
@@ -1140,9 +1177,14 @@ function renderSemaine(){
     $('#semList').innerHTML = '<p class="empty">' + (refCharge ? 'Chargement…' : 'Impossible de charger les produits. Vérifie la connexion.') + '</p>';
     return;
   }
-  // Ne pas redessiner pendant une saisie : on le fera en quittant la case.
-  var actif = document.activeElement;
-  if(actif && actif.tagName === 'INPUT' && actif.type === 'text' && actif.closest('#semView')){ semAttente = true; return; }
+  var pc = PC.matches;
+  // Téléphone : ne pas redessiner pendant une saisie, on le fera en quittant la case.
+  // Ordinateur (grille) : on redessine, puis on remet le curseur dans la même case, avec ce qui y était tapé.
+  var actif = document.activeElement, garde = null;
+  if(actif && actif.tagName === 'INPUT' && actif.type === 'text' && actif.closest('#semView')){
+    if(!pc || !actif.dataset.cell){ semAttente = true; return; }
+    garde = {cell:actif.dataset.cell, v:actif.value, sale:actif.value !== actif.defaultValue, s:actif.selectionStart, e:actif.selectionEnd};
+  }
   semAttente = false;
   var d = deIso(id), now = lundiDe(new Date());
   $('#semTitre').textContent = 'Semaine du ' + d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
@@ -1157,9 +1199,60 @@ function renderSemaine(){
   $('#semVide').innerHTML = prods.length ? '' : '<p class="empty">Aucun produit pour cette semaine.</p>' +
     '<button type="button" class="sem-act" data-a="reprendre" style="width:100%">Reprendre les produits de la semaine précédente</button>' +
     (semErr.reprendre ? '<p class="sr-err" role="alert">' + esc(semErr.reprendre) + '</p>' : '');
+  $('#semList').hidden = pc; $('#semTab').hidden = pc; $('#semPc').hidden = !pc || !prods.length;
+  if(pc){
+    $('#semList').innerHTML = ''; $('#semTable').innerHTML = '';
+    $('#semGrid').innerHTML = prods.length ? grilleHtml(prods, calc, cr) : '';
+    $('#semErrs').innerHTML = Object.keys(semErr).filter(function(k){ return k !== 'reprendre' && semErr[k]; }).map(function(k){
+      var pid = k.split('|')[0], f = produitDe(pid), kk = k.split('|')[1];
+      return f ? '<p class="sr-err" role="alert">' + esc(f.nom + ', ' + (kk === 'dispo' ? 'disponible' : nomCreneau(kk.split('/')[1])) + ' : ' + semErr[k]) + '</p>' : '';
+    }).join('');
+    if(garde){
+      var el = document.querySelector('#semGrid input[data-cell="' + garde.cell.replace(/"/g, '') + '"]');
+      if(el){ if(garde.sale) el.value = garde.v; el.focus(); try{ el.setSelectionRange(garde.s, garde.e); }catch(x){} }
+    }
+    return;
+  }
   $('#semList').innerHTML = prods.map(function(p){ return carteHtml(p.id, p.f, calc[p.id], cr); }).join('');
   $('#semTab').open = !!ui.semTab;
   $('#semTable').innerHTML = prods.length ? tableHtml(prods, calc, cr) : '<tr><td>Aucun produit.</td></tr>';
+}
+
+/* Grille de l'ordinateur : une ligne par produit, une case à taper par créneau. */
+function caseHtml(pid, f, k, q, opts){
+  opts = opts || {};
+  var cle = pid + '|' + k, val = opts.tout ? 'tout' : (q ? qCourt(q, f) : '');
+  var titre = opts.titre || (q ? [equiv(q, f), quiQuand(q)].filter(Boolean).join(' · ') : '');
+  return '<input type="text" class="g-in' + (semErr[cle] ? ' err' : '') + (opts.auto ? ' auto' : '') + (opts.tout ? ' tout' : '') + '" data-cell="' + esc(cle) + '" data-pid="' + esc(pid) + '" data-k="' + esc(k) + '"' +
+    ' value="' + esc(val) + '" title="' + esc(titre) + '" aria-label="' + esc(opts.aria || '') + '" autocomplete="off" spellcheck="false">';
+}
+function grilleHtml(prods, calc, cr){
+  var reports = cr.filter(function(c){ return c.reprend; });
+  var h = '<thead><tr><th class="g-prod">Produit</th><th>Disponible</th>' +
+    cr.map(function(c){ return '<th>' + esc(c.nom) + (c.jour ? '<small>' + esc(c.jour) + '</small>' : '') + '</th>'; }).join('') + '<th>Reste</th>' +
+    reports.map(function(c){ var a = cr.filter(function(x){ return x.id === c.reprend; })[0];
+      return '<th class="rep">Reste ' + esc(a ? a.nom : c.reprend) + ' → ' + esc(c.nom) + '<small>proposé, hors du reste</small></th>'; }).join('') +
+    '<th><span class="visually-hidden">Retirer</span></th></tr></thead><tbody>';
+  prods.forEach(function(p){
+    var pid = p.id, f = p.f, r = calc[pid];
+    h += '<tr data-pid="' + esc(pid) + '"><td class="g-prod">' + esc(f.nom) + '<small>' + esc(colisTxt(f)) + '</small></td>' +
+      '<td class="g-dispo">' + caseHtml(pid, f, 'dispo', semLire('dispo/' + pid), {aria:'Disponible, ' + f.nom}) + '</td>';
+    cr.forEach(function(c){
+      var tout = r.toutC === c.id;
+      h += '<td>' + caseHtml(pid, f, 'q/' + c.id, tout ? null : semLire('q/' + pid + '/' + c.id), {tout:tout, aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom,
+        titre: tout ? 'Tout ce qui reste' + (r.toutV !== null ? ' : ' + deux(r.toutV, f) : '') : ''}) + '</td>';
+    });
+    var der = derniere(pid);
+    h += '<td class="g-reste ' + r.etat + '" title="' + esc(der ? 'Dernière modification : ' + quiQuand(der) : '') + '">' + esc(etiquette(r, f)) + '</td>';
+    reports.forEach(function(c){
+      var prop = propose(pid, c), man = semLire('report/' + pid + '/' + c.id), auto = reportAuto(pid, f, c, r), avant = cr.filter(function(x){ return x.id === c.reprend; })[0];
+      h += '<td class="rep"><div class="g-rep"><input type="checkbox" data-a="propose" data-s="' + esc(c.id) + '"' + (prop ? ' checked' : '') + ' aria-label="' + esc('Proposé à ' + nomDebouche(c, avant) + ', ' + f.nom) + '" title="Proposé à ' + esc(c.nom) + '">' +
+        (prop ? caseHtml(pid, f, 'report/' + c.id, man || (auto === null ? null : {n:Math.round(auto * 100) / 100, u:'colis'}),
+          {auto:!man, aria:'Reste proposé à ' + c.nom + ', ' + f.nom, titre: auto === null ? 'Calcul : saisir le disponible' : (man ? 'Modifié · ' : '') + 'Calcul : ' + deux(auto, f) + (man ? ' · ' + quiQuand(man) + ' · vider la case pour revenir au calcul' : '')}) : '') + '</div></td>';
+    });
+    h += '<td><button type="button" class="g-x" data-a="retirer" aria-label="' + esc('Retirer ' + f.nom + ' de la semaine') + '" title="Retirer de la semaine">×</button></td></tr>';
+  });
+  return h + '</tbody>';
 }
 
 function ligneHtml(pid, f, k, nom, q, opts){
@@ -1277,7 +1370,7 @@ function produitDe(pid){ return semLire('produits/' + pid); }
 $('#semView').addEventListener('click', function(e){
   e.stopPropagation(); // les gestes de la liste de récolte (cocher, glisser) ne concernent pas cet onglet
   var b = e.target.closest('[data-a]');
-  var carte = e.target.closest('section.sp'), pid = carte && carte.dataset.pid, f = pid && produitDe(pid);
+  var carte = e.target.closest('[data-pid]'), pid = carte && carte.dataset.pid, f = pid && produitDe(pid);
   if(!b){
     var tete = e.target.closest('.sp-head');
     if(tete){ semOuvert[pid] = !semOuvert[pid]; render(); }
@@ -1324,25 +1417,52 @@ $('#semView').addEventListener('click', function(e){
 });
 $('#semView').addEventListener('change', function(e){
   var inp = e.target;
-  var carte = inp.closest('section.sp'); if(!carte) return;
+  var carte = inp.closest('[data-pid]'); if(!carte) return;
   var pid = carte.dataset.pid, f = produitDe(pid); if(!f) return;
+  // Grille de l'ordinateur : on enregistre juste après le changement de case, pour ne pas gêner Tab ou Entrée.
+  var grille = !!inp.dataset.cell, plusTard = function(fn){ if(grille) setTimeout(fn, 0); else fn(); };
   if(inp.dataset.a === 'propose'){
     var s = inp.dataset.s;
     avecNom(function(){ var ch = {}; ch['propose/' + pid + '/' + s] = signe({v:inp.checked}); semEcrire(ch); });
     return;
   }
   if(inp.tagName !== 'INPUT') return;
-  var k = inp.closest('.sr').dataset.k, cle = pid + '|' + k, q = semLire(cible(pid, k));
-  var u = q ? (q.u || 'colis') : (semUnite[cle] || uniteParDefaut(pid, f));
-  var v = lireSaisie(inp.value, f, u);
-  if(v.err){ semErr[cle] = v.err; semAttente = true; return; }
+  var k = inp.dataset.k || inp.closest('.sr').dataset.k, cle = pid + '|' + k, q = semLire(cible(pid, k));
+  // Sur la grille, un nombre seul = des colis ; sur le téléphone, l'unité affichée à côté de la case.
+  var u = grille ? 'colis' : q ? (q.u || 'colis') : (semUnite[cle] || uniteParDefaut(pid, f));
+  var v = lireSaisie(inp.value, f, u), slot = k.indexOf('q/') === 0 ? k.split('/')[1] : null, t = semLire('tout/' + pid);
+  if(v.tout && !slot) v = {err:'« tout » se met seulement dans un créneau de vente.'};
+  if(v.err){ semErr[cle] = v.err; if(grille) plusTard(render); else semAttente = true; return; }
   delete semErr[cle];
-  avecNom(function(){
-    if(v.vide){ if(q) poser(pid, k, null); else render(); return; }
+  avecNom(function(){ plusTard(function(){
+    var ch = {};
+    if(v.tout){
+      if(t && t.c === slot) return render();
+      ch['tout/' + pid] = signe({c:slot}); if(q) ch[cible(pid, k)] = null;
+      return semEcrire(ch);
+    }
+    if(v.vide){
+      if(slot && t && t.c === slot) ch['tout/' + pid] = null;
+      if(q) ch[cible(pid, k)] = null;
+      return Object.keys(ch).length ? semEcrire(ch) : render();
+    }
     poser(pid, k, signe({n:v.n, u:v.u}));
-  });
+  }); });
 });
-$('#semView').addEventListener('keydown', function(e){ if(e.key === 'Enter' && e.target.tagName === 'INPUT') e.target.blur(); });
+$('#semView').addEventListener('keydown', function(e){
+  var inp = e.target;
+  if(inp.tagName !== 'INPUT' || inp.type !== 'text') return;
+  if(!inp.dataset.cell){ if(e.key === 'Enter') inp.blur(); return; }
+  // Grille : Entrée ou flèches haut et bas = case du dessous ou du dessus ; Échap = annuler la saisie.
+  if(e.key === 'Escape'){ inp.value = inp.defaultValue; inp.select(); e.preventDefault(); return; }
+  var sens = (e.key === 'Enter' && !e.shiftKey) || e.key === 'ArrowDown' ? 1 : (e.key === 'Enter' && e.shiftKey) || e.key === 'ArrowUp' ? -1 : 0;
+  if(!sens) return;
+  e.preventDefault();
+  var cases = Array.prototype.slice.call(document.querySelectorAll('#semGrid input[data-k="' + inp.dataset.k + '"]'));
+  var i = cases.indexOf(inp), dest = cases[i + sens];
+  if(dest) dest.focus(); else inp.blur();
+});
+$('#semView').addEventListener('focusin', function(e){ if(e.target.dataset && e.target.dataset.cell) e.target.select(); });
 $('#semView').addEventListener('focusout', function(){ setTimeout(function(){ if(semAttente) render(); }, 0); });
 $('#semTab').addEventListener('toggle', function(){ ui.semTab = this.open; saveUi(); });
 
