@@ -15,15 +15,16 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 4. [Calcul des caisses](#calcul-des-caisses)
 5. [Barre de progression](#barre-de-progression)
 6. [Préparation de commandes](#préparation-de-commandes)
-7. [Fichiers du dépôt](#fichiers-du-dépôt)
-8. [Tests](#tests)
-9. [Limites connues](#limites-connues)
+7. [Répartition de la semaine (onglet Semaine)](#répartition-de-la-semaine-onglet-semaine)
+8. [Fichiers du dépôt](#fichiers-du-dépôt)
+9. [Tests](#tests)
+10. [Limites connues](#limites-connues)
 
 ## Utilisation au champ
 
 | Geste | Effet |
 |---|---|
-| **Récolte / Préparation** (en haut) | Récolte : produit, quantité totale. Préparation : la même liste, une ligne par produit et par client, à cocher pendant la préparation des commandes (voir [Préparation de commandes](#préparation-de-commandes)). |
+| **Récolte / Préparation / Semaine** (en haut) | Récolte : produit, quantité totale. Préparation : la même liste, une ligne par produit et par client, à cocher pendant la préparation des commandes (voir [Préparation de commandes](#préparation-de-commandes)). Semaine : répartition du disponible de la semaine entre les créneaux de vente (voir [Répartition de la semaine](#répartition-de-la-semaine-onglet-semaine)). |
 | **Puces de circuit** (Très Allier, Marché ven., Panier adéquat, Élie, Locavore, Auvabio 03, Ferme Deschamps, Panier La Magic) | N'affiche que les produits de ce circuit, avec la quantité de ce circuit seulement. Pratique pour préparer une commande. |
 | **Petite flèche en bas à droite d'un produit** (onglet Récolte) | Déplie la répartition du produit par client : le colis (ex. « GH de 5 kg »), puis pour chaque client le nombre de colis (colis bois compris) et le poids ou le nombre d'unités correspondant. Toucher à nouveau pour replier. Ouvert ou fermé sur ce téléphone seulement. Remplace l'onglet Détail, caché depuis le 04/11/2026 (`MONTRER_DETAIL` dans `index.html`, à passer à `true` pour le remettre). |
 | **Appui long sur une ligne** (0,45 s, sans bouger) | La ligne se décolle (petite vibration) ; la glisser à sa place. Un geste rapide fait défiler la page normalement, sans rien déplacer. L'ordre est le même sur les deux téléphones. |
@@ -118,6 +119,20 @@ Onglet **Préparation** (demande de François, 04/11/2026). Même liste du jour 
 
 Liste du 4 novembre 2026 : 8 clients, 38 lignes.
 
+## Répartition de la semaine (onglet Semaine)
+
+Onglet **Semaine** (étape 13A, « vas-y » de François du 06/11/2026). Remplace l'ancien tableau de cumul : on écrit ce qu'on pense avoir de disponible pour chaque produit, on le répartit entre les créneaux de vente, et le **reste** dit tout de suite ce qui n'est pas placé ou ce qui manque. Aucun prix.
+
+- **‹ Semaine du lundi … ›** : chaque semaine a sa propre répartition, gardée dans la base (prévu pour l'historique, étape 14).
+- **＋ Ajouter un produit** : choisi dans la base des produits (`referentiel/conditionnements.json`), avec le contenu d'un colis (« GH de 5 kg », « GB de 12 bottes »). Une semaine vide propose de **reprendre les produits de la semaine précédente** (sans les quantités).
+- **Toucher un produit** le déplie : une case pour le disponible, puis une par créneau (Très Allier mardi, Panier La Magic, Panier adéquat, Locavore, Très Allier jeudi, Auvabio 03, Auvabio 63, Marché de Tronget, Élie). Boutons **− et +** (par demi-colis, ou par kilo, ou par unité), ou on tape : « 3 » (colis), « 12 kg », « 500 g », « 36 bottes ». Le bouton d'unité (colis, kg, bottes…) convertit la case. Une ligne peut mélanger les unités ; l'équivalent s'affiche sous chaque case.
+- **Reste = disponible − tout ce qui est réparti**, dans les deux unités (« 1 colis (12 bottes) »). **Placé** (vert) : reste à zéro. **À placer** (orange) : il reste à vendre. **Manque** (rouge) : on a promis plus qu'on n'a. Le haut de l'onglet compte les produits placés, à placer, en manque.
+- **tout** : une case sans chiffre ; tout ce qui reste va à ce créneau (cas des tomates, quand la récolte est trop faible pour un créneau). Un seul « tout » par produit et par semaine : en cocher un autre décoche le premier.
+- **Auvabio : un débouché en deux livraisons.** Quand le produit est « Proposé à Auvabio », le reste après tous les autres créneaux est proposé à Auvabio 63 : **calculé**, affiché à part (cadre en pointillés), **modifiable** (− et +, « Revenir au calcul »). Il n'entre pas dans le reste de la ligne.
+- **Tableau de la semaine** (en bas) : une ligne par produit, une colonne par créneau, le reste, puis le reste Auvabio 03 → 63. Il défile de côté dans son cadre.
+- Chaque case garde le **prénom et l'heure** ; partagé entre les téléphones et utilisable **hors ligne**, comme les coches (« la dernière action gagne »).
+- Les créneaux de départ sont dans `referentiel/creneaux.json` (une autre ferme y met les siens) ; ils deviendront réglables dans l'appli à l'étape 13B. Chaque semaine en garde sa copie.
+
 ## Fichiers du dépôt
 
 | Fichier | Rôle |
@@ -127,9 +142,10 @@ Liste du 4 novembre 2026 : 8 clients, 38 lignes.
 | `listes/actuelle.json` | Liste ouverte par défaut. |
 | `listes/AAAA-MM-JJ.json` | Une liste par jour de récolte. Format : [docs/format-liste.md](docs/format-liste.md). |
 | `referentiel/conditionnements.json` | Pour chaque produit : type de caisse (PB, PH, GB, GH) et contenu d'un colis (kg, ou nombre de bottes, bouquets, pièces, sachets). Source : onglet « Liste produits » du cumul. Aussi : les colisages (colis bois) et les circuits qui les utilisent. |
+| `referentiel/creneaux.json` | Créneaux de vente de départ de l'onglet Semaine : débouché, jour, nom court, circuit, et seconde livraison (`reprend`, Auvabio 63 reprend Auvabio 03). |
 | `sw.js` | Hors ligne : la page et la liste passent par le réseau, sinon la dernière copie. Changer `CACHE` à chaque modification de l'appli. Ne met jamais la base Firebase en cache. |
 | `manifest.webmanifest`, `icons/` | Installation sur l'écran d'accueil. |
-| `tests/` | Test de bout en bout avec deux téléphones et un faux Firebase. |
+| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`). |
 | `docs/` | Format des listes, fonctionnement de la base partagée. |
 | `AGENTS.md` | Consignes pour les agents IA qui modifient ce dépôt (`CLAUDE.md` y renvoie). |
 | `docs/ETAT_DU_PROJET.md`, `docs/ROADMAP.md`, `docs/DECISIONS.md`, `CHANGELOG.md` | Registres : où on en est, étapes, décisions, historique. |
@@ -140,9 +156,12 @@ Liste du 4 novembre 2026 : 8 clients, 38 lignes.
 npm install --no-save playwright
 npx playwright install chromium   # seulement la première fois
 node tests/deux-telephones.cjs
+node tests/semaine.cjs
 ```
 
 Le test ouvre deux téléphones simulés (François et Aurore) reliés à un faux Firebase local (`tests/faux-firebase.cjs`) et vérifie : la coche passe d'un téléphone à l'autre avec le prénom, la ligne cochée quitte la liste principale, le glisser-déposer au doigt est partagé, le nombre de caisses et de colis bois (par circuit et regroupés), l'onglet Détail caché (et remis par le réglage), la flèche de répartition par client (colisage et poids, colis bois compris), les filtres Locavore et Ferme Deschamps, le décochage, la barre de progression (globale, unités, kilos, mise à jour d'un téléphone à l'autre), l'onglet Préparation (tri par client et par produit, indicateur de récolte, coches de lignes et de clients partagées et gardées après rechargement, sans toucher aux coches de récolte), et l'absence d'erreur JavaScript. Il sort en erreur si une vérification échoue.
+
+`tests/semaine.cjs` vérifie l'onglet Semaine avec deux téléphones : ajout de produits partagé, reste en colis et en kilos ou bottes, couleurs, unités tapées ou converties (et refusées si le produit ne se compte pas ainsi), « tout » unique par produit, reste Auvabio 03 → 63 calculé, modifié puis remis au calcul, hors du reste, tableau, hors ligne, semaines séparées, reprise des produits de la semaine précédente, retrait d'un produit, rechargement, et que la liste de récolte de la base n'est pas touchée.
 
 ## Limites connues
 
