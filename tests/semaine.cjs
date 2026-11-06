@@ -1,6 +1,6 @@
 // Test de bout en bout de l'onglet « Semaine » (étape 13A) : deux téléphones (François et Aurore) répartissent
 // la semaine via un faux Firebase. Vérifie le reste, les unités (colis, kilos, bottes), la case « tout »,
-// le reste Auvabio 03 → 63, le hors ligne, et que la liste de récolte n'est pas touchée.
+// le reste Auvabio 03 → 63, le hors ligne, la grille sur ordinateur, et que la liste de récolte n'est pas touchée.
 // Lancement depuis la racine du dépôt : node tests/semaine.cjs
 // Captures d'écran (facultatif) : CAPTURES=dossier node tests/semaine.cjs
 const http = require('http');
@@ -210,6 +210,87 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   verifie(JSON.stringify(base.lire('listes/2026-11-04')) === JSON.stringify(listeAvant), 'la liste de récolte du 04/11 dans la base est inchangée');
   await B.click('[data-view="recolte"]');
   verifie(await B.isVisible('#todo') && !(await B.isVisible('#semView')) && (await B.textContent('#doneCount')) === '1', 'retour à l\'onglet Récolte : liste et coches inchangées');
+
+
+  // 14. Sur ordinateur : grille façon tableur (demande de François du 6/11 au soir)
+  const ctxC = await nav.newContext({ viewport: { width: 1366, height: 768 }, deviceScaleFactor: CAPTURES ? 2 : 1, serviceWorkers: 'block' });
+  await ctxC.addInitScript(() => localStorage.setItem('recolte.qui', JSON.stringify('Martin')));
+  const C = await ctxC.newPage();
+  C.on('pageerror', (e) => erreurs.push('Martin (PC) : ' + e.message));
+  await C.goto(`http://localhost:${PORT_SITE}/`);
+  await C.waitForSelector('li.item');
+  await C.click('[data-view="semaine"]');
+  await C.waitForSelector('#semGrid tbody tr');
+  const cellule = (pid, k) => `#semGrid input[data-cell="${pid}|${k}"]`;
+  const valeur = (p, pid, k) => p.inputValue(cellule(pid, k));
+  const resteG = (p, pid) => p.textContent(`#semGrid tr[data-pid="${pid}"] .g-reste`);
+  const focusG = (p) => p.evaluate(() => { const a = document.activeElement; return a && a.dataset.cell ? a.dataset.cell : ''; });
+  verifie(await C.isVisible('#semGrid') && !(await C.isVisible('#semList')) && !(await C.isVisible('#semTab')), 'sur ordinateur, l\'onglet Semaine montre la grille à la place des fiches et du tableau du téléphone');
+  const larg = await C.evaluate(() => ({ wrap: document.querySelector('.wrap').getBoundingClientRect().width, deborde: document.querySelector('#semGridWrap').scrollWidth > document.querySelector('#semGridWrap').clientWidth, page: document.documentElement.scrollWidth > innerWidth }));
+  verifie(larg.wrap > 1200 && !larg.deborde && !larg.page, 'écran de 1366 px : la grille prend la largeur et tient en entier, sans défilement de côté (largeur ' + Math.round(larg.wrap) + ' px)');
+  const rangG = await C.$$eval('#semGrid tr[data-pid="bette"] input[data-cell]', (e) => e.map((x) => x.value));
+  verifie(rangG.join('|') === '10|2||2||3|5||||' + '0', 'ligne bette de la grille : 10 | 2 | | 2 | | 3 | 5 | | | | puis le reste 03 → 63 (obtenu ' + rangG.join('|') + ')');
+  verifie((await resteG(C, 'bette')) === 'Manque : 2 colis (10 kg)', 'reste bette dans la grille : Manque : 2 colis (10 kg)');
+  // Taper dans une case, Tab : le reste se met à jour, le curseur est dans la case de droite
+  await C.click(cellule('bette', 'q/ta-jeu'));
+  await C.keyboard.type('1');
+  await C.keyboard.press('Tab');
+  await C.waitForTimeout(200);
+  verifie((await resteG(C, 'bette')) === 'Placé' && (await focusG(C)) === 'bette|q/av03', 'Très Allier jeudi tapé « 1 » puis Tab : la bette passe à « Placé », le curseur est sur Auvabio 03 (obtenu « ' + (await resteG(C, 'bette')) + ' », ' + (await focusG(C)) + ')');
+  await A.waitForTimeout(500);
+  verifie((await reste(A, 'bette')) === 'Placé', 'le téléphone de François voit la bette placée');
+  // Entrée : case du dessous
+  await C.click(cellule('bette', 'dispo'));
+  await C.keyboard.press('Enter');
+  verifie((await focusG(C)) === 'radis-long-rose|dispo', 'Entrée descend dans la même colonne (disponible du radis)');
+  // « tout » tapé au clavier
+  await C.click(cellule('tomate-ronde-rouge', 'q/mk'));
+  await C.keyboard.type('tout');
+  await C.keyboard.press('Enter');
+  await C.waitForTimeout(200);
+  verifie((await valeur(C, 'tomate-ronde-rouge', 'q/mk')) === 'tout' && (await valeur(C, 'tomate-ronde-rouge', 'q/ta-jeu')) === '', '« tout » tapé au marché pour la tomate : il quitte Très Allier jeudi (un seul « tout »)');
+  await C.click(cellule('tomate-ronde-rouge', 'q/mk'));
+  await C.keyboard.press('Delete');
+  await C.keyboard.press('Enter');
+  await C.waitForTimeout(200);
+  verifie((await valeur(C, 'tomate-ronde-rouge', 'q/mk')) === '' && base.lire(CHEMIN + '/tout/tomate-ronde-rouge') === null, 'vider la case « tout » retire le « tout »');
+  // Unité refusée
+  await C.click(cellule('radis-long-rose', 'q/lm'));
+  await C.keyboard.type('5 kg');
+  await C.keyboard.press('Enter');
+  await C.waitForTimeout(200);
+  verifie((await C.textContent('#semErrs')).includes('Radis long rose, Panier La Magic · mardi ou jeudi : Ce produit se compte en colis ou en bottes.') && await C.$eval(cellule('radis-long-rose', 'q/lm'), (x) => x.classList.contains('err')), '« 5 kg » pour le radis : message au-dessus de la grille et case en rouge');
+  // Reste 03 → 63 : calculé, modifiable, vidé = retour au calcul
+  verifie(await C.$eval(cellule('bette', 'report/av63'), (x) => x.classList.contains('auto') && x.value === '0'), 'reste bette proposé à la 63 : 0, calculé (en italique)');
+  await C.click(cellule('bette', 'report/av63'));
+  await C.keyboard.type('1');
+  await C.keyboard.press('Enter');
+  await C.waitForTimeout(200);
+  verifie((await valeur(C, 'bette', 'report/av63')) === '1' && !(await C.$eval(cellule('bette', 'report/av63'), (x) => x.classList.contains('auto'))) && (await resteG(C, 'bette')) === 'Placé', 'reste proposé à la 63 modifié à 1 : gardé, sans changer le reste de la ligne');
+  await C.click(cellule('bette', 'report/av63'));
+  await C.keyboard.press('Delete');
+  await C.keyboard.press('Enter');
+  await C.waitForTimeout(200);
+  verifie(await C.$eval(cellule('bette', 'report/av63'), (x) => x.classList.contains('auto') && x.value === '0'), 'case vidée : retour au calcul');
+  // Un changement d'un autre téléphone pendant une saisie ne l'efface pas
+  await C.click(cellule('radis-long-rose', 'q/ta-jeu'));
+  await C.keyboard.type('0,5');
+  await ouvrir(A, 'bette');
+  await saisir(A, 'bette', 'dispo', '12');
+  await C.waitForTimeout(600);
+  verifie((await resteG(C, 'bette')) === 'À placer : 2 colis (10 kg)' && (await focusG(C)) === 'radis-long-rose|q/ta-jeu' && (await valeur(C, 'radis-long-rose', 'q/ta-jeu')) === '0,5', 'pendant une saisie, le changement de François arrive (bette à placer : 2 colis) sans effacer « 0,5 » en cours de frappe');
+  await C.keyboard.press('Enter');
+  await C.waitForTimeout(300);
+  const qr = base.lire(CHEMIN + '/q/radis-long-rose/ta-jeu');
+  verifie(qr && qr.n === 0.5 && qr.u === 'colis' && qr.by === 'Martin', 'la saisie est ensuite enregistrée : 0,5 colis par Martin');
+  await C.click('#semGrid'); // sort de la case pour la capture
+  await C.evaluate(() => document.activeElement && document.activeElement.blur());
+  await capture(C, '4-semaine-ordinateur');
+  // Fenêtre étroite : retour aux fiches du téléphone
+  await C.setViewportSize({ width: 800, height: 900 });
+  await C.waitForTimeout(200);
+  verifie(await C.isVisible('#semList section.sp') && !(await C.isVisible('#semGrid')), 'fenêtre rétrécie sous 1000 px : retour aux fiches du téléphone');
+  await ctxC.close();
 
   verifie(erreurs.length === 0, 'aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));
   await nav.close(); site.close(); base.close();
