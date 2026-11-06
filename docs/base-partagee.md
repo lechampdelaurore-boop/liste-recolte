@@ -20,9 +20,21 @@ listes/
     maj/                                        // heure de la dernière action sur chaque chemin (depuis le 05/11/2026)
       done/mesclun: 1793730000000               // même après une décoche : sert à « la dernière action gagne »
       prep/ta/mesclun: 1793731000000
+  semaines/                                   // onglet Semaine (depuis le 06/11/2026, étape 13A)
+    2026-11-02/                                 // lundi de la semaine
+      produits/bette: {"nom":"Bette","caisse":"GH","unite":"5 kg","kg":5,"by":…,"at":…}   // copie de la fiche produit
+      dispo/bette: {"n":10,"u":"colis","by":"François","at":…}   // u = colis, kg ou u (bottes, pièces…)
+      q/bette/ta-mar: {"n":2,"u":"colis","by":…,"at":…}         // quantité d'un créneau
+      tout/tomate-ronde-rouge: {"c":"ta-jeu","by":…,"at":…}      // « tout » : un seul créneau par produit
+      report/bette/av63: {"n":0.5,"u":"colis",…}                 // reste 03 → 63 modifié à la main (absent = calculé)
+      propose/bette/av63: {"v":true,…}                           // proposé ou non à Auvabio
+      creneaux: [ … ]                                            // copie des créneaux de la semaine
+      maj/…                                                      // heure de chaque action, comme pour les listes
 ```
 
-Seuls l'ordre et les coches sont dans la base. Les coches de préparation (`prep`, `prepClient`) sont à part des coches de récolte (`done`) : l'une ne modifie jamais l'autre. Les produits et quantités restent dans `listes/*.json` sur GitHub.
+Les répartitions sont rangées **sous `listes/`** (dans `listes/semaines/`) parce que les règles de la base n'ouvrent que `listes` : un autre emplacement demanderait de changer les règles de Firebase, réservé à François. Aucune liste de récolte ne s'appelle `semaines`, les deux ne se mélangent pas. **Ne pas supprimer `listes/semaines`** en vidant une semaine de récolte : ce sont les répartitions gardées pour l'historique.
+
+Pour la liste de récolte, seuls l'ordre et les coches sont dans la base. Les coches de préparation (`prep`, `prepClient`) sont à part des coches de récolte (`done`) : l'une ne modifie jamais l'autre. Les produits et quantités restent dans `listes/*.json` sur GitHub.
 
 ## Comment l'appli s'en sert
 
@@ -43,4 +55,4 @@ Lecture et écriture libres sous `listes/`, rien ailleurs. Pas de mot de passe :
 
 ## Vider une semaine
 
-Dans la console Firebase, onglet Data, supprimer le nœud `listes/<id>`. Les téléphones repartent avec des cases vides et l'ordre du fichier.
+Dans la console Firebase, onglet Data, supprimer le nœud `listes/<id>` (une date de récolte, jamais `listes/semaines`). Les téléphones repartent avec des cases vides et l'ordre du fichier.

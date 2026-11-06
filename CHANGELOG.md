@@ -2,6 +2,8 @@
 
 ## 2026-11-06
 
+- **Onglet « Semaine » : grille de répartition** (étape 13A, « vas-y » de François). Nouvel onglet à côté de Récolte et Préparation : par semaine (lundi), on ajoute les produits depuis le référentiel, on saisit le disponible et la part de chaque créneau (Très Allier mardi et jeudi, Panier La Magic, Panier adéquat, Locavore, Auvabio 03 et 63, Marché de Tronget, Élie), en colis, kilos ou unités, avec − et + ou au clavier. Ligne « Reste » (placé, à placer, manque), case « tout » (une par produit), reste Auvabio 03 → 63 calculé, à part et modifiable, tableau de la semaine, partage et hors ligne comme les coches. Aucun prix. Créneaux de départ dans `referentiel/creneaux.json` ; données dans la base sous `listes/semaines/<lundi>` ; listes de récolte non touchées. `CACHE` → `recolte-v18` (le référentiel et les créneaux sont gardés pour le hors ligne). Nouveau test `tests/semaine.cjs` (52 vérifications) ; `tests/deux-telephones.cjs` inchangé (85 sur 85).
+
 - **Céleri-branche, persil et nom Élie** (« oui » de François) : dans le référentiel, céleri-branche en caisse GH (grande haute) au lieu de GB, persil frisé en colis de 6 bouquets au lieu de 10. Client « Ellie » renommé « Élie » dans la liste du 04/11, le README, `AGENTS.md` et le test ; identifiant interne `el` gardé, donc commandes et coches conservées. La liste du 04/11 garde son céleri en GB et son colis de persil de 10 bouquets (commande passée). `CACHE` passé à `recolte-v17`.
 
 - **Jours de livraison complétés** (François) : Locavore mercredi soir, Panier adéquat mercredi début d'après-midi, Panier La Magic mardi ou jeudi, client individuel Élie n'importe quand. `docs/debouches.md` et `DECISIONS.md` mis à jour. Aucun changement de l'appli.
