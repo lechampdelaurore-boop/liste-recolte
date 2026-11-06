@@ -2,7 +2,7 @@
 
 ## Où on en est
 
-*Au 5 novembre 2026, matin. Source : lecture du dépôt et demandes de François du 4/11 et du 5/11.*
+*Au 6 novembre 2026, soir. Source : lecture du dépôt et demandes de François du 4/11 au 6/11.*
 
 - **En ligne** : la liste du mercredi 4 novembre 2026 (`listes/2026-11-04.json`, 21 produits), sur https://liste-recolte.pages.dev.
 - **Ajouté le 4/11** : colisage par débouché (colis bois pour Panier adéquat, Locavore, Ferme Deschamps) et la commande Ferme Deschamps (persil). Voir `CHANGELOG.md`.
@@ -22,7 +22,7 @@
 - **Ajouté le 5/11** : mode hors ligne (étape 21). La dernière liste et ses coches sont gardées sur le téléphone ; les coches faites sans réseau attendent et partent seules au retour du réseau ; « la dernière action gagne » (heure du téléphone) ; pastille « Hors ligne · N coches en attente ». Nouveau nœud `maj` dans la base (heure de chaque action), voir `docs/base-partagee.md`.
 - **Vérifié** : le test `tests/deux-telephones.cjs` passe (84 vérifications sur 84, lancé le 6/11/2026, coupures du réseau simulées comprises).
 - **Retiré le 6/11** : les messages de félicitations (« Tout est récolté. Bravo. », « Toutes les commandes sont prêtes. Bravo. », « Tout est récolté. » dans la barre, « Tout est préparé · » en Préparation), à la demande de François.
-- **Non vérifié en réel** : le mode hors ligne sur deux vrais téléphones en coupant le réseau (essai à faire par François) ; l'écriture `PATCH` sur la vraie base Firebase (seulement sur le faux Firebase du test).
+- **Premier retour réel** : le 6/11/2026 au soir, François écrit que le mode hors ligne « semble bien fonctionner ». Le détail de l'essai n'est pas connu (nombre de téléphones, conflit entre deux téléphones essayé ou non) : la règle « la dernière action gagne » reste non vérifiée en réel.
 - **Reçu le 6/11** : l'ancien tableau de cumul et la fiche des prix de François, décrits dans `docs/tableau-cumul.md` (calculs devinés, doublons, erreurs sur les tomates). Pas encore de code. Le calcul des prix est exclu de l'outil (décision du 6/11).
 - **Prochaine étape** : voir `docs/ROADMAP.md`.
 

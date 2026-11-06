@@ -2,6 +2,8 @@
 
 ## 2026-11-06
 
+- **Mode hors ligne, premier retour réel** (sans code) : François écrit le 6/11 au soir qu'il « semble bien fonctionner ». Registres à jour ; la règle « la dernière action gagne » reste non vérifiée en réel. Aucun changement de l'appli.
+
 - **Messages de félicitations retirés** (demande de François du 6/11). Quand tout est coché, la liste à faire reste simplement vide : plus de « Tout est récolté. Bravo. ». Retirés aussi : « Toutes les commandes sont prêtes. Bravo. » (Préparation), « Tout est récolté. » devant les kilos de la barre de progression, « Tout est préparé · » sur un produit en tri par produit. Gardés : « Rien pour ce filtre. », l'alerte « Attention : N lignes pas cochées », la pastille hors ligne. `CACHE` → `recolte-v16`. Test deux-téléphones : 84 vérifications (2 nouvelles).
 
 - **Prix hors de l'outil** (décision de François) : la description de la fiche des prix est réduite à la liste des produits ; formules et marges retirées de `docs/tableau-cumul.md` et de la feuille de route. Aucun changement de l'appli.
