@@ -47,4 +47,4 @@ Seule partie utile à l'outil : la liste des produits, avec **Colis** (PB, PH, G
 - Étape 13 : le tableau de cumul est un arbitrage **par débouché et par jour** (Très Allier mardi et jeudi, Marché vendredi, AUVABIO 03 et 63). Les débouchés de l'appli (`ta`, `ma`, etc.) et ceux du tableur ne sont pas les mêmes ; à rapprocher.
 - Étape 19 : la base des produits porte produit, colis, unité par colis et colisage selon les débouchés. **Pas de prix.**
 - Cas « tout » : case dédiée, sans quantité (voir plus haut).
-- AUVABIO : **un débouché, deux livraisons** (03 puis 63) ; la 63 reprend le reste de la 03 (choix de François, 6/11). Les produits proposés à AUVABIO sont une liste à part (à préciser à l'étape 13).
+- AUVABIO : **un débouché, deux livraisons** (03 puis 63) ; la 63 reprend le reste de la 03 (choix de François, 6/11). Le reste pour la 63 est **calculé automatiquement, affiché séparément et modifiable** : François ne remet pas toujours à la vente tout ce qui n'est pas parti dans la 03, parfois il laisse tomber (6/11). Les produits proposés à AUVABIO sont une liste à part (à préciser à l'étape 13).
