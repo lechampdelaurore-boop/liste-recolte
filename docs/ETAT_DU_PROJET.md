@@ -22,6 +22,7 @@
 - **Ajouté le 5/11** : mode hors ligne (étape 21). La dernière liste et ses coches sont gardées sur le téléphone ; les coches faites sans réseau attendent et partent seules au retour du réseau ; « la dernière action gagne » (heure du téléphone) ; pastille « Hors ligne · N coches en attente ». Nouveau nœud `maj` dans la base (heure de chaque action), voir `docs/base-partagee.md`.
 - **Vérifié** : le test `tests/deux-telephones.cjs` passe (82 vérifications sur 82, lancé trois fois le 5/11/2026, coupures du réseau simulées comprises).
 - **Non vérifié en réel** : le mode hors ligne sur deux vrais téléphones en coupant le réseau (essai à faire par François) ; l'écriture `PATCH` sur la vraie base Firebase (seulement sur le faux Firebase du test).
+- **Reçu le 6/11** : l'ancien tableau de cumul et la fiche des prix de François, décrits dans `docs/tableau-cumul.md` (calculs devinés, doublons, erreurs sur les tomates). Pas encore de code.
 - **Prochaine étape** : voir `docs/ROADMAP.md`.
 
 ## Ce qui existe
