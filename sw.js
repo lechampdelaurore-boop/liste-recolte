@@ -1,6 +1,6 @@
 // Hors ligne : la page et la liste passent d'abord par le réseau, sinon la dernière copie.
 // La base Firebase (autre domaine) n'est jamais mise en cache.
-var CACHE = 'recolte-v31';
+var CACHE = 'recolte-v32';
 var SHELL = ['./', './index.html', './config.js', './cle-web.js', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './listes/actuelle.json', './referentiel/conditionnements.json', './referentiel/debouches.json'];
 
 self.addEventListener('install', function (e) {
