@@ -23,6 +23,17 @@ Aujourd'hui, une liste de récolte est un fichier écrit à la main et envoyé p
 5. Le **total** et les **kilos** de chaque ligne, écrits à la main aujourd'hui, sont **calculés par l'appli**. Test de confiance : refaire avec l'outil la liste du 4/11 et comparer ligne à ligne avec le fichier existant.
 6. Pas de lieu (zone, emplacement) : masqué depuis le 4/11, rien à calculer. Les zones reviendront avec l'étape 9 (Ouvre ta ferme).
 
+## Précisions de François (8/11, après le plan)
+
+1. **Récolte et Préparation suivent la semaine choisie dans l'onglet Semaine.** Si François a choisi la semaine du 9 novembre, les onglets Récolte et Préparation montrent les récoltes de cette semaine, et non plus « le mercredi 4 novembre ». Un **menu de choix** liste les récoltes de la semaine (par exemple lundi 9 et mercredi 11). Le choix de la semaine reste fait à un seul endroit, l'onglet Semaine.
+2. **Semaine sans rien de renseigné** : un message clair, par exemple « Le cumul de cette semaine est vide. » (et non une liste d'une autre semaine). Quand il y a des quantités mais aucun jour de récolte, le message le dit aussi et renvoie vers l'ajout d'un jour de récolte.
+3. **Le mot « cumul »** : à la ferme, on appelle « cumul » ce que l'appli appelle aujourd'hui « Tableau » (page de l'onglet Semaine). Renommer « Tableau » en « Cumul » dans l'appli (bouton, titres, messages, `README.md`, tests), sans toucher aux données. À faire dans la première PR de code de 13D ; `docs/tableau-cumul.md` parle de l'ancien tableur et ne change pas. Le titre de la page web (`Liste de récolte`) n'est pas concerné, sauf si François demande autre chose : à confirmer.
+4. **Jour de récolte récurrent.** Dans la déclaration d'un jour de récolte, une **case « Chaque semaine »** : cochée, le jour est créé automatiquement chaque semaine (chez François : le lundi et le mercredi). Pensé pour toutes les fermes : jours, livraisons récoltées et récurrence se règlent dans l'appli, rien n'est écrit pour une seule ferme. Précisions de conception :
+   - une récolte récurrente n'est pas copiée à l'avance dans la base : l'appli la **calcule pour chaque semaine** à partir du réglage (jour + livraisons cochées) ; elle n'existe « en dur » (avec sa liste figée) qu'au premier clic, comme les autres ;
+   - on peut, pour **une semaine précise**, retirer ou changer les livraisons d'une récolte récurrente (exception gardée avec cette semaine, sans changer le réglage) ;
+   - les semaines passées gardent leurs récoltes telles qu'elles étaient ;
+   - décocher « Chaque semaine » ne supprime rien : les semaines déjà faites restent (règle sur les vraies données).
+
 ## Unités et colis
 
 - **Colis** (nombre de PB, PH, GB, GH) : devient un nombre dans `circ`, compté dans les caisses.
@@ -45,8 +56,8 @@ Aujourd'hui, une liste de récolte est un fichier écrit à la main et envoyé p
 
 | PR | Contenu | Touche les vraies données ? |
 |---|---|---|
-| 13D-1 | **Aperçu seul** : dans l'onglet Semaine, « Ajouter un jour de récolte » (date + livraisons à cocher) et bouton « Voir la liste de ce jour », la liste calculée s'affiche en lecture seule. Test qui refait la liste du 4/11 et la compare au fichier. | Non (lecture seule) |
-| 13D-2 | La liste calculée s'ouvre dans l'onglet Récolte, avec coches et ordre (même base qu'aujourd'hui). Réglage pour l'activer ; sans lui, tout se passe comme avant. | **Oui : « vas-y » exprès** avant d'activer sur les vrais téléphones |
+| 13D-1 | **Aperçu seul** (avec « Chaque semaine » sur les jours de récolte, le renommage Tableau → Cumul et le message « cumul vide ») : dans l'onglet Semaine, « Ajouter un jour de récolte » (date + livraisons à cocher) et bouton « Voir la liste de ce jour », la liste calculée s'affiche en lecture seule. Test qui refait la liste du 4/11 et la compare au fichier. | Non (lecture seule) |
+| 13D-2 | Récolte et Préparation suivent la semaine de l'onglet Semaine, avec le menu de choix de la récolte ; la liste calculée s'ouvre dans l'onglet Récolte, avec coches et ordre (même base qu'aujourd'hui). Réglage pour l'activer ; sans lui, tout se passe comme avant. | **Oui : « vas-y » exprès** avant d'activer sur les vrais téléphones |
 | 13D-3 | Choix du jour dans l'appli (fin de `listes/actuelle.json` fait à la main), registres, mode d'emploi. | **Oui : « vas-y » exprès** (change ce que les téléphones ouvrent) |
 
 ## Ce qui touche les vraies données (« vas-y » donné par François le 8/11, voir `docs/DECISIONS.md`)
