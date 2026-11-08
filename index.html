@@ -208,7 +208,9 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 .mag-j{display:grid;gap:8px;justify-items:start}
 .mag-qui{margin:6px 0 0;font-size:1rem;font-weight:900}
 .mag-l{margin:0;padding-left:20px;display:grid;gap:3px;font-size:.9rem}
-.mag-hors{border:2px dashed var(--line);border-radius:10px;padding:8px 10px}
+.mag-hors{border-style:dashed;padding:10px 12px;display:grid;gap:6px}
+.mag-hors .mag-l{padding:0;list-style:none}
+.mag-hors li{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
 .stk-l .sr{border-top:0}
 .sr.stock .sr-ctl input{background:#fff}
 #semTable th.stk,#semTable td.stk{background:var(--surface2)}
@@ -2043,7 +2045,7 @@ function renderSemaine(){
   $('#semSub button[data-sem="cumul"]').hidden = pc;
   $('#semSub button[data-sem="stock"]').hidden = !avecStock;
   $('#semStk').hidden = page !== 'stock';
-  $('#semStkList').innerHTML = page !== 'stock' ? '' : prods.length ? stockHtml(prods, calc, cr) :
+  $('#semStkList').innerHTML = page !== 'stock' ? '' : prods.length || stocks().length ? stockHtml(prods, calc, cr) :
     '<p class="card empty rc-vide">Aucun produit cette semaine. Ajouter d\'abord les produits dans la page « Répartir ».</p>';
   $('#semRep').hidden = page !== 'repartir';
   $('#semVide').hidden = !!prods.length;
@@ -2142,12 +2144,29 @@ function stockHtml(prods, calc, cr){
           {cls:'stock', aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?', note:[livs.length ? (prevu.length ? 'Prévu cette semaine : ' + prevu.join(', ') : 'Rien de prévu cette semaine') : '', stockVu(p.id, x.id) ? '' : avantTxt(p.id, f, x.id)].filter(Boolean).join(' · ')}) + '</div>';
     });
     h += '</div>';
-    // Produits comptés par le magasin mais absents de la semaine : montrés à part, pour ne rien perdre.
-    var ids = prods.map(function(p){ return p.id; }), hors = Object.keys(mag.w === sem.id && mag.d[x.id] || {}).filter(function(pid){ return ids.indexOf(pid) < 0 && stockMag(pid, x.id); });
-    if(hors.length) h += '<p class="hint mag-hors"><b>Compté par le magasin, pas dans la semaine :</b> ' + esc(hors.map(function(pid){ var m = stockMag(pid, x.id); return nomProduit(pid) + ' ' + qTxt(m.n, m.u, ficheDe(pid)) + ' (' + quiQuand(m) + ')'; }).join(' ; ')) + '</p>';
-    h += journalHtml(x) + '</section>';
+    if(!prods.length) h += '<p class="hint">Aucun produit dans votre semaine : ajoutez-les dans la page « Répartir », ou depuis le cadre ci-dessous.</p>';
+    h += horsHtml(x, prods) + journalHtml(x) + '</section>';
   });
   return h;
+}
+
+// Produits comptés par le magasin (cette semaine, ou à défaut la semaine d'avant) mais absents de la semaine de la
+// ferme : un cadre à part, avec « Ajouter à la semaine » (demande de François du 8/11 : « je ne le vois pas »).
+function horsHtml(x, prods){
+  if(mag.w !== sem.id) return '';
+  var ids = prods.map(function(p){ return p.id; }), l = [];
+  Object.keys(mag.d[x.id] || {}).forEach(function(pid){ if(ids.indexOf(pid) < 0 && stockMag(pid, x.id)) l.push({pid:pid, m:stockMag(pid, x.id)}); });
+  Object.keys(mag.prec[x.id] || {}).forEach(function(pid){
+    var m = stockAvant(pid, x.id);
+    if(m && ids.indexOf(pid) < 0 && !l.some(function(o){ return o.pid === pid; })) l.push({pid:pid, m:m, avant:true});
+  });
+  if(!l.length) return '';
+  l.sort(function(a, b){ return nomProduit(a.pid).localeCompare(nomProduit(b.pid), 'fr'); });
+  return '<div class="card mag-hors"><h3 class="mag-qui">Compté par le magasin, pas dans votre semaine</h3><ul class="mag-l">' + l.map(function(o){
+    var f = ficheDe(o.pid), ok = REF && (REF.produits || []).some(function(p){ return pidDe(p.produit) === o.pid; });
+    return '<li data-hors="' + esc(o.pid) + '"><span><b>' + esc(nomProduit(o.pid)) + '</b> : ' + esc(qTxt(o.m.n, o.m.u, f) + ' · ' + (o.avant ? 'semaine d\'avant, ' + quiQuandDate(o.m) : quiQuand(o.m))) + '</span>' +
+      (ok ? ' <button type="button" class="sem-act" data-a="ajouter-produit" data-p="' + esc(o.pid) + '">Ajouter à la semaine</button>' : '') + '</li>';
+  }).join('') + '</ul></div>';
 }
 
 /* Grille de l'ordinateur : une ligne par produit, une case à taper par créneau. */
@@ -2346,6 +2365,11 @@ $('#semView').addEventListener('click', function(e){
   if(a === 'debouches'){ ui.view = 'reglages'; if(b.dataset.reg) ui.regPage = b.dataset.reg; saveUi(); render(); scrollTo(0, 0); return; }
   if(a === 'reprendre'){ avecNom(reprendre); return; }
   if(a === 'journal'){ magJournal(b.dataset.d); return; }
+  if(a === 'ajouter-produit'){
+    var pr = (REF.produits || []).filter(function(x){ return pidDe(x.produit) === b.dataset.p; })[0];
+    if(pr) avecNom(function(){ var ch = {}; ch['produits/' + b.dataset.p] = signe(fiche(pr)); semEcrire(ch); });
+    return;
+  }
   if(a === 'propose' || !f) return;
   var cle = pid + '|' + k;
   delete semErr[cle];

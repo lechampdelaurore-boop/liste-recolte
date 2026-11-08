@@ -2,6 +2,8 @@
 
 *Écrit le 8/11/2026 au soir, avec le code de l'étape 13C. Une action à la fois ; Claude peut ouvrir les pages de la console dans son navigateur intégré, mais ne voit, ne tape ni n'écrit jamais un mot de passe.*
 
+*Le 8/11 entre 21 h 38 et 21 h 42, les actions 1 à 4 sont faites (règles copiées dans `sauvegardes/regles-avant-13C.json` du dossier du projet, compte créé par François, profil posé par Claude, règles publiées par François et vérifiées). Restent les actions 5 et 6.*
+
 ## En deux phrases
 
 Le magasin (Très Allier) reçoit **un seul compte** et une page à lui, https://liste-recolte.pages.dev/magasin, où chaque personne donne d'abord son prénom puis saisit le stock, produit par produit. La ferme voit ces saisies dans l'onglet Semaine, page « Stock », avec le prénom et l'heure, et l'écran « Qui a saisi au magasin cette semaine ? ».
@@ -46,8 +48,9 @@ Ne rien toucher d'autre dans les données.
 
 1. Sur un téléphone (le vôtre suffit), ouvrir https://liste-recolte.pages.dev/magasin.
 2. Identifiant `tresallier`, puis le mot de passe de l'action 2. La page demande ensuite **Qui saisit ?** : taper votre prénom.
-3. Saisir le stock d'un produit pour de vrai (par exemple ce qui reste de poireau), ou un essai que vous viderez ensuite (la case vidée reste notée dans le journal, à votre prénom).
-4. Sur le téléphone de la ferme : onglet **Semaine**, page **Stock** : la case montre la saisie avec « (magasin) », votre prénom et l'heure. En bas, **Qui a saisi au magasin cette semaine ?** liste la saisie.
+3. La page est sur **la semaine en cours** (« Cette semaine »), liste vide. Toucher **Ajouter un produit**, choisir le produit, taper le chiffre (en colis par défaut ; toucher l'unité pour passer en kilos). Pour un essai que vous retirerez ensuite : la croix × le retire, et le retrait reste noté dans le journal, à votre prénom.
+3 bis. Les flèches ‹ › changent de semaine, après une question de confirmation.
+4. Sur le téléphone de la ferme : onglet **Semaine**, **même semaine**, page **Stock** : la case du produit montre la saisie avec « (magasin) », votre prénom et l'heure ; si le produit n'est pas dans votre semaine, il est dans le cadre « Compté par le magasin, pas dans votre semaine », avec « Ajouter à la semaine ». En bas, **Qui a saisi au magasin cette semaine ?** liste la saisie.
 5. Pour se déconnecter de la page du magasin sur votre téléphone : bouton **Se déconnecter de ce téléphone** en bas de la page.
 
 ## Action 6 : donner le compte au magasin
@@ -59,5 +62,5 @@ Si une personne quitte le magasin : changer le mot de passe du compte dans **Aut
 ## Ce qui a été vérifié avant de vous le donner
 
 - Règles essayées sur l'**émulateur officiel de Firebase** (`tests/regles.cjs`, 53 vérifications) : syntaxe acceptée ; la ferme garde exactement ses accès et lit le stock, le journal et les prénoms du magasin sans pouvoir y écrire ; le magasin lit son profil, écrit une saisie et sa ligne de journal d'un seul envoi, relit son stock et ses prénoms ; il est refusé pour les listes, les semaines, les débouchés, le journal (lecture, réécriture, effacement), un autre magasin, le profil d'un autre compte ; une saisie mal formée (nombre négatif, unité inconnue, prénom vide ou trop long, champ en plus, semaine qui n'est pas une date) est refusée ; la vraie page du magasin y écrit.
-- Page du magasin et onglet Semaine essayés avec deux téléphones du magasin, un téléphone et un ordinateur de la ferme (`tests/magasin.cjs`, 54 vérifications), y compris avant la publication des règles (la ferme reste « Partagé ») et sans réseau au magasin.
+- Page du magasin et onglet Semaine essayés avec deux téléphones du magasin, un téléphone et un ordinateur de la ferme (`tests/magasin.cjs`, 67 vérifications), y compris avant la publication des règles (la ferme reste « Partagé ») et sans réseau au magasin.
 - **Non vérifié** : la vraie console et un vrai téléphone du magasin.
