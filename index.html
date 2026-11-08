@@ -248,6 +248,23 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 #semGrid td.g-stk,#semGrid th.stk{background:var(--surface2);border-right:3px dashed var(--line)}
 #semGrid td.g-stk{min-width:8.5em}
 .db label.dj small{font-weight:600}
+/* Couleur des débouchés : choix dans Réglages, colonnes de la page « Répartir » (variable --dc) */
+.db[style]{border-left:10px solid var(--dc)}
+.db[style] .db-nom input{color:var(--dc)}
+.db-coul{display:grid;gap:6px}
+.db-coul-t{font-weight:800;font-size:.92rem}
+.db-coul-t small{font-weight:600}
+.db-coul-l{display:flex;flex-wrap:wrap;gap:6px}
+.db label.dc-c{display:inline-flex;align-items:center;gap:6px;border:3px solid var(--dc);border-radius:999px;padding:6px 12px 6px 8px;min-height:44px;cursor:pointer;color:var(--dc);font-weight:900;background:#fff}
+.dc-c input{width:20px;height:20px;margin:0;accent-color:var(--dc)}
+.db label.dc-c:has(input:checked){background:var(--dc);color:#fff}
+.dc-c:has(input:checked) input{accent-color:#fff}
+#semGrid th.dc{color:var(--dc);box-shadow:inset 0 6px 0 var(--dc);padding-top:11px}
+#semGrid td.dc .g-in,#semGrid td.dc .g-u,#semGrid td.dc .g-u:disabled{color:var(--dc)}
+.sr.dc{border-left:8px solid var(--dc)}
+.sr.dc .sr-nom,.sr.dc .sr-nom small,.sr.dc .sr-ctl input,.sr.dc .sr-ctl button[data-a="unite"],.sr.dc .sr-toutv{color:var(--dc)}
+#semTable th.dc,#semTable td.dc{color:var(--dc)}
+#semTable th.dc{box-shadow:inset 0 5px 0 var(--dc)}
 .rj-sans{margin:0;font-weight:800}
 .rc-vide{padding:16px}
 .rc-jours{display:grid;gap:12px}
@@ -1354,6 +1371,25 @@ function debListe(){
   var v = debVue();
   return tableau(v && v.debouches).map(function(d){ var o = Object.assign({}, d); o.livraisons = tableau(d.livraisons).map(function(l){ var x = Object.assign({}, l); x.jours = tableau(l.jours); return x; }); return o; });
 }
+// Couleur de chaque débouché (demande de François du 8/11) : dans la page « Répartir », le titre de ses colonnes,
+// le menu d'unité et les chiffres sont dans sa couleur. Palette fixe de couleurs foncées, toutes au moins 7 fois
+// plus contrastées que le fond blanc (lisibles en plein soleil). Un débouché sans couleur choisie prend celle du
+// fichier de départ (referentiel/debouches.json), sinon la première de la palette pas encore prise.
+var COULEURS = [['#0b3d91', 'Bleu'], ['#0a5a1c', 'Vert'], ['#a3120a', 'Rouge'], ['#5e1a91', 'Violet'], ['#6e3900', 'Brun'],
+  ['#005a63', 'Bleu-vert'], ['#a0105c', 'Framboise'], ['#4a5700', 'Olive'], ['#2c3e55', 'Ardoise'], ['#000000', 'Noir']];
+function couleurOk(c){ return COULEURS.some(function(x){ return x[0] === c; }); }
+function couleurs(liste){
+  var m = {}, pris = [], depart = {};
+  tableau(DEB0 && DEB0.debouches).forEach(function(d){ if(couleurOk(d.couleur)) depart[d.id] = d.couleur; });
+  liste = liste || debListe();
+  liste.forEach(function(d){ var c = couleurOk(d.couleur) ? d.couleur : depart[d.id]; if(c){ m[d.id] = c; if(!d.archive) pris.push(c); } });
+  liste.forEach(function(d){ if(m[d.id]) return; m[d.id] = couleurLibre(pris); if(!d.archive) pris.push(m[d.id]); });
+  return m;
+}
+function couleurLibre(pris){ var l = COULEURS.filter(function(x){ return pris.indexOf(x[0]) < 0; })[0]; return l ? l[0] : '#000000'; }
+// Attribut à poser sur une colonne ou une ligne d'un débouché : la couleur passe par la variable CSS --dc.
+var dcCache = null;
+function dc(did){ var c = dcCache && dcCache[did]; return c ? ' style="--dc:' + c + '"' : ''; }
 // Jours de récolte habituels (demande de François du 8/11) : chaque jour dit quelles livraisons on récolte
 // ce jour-là (le mercredi : Panier adéquat, Locavore, Très Allier jeudi, Auvabio, marché…). Une livraison
 // n'est récoltée qu'un seul jour. Gardés avec les débouchés ; départ : « recoltes » de referentiel/debouches.json.
@@ -1598,6 +1634,9 @@ function debRender(){
 function debEcrire(liste, recoltes){
   recoltes = recoltes || recoltesListe();
   recoltes.forEach(function(r){ r.livraisons = (r.livraisons || []).slice(); });
+  // La couleur que chaque débouché avait à l'écran est écrite avec la fiche : elle ne bouge plus quand on en change une autre.
+  var avant = couleurs(debListe());
+  liste.forEach(function(d){ if(!couleurOk(d.couleur)) d.couleur = avant[d.id] || couleurs(liste)[d.id]; });
   liste.forEach(function(d){ d.livraisons.forEach(function(l){ if(!l.moment) delete l.moment; if(!l.nom) delete l.nom; if(!l.reprend) delete l.reprend; if(!l.court) delete l.court; if(!l.archive) delete l.archive; }); if(!d.note) delete d.note; if(!d.archive) delete d.archive; if(!d.stock) delete d.stock; });
   var src = debVue() || {};
   deb.pending = {source:src.source || '', debouches:liste, recoltes:recoltes, rec:true, by:me, at:Date.now()};
@@ -1659,9 +1698,15 @@ function livraisonHtml(d, l, actives){
     (actives.length > 1 ? '<button type="button" class="sem-act db-petit" data-a="retirerL">Retirer cette livraison</button>' : '') +
     '</div>';
 }
+function couleurHtml(d, cur){
+  return '<div class="db-coul" role="radiogroup" aria-label="' + esc('Couleur de ' + d.nom) + '"><span class="db-coul-t">Couleur <small>(titre, unités et chiffres de ses colonnes dans la page « Répartir »)</small></span><div class="db-coul-l">' +
+    COULEURS.map(function(x){
+      return '<label class="dc-c" style="--dc:' + x[0] + '"><input type="radio" name="' + esc('coul-' + d.id) + '" data-f="couleur" data-j="' + x[0] + '" value="' + x[0] + '"' + (x[0] === cur ? ' checked' : '') + '><span>' + esc(x[1]) + '</span></label>';
+    }).join('') + '</div></div>';
+}
 function debouchesHtml(){
   var liste = debListe(), v = debVue() || {};
-  var actifs = liste.filter(function(d){ return !d.archive; });
+  var actifs = liste.filter(function(d){ return !d.archive; }), coul = couleurs(liste);
   var by = v.by && v.at ? '<p class="sp-by">Dernière modification : ' + esc(quiQuand(v)) + '</p>' : '<p class="sp-by">Réglages de départ (pas encore modifiés).</p>';
   // Deux pages : les débouchés (avec leurs livraisons), puis les jours de récolte.
   if(ui.regPage === 'recoltes') return recoltesHtml(liste) + by;
@@ -1670,13 +1715,14 @@ function debouchesHtml(){
     by + '<div class="db-list">';
   actifs.forEach(function(d, i){
     var lv = d.livraisons.filter(function(l){ return !l.archive; });
-    h += '<section class="card db" data-d="' + esc(d.id) + '">' +
+    h += '<section class="card db" data-d="' + esc(d.id) + '" style="--dc:' + coul[d.id] + '">' +
       '<div class="db-head"><label class="db-nom">Nom du débouché<input type="text" data-f="nom" value="' + esc(d.nom) + '" autocomplete="off"></label>' +
       '<span class="db-ordre"><button type="button" class="sem-btn" data-a="monter"' + (i ? '' : ' disabled') + ' aria-label="' + esc('Monter ' + d.nom) + '">▲</button>' +
       '<button type="button" class="sem-btn" data-a="descendre"' + (i < actifs.length - 1 ? '' : ' disabled') + ' aria-label="' + esc('Descendre ' + d.nom) + '">▼</button></span></div>' +
       (debErr[d.id] ? '<p class="sr-err" role="alert">' + esc(debErr[d.id]) + '</p>' : '') +
       '<div class="db-champs"><label>Colis<select data-f="colis">' + COLIS_TYPES.map(function(c){ return '<option value="' + c[0] + '"' + ((d.colis || '') === c[0] ? ' selected' : '') + '>' + esc(c[1]) + '</option>'; }).join('') + '</select></label>' +
       '<label>Remarque<input type="text" data-f="note" value="' + esc(d.note || '') + '" autocomplete="off"></label></div>' +
+      couleurHtml(d, coul[d.id]) +
       '<label class="dj db-stock"><input type="checkbox" data-f="stock"' + (d.stock ? ' checked' : '') + '><span>Suivre son stock au magasin (une case « Stock » par produit dans la semaine)</span></label>' +
       '<h3 class="db-h3">' + (lv.length > 1 ? lv.length + ' livraisons' : 'Livraison') + '</h3>' +
       lv.map(function(l){ return livraisonHtml(d, l, lv); }).join('') +
@@ -1782,7 +1828,8 @@ $('#debView').addEventListener('click', function(e){
     var colis = $('#debColis').value;
     avecNom(function(){
       var liste = debListe(), pris = idsPris(liste), id = debIdLibre(nom, pris);
-      liste.push({id:id, nom:nom, colis:colis, livraisons:[{id:id, jours:js.slice().sort(function(a, b){ return rangJour([a]) - rangJour([b]); })}]});
+      var cl = couleurs(liste), pr = liste.filter(function(x){ return !x.archive; }).map(function(x){ return cl[x.id]; });
+      liste.push({id:id, nom:nom, colis:colis, couleur:couleurLibre(pr), livraisons:[{id:id, jours:js.slice().sort(function(a, b){ return rangJour([a]) - rangJour([b]); })}]});
       delete debErr.nouveau; ui.debJours = []; saveUi(); $('#debNom').value = ''; $('#debColis').value = 'plastique';
       debEcrire(liste);
     });
@@ -1863,6 +1910,7 @@ $('#debView').addEventListener('change', function(e){
   debModifier(dId, lId, function(liste, d, l){
     if(f === 'nom'){ if(!val) return 'Le débouché garde un nom.'; d.nom = val; }
     else if(f === 'colis') d.colis = val;
+    else if(f === 'couleur'){ if(!couleurOk(val)) return; d.couleur = val; }
     else if(f === 'note') d.note = val;
     else if(f === 'stock') d.stock = val;
     else if(f === 'moment') l.moment = val;
@@ -2049,6 +2097,7 @@ function renderSemaine(){
   }
   magSuivre();
   magAuto();
+  dcCache = couleurs();
   var pc = PC.matches;
   // Téléphone : ne pas redessiner pendant une saisie, on le fera en quittant la case.
   // Ordinateur (grille) : on redessine, puis on remet le curseur dans la même case, avec ce qui y était tapé.
@@ -2223,9 +2272,9 @@ function grilleHtml(prods, calc, cr){
   var cols = colonnes(cr, st);
   var h = '<thead><tr><th class="g-prod">Produit</th><th>Disponible</th>' +
     cols.map(function(o){ var c = o.c, x = o.s;
-      return x ? '<th class="stk">Stock ' + esc(x.nom) + '<small>au magasin, hors du reste</small></th>' : '<th>' + esc(c.nom) + (c.jour ? '<small>' + esc(c.jour) + '</small>' : '') + '</th>'; }).join('') + '<th>Reste</th>' +
+      return x ? '<th class="stk dc"' + dc(x.id) + '>Stock ' + esc(x.nom) + '<small>au magasin, hors du reste</small></th>' : '<th class="dc"' + dc(c.circuit) + '>' + esc(c.nom) + (c.jour ? '<small>' + esc(c.jour) + '</small>' : '') + '</th>'; }).join('') + '<th>Reste</th>' +
     reports.map(function(c){ var a = cr.filter(function(x){ return x.id === c.reprend; })[0];
-      return '<th class="rep">Reste ' + esc(a ? a.nom : c.reprend) + ' → ' + esc(c.nom) + '<small>proposé, hors du reste</small></th>'; }).join('') +
+      return '<th class="rep dc"' + dc(c.circuit) + '>Reste ' + esc(a ? a.nom : c.reprend) + ' → ' + esc(c.nom) + '<small>proposé, hors du reste</small></th>'; }).join('') +
     '<th><span class="visually-hidden">Retirer</span></th></tr></thead><tbody>';
   prods.forEach(function(p){
     var pid = p.id, f = p.f, r = calc[pid];
@@ -2235,18 +2284,18 @@ function grilleHtml(prods, calc, cr){
       var c = o.c, x = o.s;
       if(x){
         var qs = stockVu(pid, x.id), av = qs ? null : stockAvant(pid, x.id);
-        h += '<td class="g-stk">' + caseHtml(pid, f, 'stock/' + x.id, qs, {aria:'Stock chez ' + x.nom + ', ' + f.nom, ph: av ? '(' + qCourt(av, f) + ')' : '', titre: av ? avantTxt(pid, f, x.id) : ''}) +
+        h += '<td class="g-stk dc"' + dc(x.id) + '>' + caseHtml(pid, f, 'stock/' + x.id, qs, {aria:'Stock chez ' + x.nom + ', ' + f.nom, ph: av ? '(' + qCourt(av, f) + ')' : '', titre: av ? avantTxt(pid, f, x.id) : ''}) +
           (qs && qs.at ? '<span class="g-qui">' + esc(quiCourt(qs)) + '</span>' : '') + '</td>'; return;
       }
       var tout = r.toutC === c.id;
-      h += '<td>' + caseHtml(pid, f, 'q/' + c.id, tout ? null : semLire('q/' + pid + '/' + c.id), {tout:tout, aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom,
+      h += '<td class="dc"' + dc(c.circuit) + '>' + caseHtml(pid, f, 'q/' + c.id, tout ? null : semLire('q/' + pid + '/' + c.id), {tout:tout, aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom,
         titre: tout ? 'Tout ce qui reste' + (r.toutV !== null ? ' : ' + deux(r.toutV, f) : '') : ''}) + '</td>';
     });
     var der = derniere(pid);
     h += '<td class="g-reste ' + r.etat + '" title="' + esc(der ? 'Dernière modification : ' + quiQuand(der) : '') + '">' + esc(etiquette(r, f)) + '</td>';
     reports.forEach(function(c){
       var prop = propose(pid, c), man = semLire('report/' + pid + '/' + c.id), auto = reportAuto(pid, f, c, r), avant = cr.filter(function(x){ return x.id === c.reprend; })[0];
-      h += '<td class="rep"><div class="g-rep"><input type="checkbox" data-a="propose" data-s="' + esc(c.id) + '"' + (prop ? ' checked' : '') + ' aria-label="' + esc('Proposé à ' + nomDebouche(c, avant) + ', ' + f.nom) + '" title="Proposé à ' + esc(c.nom) + '">' +
+      h += '<td class="rep dc"' + dc(c.circuit) + '><div class="g-rep"><input type="checkbox" data-a="propose" data-s="' + esc(c.id) + '"' + (prop ? ' checked' : '') + ' aria-label="' + esc('Proposé à ' + nomDebouche(c, avant) + ', ' + f.nom) + '" title="Proposé à ' + esc(c.nom) + '">' +
         (prop ? caseHtml(pid, f, 'report/' + c.id, man || valeurCase(pid, f, 'report/' + c.id),
           {auto:!man, aria:'Reste proposé à ' + c.nom + ', ' + f.nom, titre: auto === null ? 'Calcul : saisir le disponible' : (man ? 'Modifié · ' : '') + 'Calcul : ' + deux(auto, f) + (man ? ' · ' + quiQuand(man) + ' · vider la case pour revenir au calcul' : '')}) : '') + '</div></td>';
     });
@@ -2259,7 +2308,7 @@ function ligneHtml(pid, f, k, nom, q, opts){
   opts = opts || {};
   var cle = pid + '|' + k, u = q ? (q.u || 'colis') : (semUnite[cle] || uniteParDefaut(pid, f));
   var err = semErr[cle];
-  var h = '<div class="sr' + (opts.cls ? ' ' + opts.cls : '') + '" data-k="' + esc(k) + '">' +
+  var h = '<div class="sr' + (opts.cls ? ' ' + opts.cls : '') + (opts.dc ? ' dc' : '') + '"' + (opts.dc ? dc(opts.dc) : '') + ' data-k="' + esc(k) + '">' +
     '<div class="sr-top"><span class="sr-nom">' + nom + '</span>' + (opts.tout !== undefined ?
       '<button type="button" class="tout" data-a="tout" aria-pressed="' + !!opts.tout + '">tout</button>' : '') + '</div>';
   if(opts.tout){
@@ -2300,7 +2349,7 @@ function carteHtml(pid, f, r, cr){
   colonnes(cr, st).forEach(function(o){
     var c = o.c, x = o.s;
     if(x){
-      h += ligneHtml(pid, f, 'stock/' + x.id, 'Stock chez ' + esc(x.nom) + ' <small>au magasin, hors du reste</small>', stockVu(pid, x.id), {cls:'stock', aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?', note: stockVu(pid, x.id) ? '' : avantTxt(pid, f, x.id)});
+      h += ligneHtml(pid, f, 'stock/' + x.id, 'Stock chez ' + esc(x.nom) + ' <small>au magasin, hors du reste</small>', stockVu(pid, x.id), {cls:'stock', dc:x.id, aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?', note: stockVu(pid, x.id) ? '' : avantTxt(pid, f, x.id)});
       return;
     }
     var nom = esc(c.nom) + (c.jour ? ' <small>' + esc(c.jour) + '</small>' : '');
@@ -2311,12 +2360,12 @@ function carteHtml(pid, f, r, cr){
         var auto = reportAuto(pid, f, c, r), man = semLire('report/' + pid + '/' + c.id);
         var note = auto === null ? 'Calcul : saisir le disponible' : 'Calcul : ' + deux(auto, f);
         h += ligneHtml(pid, f, 'report/' + c.id, 'Reste de ' + esc(avant ? avant.nom : c.reprend) + ', proposé à ' + esc(c.nom) + (man ? ' <small>modifié</small>' : ' <small>calculé</small>'), valeurCase(pid, f, 'report/' + c.id),
-          {cls:'report', aria:'Reste proposé à ' + c.nom + ', ' + f.nom, note:note + ' · hors du reste', qui:!!man,
+          {cls:'report', dc:c.circuit, aria:'Reste proposé à ' + c.nom + ', ' + f.nom, note:note + ' · hors du reste', qui:!!man,
            extra: man ? '<button type="button" class="sem-act" data-a="auto">Revenir au calcul</button>' : ''});
       }
     }
     var q = semLire('q/' + pid + '/' + c.id), tout = r.toutC === c.id;
-    h += ligneHtml(pid, f, 'q/' + c.id, nom, tout ? null : q, {tout:tout, toutV:r.toutV, aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom});
+    h += ligneHtml(pid, f, 'q/' + c.id, nom, tout ? null : q, {tout:tout, toutV:r.toutV, dc:c.circuit, aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom});
   });
   h += '<div class="sr total"><span class="sr-nom">Reste</span><span class="reste ' + r.etat + '">' + esc(etiquette(r, f)) + '</span></div>';
   var der = derniere(pid);
@@ -2342,19 +2391,19 @@ function tableHtml(prods, calc, cr){
   var reports = cr.filter(function(c){ return c.reprend; });
   var st = stocks();
   var cols = colonnes(cr, st);
-  var h = '<thead><tr><th>Produit</th><th>Dispo</th>' + cols.map(function(o){ return o.s ? '<th class="stk">' + esc('Stock ' + o.s.nom) + '</th>' : '<th>' + esc(o.c.court || o.c.nom) + '</th>'; }).join('') + '<th>Reste</th>' +
-    reports.map(function(c){ var a = cr.filter(function(x){ return x.id === c.reprend; })[0]; return '<th class="rep">' + esc('Reste ' + (a ? a.court || a.nom : '') + ' → ' + (c.court || c.nom)) + '</th>'; }).join('') + '</tr></thead><tbody>';
+  var h = '<thead><tr><th>Produit</th><th>Dispo</th>' + cols.map(function(o){ return o.s ? '<th class="stk dc"' + dc(o.s.id) + '>' + esc('Stock ' + o.s.nom) + '</th>' : '<th class="dc"' + dc(o.c.circuit) + '>' + esc(o.c.court || o.c.nom) + '</th>'; }).join('') + '<th>Reste</th>' +
+    reports.map(function(c){ var a = cr.filter(function(x){ return x.id === c.reprend; })[0]; return '<th class="rep dc"' + dc(c.circuit) + '>' + esc('Reste ' + (a ? a.court || a.nom : '') + ' → ' + (c.court || c.nom)) + '</th>'; }).join('') + '</tr></thead><tbody>';
   prods.forEach(function(p){
     var r = calc[p.id], f = p.f, d = semLire('dispo/' + p.id);
     h += '<tr data-pid="' + esc(p.id) + '"><td>' + esc(f.nom) + '</td><td>' + (d ? esc(qCourt(d, f)) : '') + '</td>' + cols.map(function(o){
       var c = o.c;
-      if(o.s){ var qs = stockVu(p.id, o.s.id); return '<td class="stk">' + (qs ? esc(qCourt(qs, f)) + (qs.at ? '<small class="g-qui">' + esc(quiCourt(qs)) + '</small>' : '') : '') + '</td>'; }
-      if(r.toutC === c.id) return '<td>tout</td>';
-      var q = semLire('q/' + p.id + '/' + c.id); return '<td>' + (q ? esc(qCourt(q, f)) : '') + '</td>';
+      if(o.s){ var qs = stockVu(p.id, o.s.id); return '<td class="stk dc"' + dc(o.s.id) + '>' + (qs ? esc(qCourt(qs, f)) + (qs.at ? '<small class="g-qui">' + esc(quiCourt(qs)) + '</small>' : '') : '') + '</td>'; }
+      if(r.toutC === c.id) return '<td class="dc"' + dc(c.circuit) + '>tout</td>';
+      var q = semLire('q/' + p.id + '/' + c.id); return '<td class="dc"' + dc(c.circuit) + '>' + (q ? esc(qCourt(q, f)) : '') + '</td>';
     }).join('') + '<td class="r-' + r.etat + '">' + (r.reste === null ? (r.etat === 'place' ? '0' : '') : esc(deux(r.reste, f))) + '</td>' + reports.map(function(c){
-      if(!propose(p.id, c)) return '<td class="rep"></td>';
+      if(!propose(p.id, c)) return '<td class="rep dc"' + dc(c.circuit) + '></td>';
       var man = semLire('report/' + p.id + '/' + c.id), auto = reportAuto(p.id, f, c, r);
-      return '<td class="rep">' + (man ? esc(qCourt(man, f)) + ' (modifié)' : auto === null ? '' : esc(nb(auto))) + '</td>';
+      return '<td class="rep dc"' + dc(c.circuit) + '>' + (man ? esc(qCourt(man, f)) + ' (modifié)' : auto === null ? '' : esc(nb(auto))) + '</td>';
     }).join('') + '</tr>';
   });
   return h + '</tbody>';

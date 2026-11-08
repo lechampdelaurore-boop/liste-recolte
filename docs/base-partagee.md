@@ -37,7 +37,7 @@ listes/
       recoltes/2026-11-09: {"retire":true,"by":…,"at":…}         // jour habituel retiré pour cette semaine seulement
       maj/…                                                      // heure de chaque action, comme pour les listes
   reglages/                                   // réglages partagés (depuis le 08/11/2026, étape 13B)
-    debouches: {"debouches":[ … ], "recoltes":[ … ], "rec":true, "by":"François", "at":…}   // débouchés, livraisons et jours de récolte habituels (recoltes[].chaque : « Chaque semaine », absent = oui)
+    debouches: {"debouches":[ … ], "recoltes":[ … ], "rec":true, "by":"François", "at":…}   // débouchés, livraisons et jours de récolte habituels (recoltes[].chaque : « Chaque semaine », absent = oui ; debouches[].couleur : couleur de la palette de l'appli, absente = celle du départ ou la première libre)
 profils/                                      // étape 5 : écrit par François dans la console, jamais par l'appli
   <uid du compte>: "ferme"                    // ce compte lit et écrit tout « listes »
   <uid du magasin>: "magasin:ta"              // étape 13C : ce compte n'a accès qu'à magasins/ta (Très Allier)

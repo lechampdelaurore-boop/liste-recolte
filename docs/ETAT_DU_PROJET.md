@@ -4,6 +4,8 @@
 
 *Au 8 novembre 2026, soir. Source : lecture du dépôt et demandes de François du 4/11 au 8/11.*
 
+- **Une couleur par débouché (8/11, 23 h)**, demande de François : couleur choisie dans Réglages → Débouchés (palette de 10 couleurs foncées), et dans Semaine → Répartir le titre, le chiffre et l'unité de chaque débouché dans sa couleur (grille de l'ordinateur, fiches du téléphone, page Cumul). Couleurs de départ différentes pour les 7 débouchés. Vérifié : `tests/couleurs.cjs` (24 sur 24), les six autres tests verts. **Non vérifié en réel** : la lisibilité au soleil sur les vrais téléphones. **Suite demandée par François** : filtre par jour de récolte et impression du tableau Répartir (PR à part).
+
 - **Grille « Répartir » sans ascenseur (8/11, 22 h)**, demande de François : sur ordinateur, tous les produits s'affichent d'un coup, la page entière défile, les titres des débouchés restent collés en haut. Vérifié : `tests/semaine.cjs` (88 sur 88, dont la grille plus haute que l'écran, les titres collés et une fenêtre de 1020 px), les cinq autres tests verts. **Non vérifié en réel** : le vrai ordinateur de François.
 
 - **Stock du magasin partout, appli renommée « Cumul » (8/11, 23 h 30)**, après l'essai de François : un produit saisi par le magasin entre tout seul dans la semaine de la ferme (Répartir, Cumul, Stock, grille) ; sous chaque case « Stock Très Allier », qui et quand (ferme ou magasin) ; l'appli s'appelle « Cumul » (titre, en-tête, appli installée ; adresse inchangée). Vérifié : `tests/magasin.cjs` (73 sur 73) et les six autres tests verts. **Non vérifié en réel** : l'appli installée sur un téléphone garde peut-être son ancien nom jusqu'à sa réinstallation (cela dépend du téléphone).
@@ -55,7 +57,7 @@
 - Référentiel `referentiel/conditionnements.json` : 74 produits, type de caisse et contenu d'un colis ; colisages par circuit (colis bois).
 - Base partagée Firebase Realtime Database (europe-west1), appelée par l'API REST sans SDK ; adresse dans `config.js`. Règles : base fermée par des comptes depuis le 8/11 à 20 h 55 (`docs/regles-base/fermees-sans-magasin.json` en place ; `fermees.json`, qui ajoute le magasin, à publier par François). Connexion par compte (clé web dans `cle-web.js`). Détails : `docs/base-partagee.md`.
 - Barre de progression : lit le champ `kg` des lignes (kilos d'un côté, bottes, bouquets, pièces de l'autre).
-- Hors ligne : `sw.js` (page, référentiel et débouchés en cache), `CACHE` à `recolte-v29` ; liste, coches et actions en attente gardées dans le téléphone (`localStorage`).
+- Hors ligne : `sw.js` (page, référentiel et débouchés en cache), `CACHE` à `recolte-v33` ; liste, coches et actions en attente gardées dans le téléphone (`localStorage`).
 - Préparation de commandes : onglet « Préparation » ; coches dans la base sous `prep/<circuit>/<produit>` et `prepClient/<circuit>`.
 - Répartition de la semaine : onglet « Semaine » ; débouchés de départ dans `referentiel/debouches.json`, puis réglés dans l'appli, onglet « Réglages » (base : `listes/reglages/debouches`) ; données dans la base sous `listes/semaines/<lundi>` (voir `docs/base-partagee.md`).
 - Page du magasin : `magasin.html` (étape 13C), stock sous `magasins/<débouché>/` dans la base.

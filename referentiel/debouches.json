@@ -1,28 +1,28 @@
 {
  "source": "Débouchés et livraisons de départ de l'onglet « Semaine », d'après les débouchés et jours de livraison donnés par François le 06/11/2026 (docs/debouches.md). Ils se modifient dans l'appli (onglet Semaine, bouton « Débouchés et livraisons », étape 13B) ; dès la première modification, la base garde sa propre fiche (listes/reglages/debouches) et ce fichier ne sert plus. Une autre ferme met ici ses propres débouchés.",
- "aide": "id : identifiant fixe du débouché (lettres, chiffres, tirets), repris comme circuit de la liste de récolte. nom : affiché. colis : 'plastique' (caisses PB, PH, GB, GH), 'bois' (petit, moyen, grand colis bois) ou '' (non précisé). note : remarque libre. stock : true si la ferme suit le stock de ce débouché au magasin (une case « Stock » par produit dans la semaine, hors du reste). livraisons : une par créneau de la semaine (colonne de la grille), avec son id fixe, ses jours (un seul jour, plusieurs jours = « l'un ou l'autre selon la semaine », ou 'au choix'), un moment facultatif (soir…), un nom s'il diffère de celui du débouché, un nom court (en-tête du tableau), et reprend : seconde livraison du même débouché, le reste de la première lui est proposé. recoltes : jours de récolte habituels ; pour chacun, les livraisons (id) qu'on récolte ce jour-là ; une livraison n'est récoltée qu'un jour ; chaque : true si le jour est créé tout seul dans chaque semaine (case « Chaque semaine », étape 13D), false s'il sert seulement de proposition.",
+ "aide": "id : identifiant fixe du débouché (lettres, chiffres, tirets), repris comme circuit de la liste de récolte. nom : affiché. colis : 'plastique' (caisses PB, PH, GB, GH), 'bois' (petit, moyen, grand colis bois) ou '' (non précisé). couleur : couleur du débouché dans la page « Répartir » (titre de ses colonnes, menu d'unité et chiffres), une de la palette de l'appli (couleurs foncées lisibles au soleil sur fond blanc) ; absente, l'appli en choisit une. note : remarque libre. stock : true si la ferme suit le stock de ce débouché au magasin (une case « Stock » par produit dans la semaine, hors du reste). livraisons : une par créneau de la semaine (colonne de la grille), avec son id fixe, ses jours (un seul jour, plusieurs jours = « l'un ou l'autre selon la semaine », ou 'au choix'), un moment facultatif (soir…), un nom s'il diffère de celui du débouché, un nom court (en-tête du tableau), et reprend : seconde livraison du même débouché, le reste de la première lui est proposé. recoltes : jours de récolte habituels ; pour chacun, les livraisons (id) qu'on récolte ce jour-là ; une livraison n'est récoltée qu'un jour ; chaque : true si le jour est créé tout seul dans chaque semaine (case « Chaque semaine », étape 13D), false s'il sert seulement de proposition.",
  "debouches": [
-  {"id": "ta", "nom": "Très Allier", "colis": "plastique", "note": "Magasin, prioritaire.", "stock": true, "livraisons": [
+  {"id": "ta", "nom": "Très Allier", "colis": "plastique", "note": "Magasin, prioritaire.", "stock": true, "couleur": "#0b3d91", "livraisons": [
    {"id": "ta-mar", "jours": ["mardi"], "court": "TA mar"},
    {"id": "ta-jeu", "jours": ["jeudi"], "court": "TA jeu"}
   ]},
-  {"id": "lm", "nom": "Panier La Magic", "colis": "plastique", "note": "Avec l'une des livraisons Très Allier, selon la semaine.", "livraisons": [
+  {"id": "lm", "nom": "Panier La Magic", "colis": "plastique", "note": "Avec l'une des livraisons Très Allier, selon la semaine.", "couleur": "#a0105c", "livraisons": [
    {"id": "lm", "jours": ["mardi", "jeudi"], "court": "La Magic"}
   ]},
-  {"id": "ps", "nom": "Panier adéquat", "colis": "bois", "livraisons": [
+  {"id": "ps", "nom": "Panier adéquat", "colis": "bois", "couleur": "#6e3900", "livraisons": [
    {"id": "ps", "jours": ["mercredi"], "moment": "début d'après-midi", "court": "Panier adéq."}
   ]},
-  {"id": "lv", "nom": "Locavore", "colis": "bois", "livraisons": [
+  {"id": "lv", "nom": "Locavore", "colis": "bois", "couleur": "#0a5a1c", "livraisons": [
    {"id": "lv", "jours": ["mercredi"], "moment": "soir", "court": "Locavore"}
   ]},
-  {"id": "av", "nom": "Auvabio", "colis": "", "note": "Un débouché en deux livraisons : le 63 reprend le reste du 03.", "livraisons": [
+  {"id": "av", "nom": "Auvabio", "colis": "", "note": "Un débouché en deux livraisons : le 63 reprend le reste du 03.", "couleur": "#5e1a91", "livraisons": [
    {"id": "av03", "nom": "Auvabio 03", "jours": ["jeudi"], "court": "Auvabio 03"},
    {"id": "av63", "nom": "Auvabio 63", "jours": ["jeudi"], "court": "Auvabio 63", "reprend": "av03"}
   ]},
-  {"id": "mk", "nom": "Marché de Tronget", "colis": "plastique", "livraisons": [
+  {"id": "mk", "nom": "Marché de Tronget", "colis": "plastique", "couleur": "#a3120a", "livraisons": [
    {"id": "mk", "jours": ["vendredi"], "court": "Marché ven"}
   ]},
-  {"id": "el", "nom": "Élie", "colis": "", "note": "Client individuel.", "livraisons": [
+  {"id": "el", "nom": "Élie", "colis": "", "note": "Client individuel.", "couleur": "#005a63", "livraisons": [
    {"id": "el", "jours": ["au choix"], "court": "Élie"}
   ]}
  ],
