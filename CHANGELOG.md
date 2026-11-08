@@ -2,6 +2,8 @@
 
 ## 2026-11-08
 
+- **Plan de la saisie du stock par le magasin** (documentation seulement) : `docs/PLAN_STOCK_MAGASIN.md` compare trois accès, recommande un compte du magasin, donne l'ordre sûr des opérations, les tâches de François, les risques et le modèle · effort de chaque morceau. Aucun changement de l'appli.
+
 - **Stock chez Très Allier** (fin de l'étape 13B). Dans l'onglet Semaine, une case « Stock chez Très Allier » par produit (colonne après le disponible sur ordinateur, ligne sous le disponible sur téléphone, colonne du tableau), saisie et toujours modifiable par la ferme, avec prénom et heure ; la dernière modification l'emporte. Information seulement : n'entre ni dans le disponible ni dans le reste. Le suivi du stock se coche dans la fiche du débouché (« Suivre son stock au magasin »), coché pour Très Allier. `CACHE` → `recolte-v23`. `tests/debouches.cjs` : 67 vérifications ; `tests/semaine.cjs` mis à jour (colonne de stock).
 
 - **Jours de récolte** (demande de François : « créer un jour de récolte où on détermine quel débouché on récolte ce jour-là »). Dans « Débouchés et livraisons », une fiche par jour de récolte où l'on coche les livraisons récoltées ce jour-là (une livraison n'est récoltée qu'un jour ; récolte après la livraison signalée ; livraisons sans jour de récolte signalées). Départ d'après l'exemple de François : lundi = Très Allier mardi et Panier La Magic ; mercredi = Panier adéquat, Locavore, Très Allier jeudi, Auvabio 03 et 63, marché de Tronget. Dans l'onglet Semaine, nouveau cadre « À récolter, jour par jour » : par jour de récolte, chaque produit avec sa quantité totale (colis et kilos ou bottes) et le détail par livraison. `CACHE` → `recolte-v22`. `tests/debouches.cjs` : 56 vérifications (12 nouvelles).
