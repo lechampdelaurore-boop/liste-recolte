@@ -133,7 +133,8 @@ Onglet **Semaine** (étape 13A, « vas-y » de François du 06/11/2026). Remplac
 - **Tableau de la semaine** (en bas) : une ligne par produit, une colonne par créneau, le reste, puis le reste Auvabio 03 → 63. Il défile de côté dans son cadre.
 - **Sur ordinateur** (écran d'au moins 1000 px de large) : l'onglet devient une **grille façon tableur** sur toute la largeur, où l'on tape directement dans les cases : « 3 » (colis), « 12 kg », « 36 bottes » ou « tout ». **Tab** passe à la case de droite, **Entrée** ou la flèche du bas à la case du dessous (Maj + Entrée ou flèche du haut : au-dessus), **Échap** annule la saisie, une case vidée est effacée (pour le reste 03 → 63 : retour au calcul). Le reste se recalcule dès qu'on change de case. Un changement venu d'un autre téléphone n'efface pas ce qu'on est en train de taper. Le détail d'une case (équivalence, qui, quand) s'affiche au survol. La croix en bout de ligne retire le produit. Chaque case a un **menu d'unité** (la caisse du produit, kg, ou bottes, bouquets, pièces…) : sur une case remplie il convertit la quantité, sur une case vide il règle l'unité du nombre qu'on tapera (par exemple 24 bottes pour un client qui commande en bottes).
 - Chaque case garde le **prénom et l'heure** ; partagé entre les téléphones et utilisable **hors ligne**, comme les coches (« la dernière action gagne »).
-- Les créneaux de départ sont dans `referentiel/creneaux.json` (une autre ferme y met les siens) ; ils deviendront réglables dans l'appli à l'étape 13B. Chaque semaine en garde sa copie.
+- **Débouchés et livraisons** (bouton sous « Ajouter un produit », étape 13B, demande de François du 08/11/2026) : la fiche de chaque débouché, modifiable dans l'appli : **nom**, **colis** (caisses plastique PB, PH, GB, GH ; colis bois ; ou non précisé), **remarque**, et ses **livraisons**. Une livraison = une colonne de la semaine : ses **jours** (au moins un, obligatoire ; plusieurs jours cochés = l'un ou l'autre selon la semaine, comme Panier La Magic mardi ou jeudi ; ou « n'importe quel jour »), un **moment** facultatif (soir…), un nom s'il diffère du débouché (Auvabio 03, Auvabio 63), un **nom court** pour le tableau, et « **reprend le reste de** » (seconde livraison du même débouché, comme Auvabio 63). On peut **ajouter** un débouché ou une livraison, **retirer** (rien n'est effacé : c'est rangé dans « Retirés » et peut être **remis**) et changer l'**ordre** (▲ ▼). Les colonnes de la semaine sont rangées par jour de livraison, puis dans cet ordre. Un changement vaut pour la semaine en cours et les suivantes ; **les semaines passées gardent leurs colonnes**. Une livraison retirée reste affichée dans une semaine où elle a déjà des quantités. Partagé et hors ligne comme le reste (la dernière modification l'emporte).
+- Les débouchés de départ sont dans `referentiel/debouches.json` (une autre ferme y met les siens) ; dès la première modification dans l'appli, la base garde sa propre fiche. Chaque semaine garde sa copie des colonnes.
 
 ## Licence
 
@@ -148,10 +149,10 @@ Le code de ce dépôt est publié sous la licence **PolyForm Noncommercial 1.0.0
 | `listes/actuelle.json` | Liste ouverte par défaut. |
 | `listes/AAAA-MM-JJ.json` | Une liste par jour de récolte. Format : [docs/format-liste.md](docs/format-liste.md). |
 | `referentiel/conditionnements.json` | Pour chaque produit : type de caisse (PB, PH, GB, GH) et contenu d'un colis (kg, ou nombre de bottes, bouquets, pièces, sachets). Source : onglet « Liste produits » du cumul. Aussi : les colisages (colis bois) et les circuits qui les utilisent. |
-| `referentiel/creneaux.json` | Créneaux de vente de départ de l'onglet Semaine : débouché, jour, nom court, circuit, et seconde livraison (`reprend`, Auvabio 63 reprend Auvabio 03). |
+| `referentiel/debouches.json` | Débouchés de départ de l'onglet Semaine (avant toute modification dans l'appli) : nom, colis, remarque, et livraisons (jours, moment, nom court, seconde livraison `reprend` : Auvabio 63 reprend Auvabio 03). L'identifiant du débouché est celui du circuit des listes de récolte. |
 | `sw.js` | Hors ligne : la page et la liste passent par le réseau, sinon la dernière copie. Changer `CACHE` à chaque modification de l'appli. Ne met jamais la base Firebase en cache. |
 | `manifest.webmanifest`, `icons/` | Installation sur l'écran d'accueil. |
-| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`). |
+| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`), débouchés et livraisons (`debouches.cjs`). |
 | `docs/` | Format des listes, fonctionnement de la base partagée. |
 | `LICENSE` | Licence PolyForm Noncommercial 1.0.0 : usage non commercial seulement. |
 | `AGENTS.md` | Consignes pour les agents IA qui modifient ce dépôt (`CLAUDE.md` y renvoie). |
@@ -164,11 +165,14 @@ npm install --no-save playwright
 npx playwright install chromium   # seulement la première fois
 node tests/deux-telephones.cjs
 node tests/semaine.cjs
+node tests/debouches.cjs
 ```
 
 Le test ouvre deux téléphones simulés (François et Aurore) reliés à un faux Firebase local (`tests/faux-firebase.cjs`) et vérifie : la coche passe d'un téléphone à l'autre avec le prénom, la ligne cochée quitte la liste principale, le glisser-déposer au doigt est partagé, le nombre de caisses et de colis bois (par circuit et regroupés), l'onglet Détail caché (et remis par le réglage), la flèche de répartition par client (colisage et poids, colis bois compris), les filtres Locavore et Ferme Deschamps, le décochage, la barre de progression (globale, unités, kilos, mise à jour d'un téléphone à l'autre), l'onglet Préparation (tri par client et par produit, indicateur de récolte, coches de lignes et de clients partagées et gardées après rechargement, sans toucher aux coches de récolte), et l'absence d'erreur JavaScript. Il sort en erreur si une vérification échoue.
 
 `tests/semaine.cjs` vérifie l'onglet Semaine avec deux téléphones et un ordinateur (grille : largeur, Tab et Entrée, « tout » tapé, unité refusée, menu d'unité de chaque case, reste 03 → 63 tapé puis vidé, saisie gardée pendant un changement venu d'un téléphone, retour aux fiches en fenêtre étroite) : ajout de produits partagé, reste en colis et en kilos ou bottes, couleurs, unités tapées ou converties (et refusées si le produit ne se compte pas ainsi), « tout » unique par produit, reste Auvabio 03 → 63 calculé, modifié puis remis au calcul, hors du reste, tableau, hors ligne, semaines séparées, reprise des produits de la semaine précédente, retrait d'un produit, rechargement, et que la liste de récolte de la base n'est pas touchée.
+
+`tests/debouches.cjs` vérifie l'écran « Débouchés et livraisons » avec deux téléphones et un ordinateur : les 7 débouchés de départ repris (jours, colis, Auvabio 63 qui reprend la 03), rien d'écrit dans la base avant une modification, jour obligatoire, changement de jour partagé et colonnes de la semaine rangées en conséquence, nouveau débouché (nom et jour obligatoires), seconde livraison avec reste reporté, retrait gardé puis remis, ordre, colonne gardée quand elle a des quantités, semaine passée inchangée, fiches sur deux colonnes à l'ordinateur, hors ligne, rechargement, et que quantités et liste de récolte ne sont pas touchées.
 
 ## Limites connues
 

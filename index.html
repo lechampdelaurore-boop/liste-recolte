@@ -161,6 +161,37 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 .sem-add,.sem-act{border:var(--bw) solid var(--line);border-radius:10px;background:var(--surface);padding:12px;font-weight:800;cursor:pointer;min-height:48px}
 .sem-add{background:var(--fg);color:var(--bg)}
 .sem-list{display:grid;gap:10px}
+.sem-boutons{display:grid;grid-template-columns:1fr;gap:8px}
+@media (min-width:600px){.sem-boutons{grid-template-columns:auto auto;justify-content:start}}
+#debView{display:grid;gap:12px;grid-template-columns:minmax(0,1fr);min-width:0}
+#debView[hidden]{display:none}
+.db-nav{display:flex}
+.db-h{margin:0;font-size:1.3rem;font-weight:900}
+.db-h3{margin:4px 0 0;font-size:1rem;font-weight:900}
+.db-list{display:grid;gap:12px}
+@media (min-width:1000px){.db-list{grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}}
+.db{display:grid;gap:10px;padding:12px}
+.db label{display:grid;gap:4px;font-weight:800;font-size:.92rem}
+.db label small{font-weight:600;color:var(--muted)}
+.db input[type=text],.db select{min-height:44px;padding:6px 10px;border:var(--bw) solid var(--line);border-radius:10px;background:var(--bg);font:inherit;font-weight:700;min-width:0;width:100%}
+.db-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
+.db-nom input{font-size:1.15rem;font-weight:900}
+.db-ordre{display:flex;gap:6px}
+.db-ordre .sem-btn{width:44px;height:44px;font-size:1rem}
+.db-ordre .sem-btn:disabled{opacity:.35;cursor:default}
+.db-champs{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(170px,1fr))}
+.dl{display:grid;gap:8px;border:2px solid var(--line);border-radius:10px;padding:10px}
+.dl-titre span{font-weight:700;color:var(--muted)}
+.dl-jours{display:flex;flex-wrap:wrap;gap:6px}
+.db label.dj{display:inline-flex;grid-template-columns:none;align-items:center;gap:6px;border:2px solid var(--line);border-radius:999px;padding:6px 12px;min-height:40px;cursor:pointer;font-weight:800}
+.dj input{width:20px;height:20px;margin:0}
+.dl-aide{margin:0;font-size:.82rem;font-weight:600;color:var(--muted)}
+.db-pied{display:flex;flex-wrap:wrap;gap:8px}
+.db-petit{min-height:40px;padding:6px 12px;justify-self:start}
+.db-ret{padding:12px}
+.db-ret summary{font-weight:900;cursor:pointer}
+.db-ret ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
+.db-ret li{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700}
 .sp{overflow:hidden}
 .sp-head{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;width:100%;text-align:left;border:0;background:var(--surface);padding:12px;cursor:pointer}
 .sp-nom{font-weight:900;font-size:1.15rem;line-height:1.15}
@@ -323,7 +354,8 @@ dialog.big{max-width:min(460px,94vw);width:100%}
       <button type="button" class="sem-btn" data-a="semSuiv" aria-label="Semaine suivante">›</button>
     </div>
     <p class="sem-sum" id="semSum"></p>
-    <button type="button" class="sem-add" data-a="ajouter">＋ Ajouter un produit</button>
+    <div class="sem-boutons"><button type="button" class="sem-add" data-a="ajouter">＋ Ajouter un produit</button>
+    <button type="button" class="sem-act" data-a="debouches">Débouchés et livraisons</button></div>
     <div id="semVide" hidden></div>
     <div class="sem-list" id="semList"></div>
     <div id="semPc" hidden>
@@ -337,6 +369,8 @@ dialog.big{max-width:min(460px,94vw);width:100%}
     </details>
     <p class="hint">Reste = disponible − tout ce qui est réparti. <b>Placé</b> : le reste est à zéro. <b>À placer</b> : il reste à vendre. <b>Manque</b> : on a promis plus qu'on n'a. Une case se remplit dans l'unité choisie sous elle (sur ordinateur) ou à côté d'elle (sur téléphone) : la caisse du produit (« 3 » ou « 3 PB »), des kilos (« 12 kg ») ou des unités (« 36 bottes »).</p>
   </div>
+
+  <div id="debView" hidden></div>
 
   <footer>
     <p class="note" id="noShare" hidden>Le partage n'est pas encore activé : les coches et l'ordre restent sur ce téléphone.</p>
@@ -629,7 +663,8 @@ function render(){
   // Onglet Semaine : ni filtres de circuit, ni caisses, ni barre de récolte (ils concernent la liste du jour).
   ['#circs', '#crates', '#source'].forEach(function(s){ $(s).hidden = semV; });
   $('#zones').hidden = !MONTRER_LIEU || semV;
-  $('#semView').hidden = !semV;
+  var debV = semV && !!ui.debouches;
+  $('#semView').hidden = !semV || debV; $('#debView').hidden = !debV;
   document.body.classList.toggle('sem-pc', semV && PC.matches);
   document.querySelectorAll('#zones .chip').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.z === ui.zone)); });
   document.querySelectorAll('#circs .chip').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.c === ui.circ)); });
@@ -645,7 +680,7 @@ function render(){
   if(prep) renderPrep();
   renderCrates();
   renderProgress();
-  if(semV){ $('#prog').hidden = true; renderSemaine(); }
+  if(semV){ $('#prog').hidden = true; if(debV){ if(!debVue()){ chargerRef(); $('#debView').innerHTML = '<p class="empty">Chargement…</p>'; } else { debConnecter(); renderDebouches(); } } else renderSemaine(); }
 }
 
 /* ---------- Préparation de commandes ---------- */
@@ -945,9 +980,10 @@ function endDrag(){
 //   tout/<pid>             {c: <créneau>, by, at} : tout ce qui reste va à ce créneau (un seul par produit)
 //   report/<pid>/<créneau> reste reporté vers une seconde livraison, modifié à la main (sinon calculé)
 //   propose/<pid>/<créneau> {v, by, at} : produit proposé ou non au débouché à deux livraisons
-//   creneaux               copie des créneaux, prise dans referentiel/creneaux.json au premier changement
+//   creneaux               copie des créneaux (livraisons des débouchés, voir plus bas) : gardée pour l'historique ;
+//                          une semaine passée garde la sienne, la semaine en cours et les suivantes suivent les réglages
 //   maj/<chemin>           heure de la dernière action : « la dernière action gagne », comme la liste
-var REF = null, CREN = null, refCharge = null;
+var REF = null, DEB0 = null, refCharge = null;
 var sem = {id:null, data:{}, pending:ls('recolte.semaine.pending') || [], es:null, flushing:false};
 var semOuvert = {}, semUnite = {}, semErr = {}, semAttente = false;
 var EPS = 1e-6;
@@ -962,8 +998,9 @@ function chargerRef(){
     return fetch(url, {cache:'no-cache'}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
       .then(function(d){ ls(key, d); return d; }, function(){ return ls(key); });
   }
-  refCharge = Promise.all([lire('referentiel/conditionnements.json', 'recolte.referentiel'), lire('referentiel/creneaux.json', 'recolte.creneaux')])
-    .then(function(r){ REF = r[0]; CREN = r[1]; if(!REF || !CREN) refCharge = null; render(); });
+  debConnecter();
+  refCharge = Promise.all([lire('referentiel/conditionnements.json', 'recolte.referentiel'), lire('referentiel/debouches.json', 'recolte.debouches0')])
+    .then(function(r){ REF = r[0]; DEB0 = r[1]; crCache = null; if(!REF || !DEB0) refCharge = null; render(); });
   return refCharge;
 }
 
@@ -977,6 +1014,7 @@ function semCourante(){ if(!/^\d{4}-\d{2}-\d{2}$/.test(ui.semaine || '')) ui.sem
 // Lecture et écriture locales des données de la semaine ouverte.
 function semLire(path){ return lireA(sem.data, path); }
 function semSetAt(path, val){
+  crCache = null;
   var parts = path.split('/').filter(Boolean);
   if(!parts.length){ sem.data = (val && typeof val === 'object') ? val : {}; delete sem.data.maj; return; }
   if(parts[0] === 'maj') return;
@@ -990,7 +1028,7 @@ function semRecouvrir(){ sem.pending.forEach(function(p){ if(p.w === sem.id) sem
 function semOuvrir(id){
   if(sem.id === id) return;
   if(sem.es){ sem.es.close(); sem.es = null; }
-  sem.id = id; sem.data = ls('recolte.semaine.' + id) || {};
+  sem.id = id; sem.data = ls('recolte.semaine.' + id) || {}; crCache = null;
   semRecouvrir();
   semConnecter();
   semFlush();
@@ -1015,13 +1053,19 @@ function semRelancer(){ if(sem.id && sem.es && sem.es.readyState === 2) semConne
 // Chaque changement s'affiche tout de suite, est gardé sur le téléphone, puis part vers la base
 // (tout de suite ou au retour du réseau). Plusieurs chemins d'un coup : un seul envoi.
 function semEcrire(ch){
-  if(!lireA(sem.data, 'creneaux') && !('creneaux' in ch) && CREN) ch.creneaux = CREN.creneaux;
   var t = Date.now();
-  Object.keys(ch).forEach(function(path){
-    semSetAt(path, ch[path]);
+  function un(path, val){
+    semSetAt(path, val);
     sem.pending = sem.pending.filter(function(p){ return !(p.w === sem.id && p.path === path); });
-    sem.pending.push({w:sem.id, path:path, val:ch[path], at:t});
-  });
+    sem.pending.push({w:sem.id, path:path, val:val, at:t});
+  }
+  Object.keys(ch).forEach(function(path){ un(path, ch[path]); });
+  // La semaine garde sa copie des créneaux (historique) : prise au premier changement, puis tenue à jour
+  // tant que la semaine n'est pas passée.
+  if(!('creneaux' in ch) && debVue()){
+    var copie = semLire('creneaux'), cr = creneaux();
+    if(!copie || (!semPassee() && canon(tableau(copie)) !== canon(cr))) un('creneaux', cr);
+  }
   semGarder(); render(); majStatut(); semFlush();
 }
 function avecNom(fn){ if(me) fn(); else askName(fn); }
@@ -1051,9 +1095,322 @@ function semFlush(){
     .catch(function(){ sem.flushing = false; majStatut(); });
 }
 
+/* ---------- Débouchés et livraisons (étape 13B) ---------- */
+// Fiche d'un débouché : nom, colis (caisses plastique, colis bois ou non précisé), remarque, et ses livraisons.
+// Une livraison = un créneau de la semaine (une colonne) : jours, moment, nom, nom court, et « reprend »
+// (seconde livraison du même débouché : Auvabio 63 reprend le reste d'Auvabio 03).
+// Départ : referentiel/debouches.json. Dès la première modification, la base garde la fiche entière sous
+// listes/reglages/debouches (les règles n'ouvrent que « listes »), avec qui et quand ; la dernière
+// modification l'emporte, comme les coches. Rien n'est jamais effacé : un débouché ou une livraison
+// retiré est gardé (« archive ») et peut être remis.
+var JOURS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'dimanche'];
+var COLIS_TYPES = [['plastique', 'Caisses plastique (PB, PH, GB, GH)'], ['bois', 'Colis bois (petit, moyen, grand)'], ['', 'Non précisé']];
+var deb = {data:ls('recolte.debouches'), pending:ls('recolte.debouches.pending'), es:null, flushing:false};
+var debErr = {}, debAttente = false;
+function debVue(){ return deb.pending || deb.data || DEB0; }
+function debListe(){
+  var v = debVue();
+  return tableau(v && v.debouches).map(function(d){ var o = Object.assign({}, d); o.livraisons = tableau(d.livraisons).map(function(l){ var x = Object.assign({}, l); x.jours = tableau(l.jours); return x; }); return o; });
+}
+function rangJour(js){
+  var r = 9;
+  js.forEach(function(j){ var i = j === 'au choix' ? 7 : JOURS.indexOf(j); if(i >= 0 && i < r) r = i; });
+  return r;
+}
+function jourTxt(l){ var js = tableau(l.jours); return (js.indexOf('au choix') >= 0 ? 'au choix' : js.join(' ou ')) + (l.moment ? ' ' + l.moment : ''); }
+// Les créneaux, rangés par jour de livraison, puis dans l'ordre des débouchés.
+function creneauxDe(liste, tous){
+  var out = [];
+  liste.forEach(function(d, i){
+    d.livraisons.forEach(function(l, j){
+      var retire = !!(d.archive || l.archive);
+      if(retire && !tous) return;
+      var c = {id:l.id, nom:l.nom || d.nom, jour:jourTxt(l) + (retire ? ' · retiré' : ''), court:l.court || l.nom || d.nom, circuit:d.id};
+      if(l.reprend) c.reprend = l.reprend;
+      if(d.colis) c.colis = d.colis;
+      if(retire) c.retire = true;
+      c._o = [rangJour(l.jours), i, j];
+      out.push(c);
+    });
+  });
+  out.sort(function(a, b){ for(var k = 0; k < 3; k++){ if(a._o[k] !== b._o[k]) return a._o[k] - b._o[k]; } return 0; });
+  var ids = out.filter(function(c){ return !c.retire; }).map(function(c){ return c.id; });
+  out.forEach(function(c){ delete c._o; if(c.reprend && (ids.indexOf(c.reprend) < 0 || c.retire)) delete c.reprend; });
+  return out;
+}
+
+function debConnecter(){
+  if(!DB || !window.EventSource || deb.es) return;
+  var flux = new EventSource(DB + '/listes/reglages/debouches.json');
+  deb.es = flux;
+  function appliquer(ev){
+    var m = JSON.parse(ev.data); if(!m) return;
+    var parts = m.path.split('/').filter(Boolean);
+    if(!parts.length) deb.data = m.data;
+    else {
+      var o = deb.data = deb.data || {};
+      for(var i = 0; i < parts.length - 1; i++){ if(!o[parts[i]] || typeof o[parts[i]] !== 'object') o[parts[i]] = {}; o = o[parts[i]]; }
+      if(m.data === null) delete o[parts[parts.length - 1]]; else o[parts[parts.length - 1]] = m.data;
+    }
+    ls('recolte.debouches', deb.data); crCache = null; debRender();
+  }
+  flux.addEventListener('put', function(ev){ appliquer(ev); debFlush(); });
+  flux.addEventListener('patch', function(ev){
+    var m = JSON.parse(ev.data); if(!m) return;
+    Object.keys(m.data || {}).forEach(function(k){ appliquer({data:JSON.stringify({path:m.path.replace(/\/$/, '') + '/' + k, data:m.data[k]})}); });
+  });
+}
+function debRelancer(){ if(deb.es && deb.es.readyState === 2){ deb.es = null; debConnecter(); } debFlush(); }
+// Pendant une saisie dans la fiche, on attend d'avoir quitté la case pour redessiner.
+function debRender(){
+  var a = document.activeElement;
+  if(ui.view === 'semaine' && ui.debouches && a && a.closest && a.closest('#debView') && a.tagName === 'INPUT' && a.type === 'text' && a.value !== a.defaultValue){ debAttente = true; return; }
+  render();
+}
+// Chaque modification remplace la fiche entière (qui et quand), affichée tout de suite, puis envoyée.
+function debEcrire(liste){
+  liste.forEach(function(d){ d.livraisons.forEach(function(l){ if(!l.moment) delete l.moment; if(!l.nom) delete l.nom; if(!l.reprend) delete l.reprend; if(!l.court) delete l.court; if(!l.archive) delete l.archive; }); if(!d.note) delete d.note; if(!d.archive) delete d.archive; });
+  var src = debVue() || {};
+  deb.pending = {source:src.source || '', debouches:liste, by:me, at:Date.now()};
+  ls('recolte.debouches.pending', deb.pending);
+  crCache = null; render(); majStatut(); debFlush();
+}
+function debFlush(){
+  if(!DB || deb.flushing || !deb.pending) return;
+  deb.flushing = true;
+  var p = deb.pending, url = DB + '/listes/reglages/debouches.json';
+  fetch(url, {cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(srv){
+      // Une modification plus récente faite ailleurs l'emporte : la nôtre est abandonnée.
+      var envoi = srv && srv.at > p.at ? Promise.resolve(srv) :
+        fetch(url, {method:'PUT', body:JSON.stringify(p)}).then(function(r){ if(!r.ok) throw new Error(r.status); return p; });
+      return envoi.then(function(v){
+        if(deb.pending === p){ deb.pending = null; ls('recolte.debouches.pending', null); }
+        deb.data = v; ls('recolte.debouches', v);
+        deb.flushing = false; crCache = null;
+        debRender(); majStatut();
+        if(deb.pending) debFlush();
+      });
+    })
+    .catch(function(){ deb.flushing = false; majStatut(); });
+}
+
+/* Écran « Débouchés et livraisons » */
+function debIdLibre(base, pris){
+  base = pidDe(base) || 'debouche';
+  var id = base, n = 2;
+  while(pris.indexOf(id) >= 0) id = base + '-' + n++;
+  return id;
+}
+function idsPris(liste){
+  var r = [];
+  liste.forEach(function(d){ r.push(d.id); d.livraisons.forEach(function(l){ r.push(l.id); }); });
+  return r;
+}
+function joursHtml(js, cle){
+  var choix = JOURS.concat(['au choix']);
+  return '<div class="dl-jours" role="group" aria-label="Jours de livraison">' + choix.map(function(j){
+    return '<label class="dj"><input type="checkbox" data-f="jour" data-j="' + j + '"' + (js.indexOf(j) >= 0 ? ' checked' : '') + '><span>' + (j === 'au choix' ? 'n\'importe quel jour' : j) + '</span></label>';
+  }).join('') + '</div>' + (debErr[cle] ? '<p class="sr-err" role="alert">' + esc(debErr[cle]) + '</p>' : '');
+}
+function livraisonHtml(d, l, actives){
+  var autres = actives.filter(function(x){ return x.id !== l.id; });
+  return '<div class="dl" data-l="' + esc(l.id) + '">' +
+    '<div class="dl-titre"><b>' + esc(l.nom || d.nom) + '</b> <span>' + esc(jourTxt(l)) + '</span></div>' +
+    joursHtml(l.jours, d.id + '|' + l.id) +
+    '<p class="dl-aide">Plusieurs jours cochés : l\'un ou l\'autre, selon la semaine.</p>' +
+    '<div class="db-champs">' +
+    '<label>Moment <small>(facultatif)</small><input type="text" data-f="moment" value="' + esc(l.moment || '') + '" placeholder="soir, début d\'après-midi…" autocomplete="off"></label>' +
+    '<label>Nom de la livraison <small>(si différent)</small><input type="text" data-f="lnom" value="' + esc(l.nom || '') + '" placeholder="' + esc(d.nom) + '" autocomplete="off"></label>' +
+    '<label>Nom court <small>(tableau)</small><input type="text" data-f="court" value="' + esc(l.court || '') + '" placeholder="' + esc(l.nom || d.nom) + '" autocomplete="off"></label>' +
+    (autres.length || l.reprend ? '<label>Reprend le reste de<select data-f="reprend"><option value="">Non</option>' + autres.map(function(x){
+      return '<option value="' + esc(x.id) + '"' + (l.reprend === x.id ? ' selected' : '') + '>' + esc((x.nom || d.nom) + ', ' + jourTxt(x)) + '</option>'; }).join('') + '</select></label>' : '') +
+    '</div>' +
+    (actives.length > 1 ? '<button type="button" class="sem-act db-petit" data-a="retirerL">Retirer cette livraison</button>' : '') +
+    '</div>';
+}
+function debouchesHtml(){
+  var liste = debListe(), v = debVue() || {};
+  var actifs = liste.filter(function(d){ return !d.archive; });
+  var h = '<div class="db-nav"><button type="button" class="sem-act" data-a="retour">‹ Retour à la semaine</button></div>' +
+    '<h2 class="db-h">Débouchés et livraisons</h2>' +
+    '<p class="hint">Chaque livraison est une colonne de la semaine, rangée par jour. Un changement vaut pour la semaine en cours et les suivantes ; les semaines passées gardent leurs colonnes. Rien n\'est effacé : un débouché retiré peut être remis.</p>' +
+    (v.by && v.at ? '<p class="sp-by">Dernière modification : ' + esc(quiQuand(v)) + '</p>' : '<p class="sp-by">Débouchés de départ (pas encore modifiés).</p>') +
+    '<div class="db-list">';
+  actifs.forEach(function(d, i){
+    var lv = d.livraisons.filter(function(l){ return !l.archive; });
+    h += '<section class="card db" data-d="' + esc(d.id) + '">' +
+      '<div class="db-head"><label class="db-nom">Nom du débouché<input type="text" data-f="nom" value="' + esc(d.nom) + '" autocomplete="off"></label>' +
+      '<span class="db-ordre"><button type="button" class="sem-btn" data-a="monter"' + (i ? '' : ' disabled') + ' aria-label="' + esc('Monter ' + d.nom) + '">▲</button>' +
+      '<button type="button" class="sem-btn" data-a="descendre"' + (i < actifs.length - 1 ? '' : ' disabled') + ' aria-label="' + esc('Descendre ' + d.nom) + '">▼</button></span></div>' +
+      (debErr[d.id] ? '<p class="sr-err" role="alert">' + esc(debErr[d.id]) + '</p>' : '') +
+      '<div class="db-champs"><label>Colis<select data-f="colis">' + COLIS_TYPES.map(function(c){ return '<option value="' + c[0] + '"' + ((d.colis || '') === c[0] ? ' selected' : '') + '>' + esc(c[1]) + '</option>'; }).join('') + '</select></label>' +
+      '<label>Remarque<input type="text" data-f="note" value="' + esc(d.note || '') + '" autocomplete="off"></label></div>' +
+      '<h3 class="db-h3">' + (lv.length > 1 ? lv.length + ' livraisons' : 'Livraison') + '</h3>' +
+      lv.map(function(l){ return livraisonHtml(d, l, lv); }).join('') +
+      '<div class="db-pied"><button type="button" class="sem-act" data-a="ajouterL">＋ Ajouter une livraison</button>' +
+      '<button type="button" class="sem-act" data-a="retirerD">Retirer ce débouché</button></div></section>';
+  });
+  h += '</div>';
+  h += '<section class="card db db-new"><h3 class="db-h3">Nouveau débouché</h3>' +
+    '<div class="db-champs"><label>Nom<input type="text" id="debNom" autocomplete="off" placeholder="Nom du magasin, du client…"></label>' +
+    '<label>Colis<select id="debColis">' + COLIS_TYPES.map(function(c){ return '<option value="' + c[0] + '">' + esc(c[1]) + '</option>'; }).join('') + '</select></label></div>' +
+    joursHtml(ui.debJours || [], 'nouveau') +
+    '<button type="button" class="sem-add" data-a="nouveau">＋ Ajouter ce débouché</button></section>';
+  var retires = [];
+  liste.forEach(function(d){
+    if(d.archive) retires.push({d:d, txt:d.nom});
+    else d.livraisons.forEach(function(l){ if(l.archive) retires.push({d:d, l:l, txt:(l.nom || d.nom) + ', ' + jourTxt(l)}); });
+  });
+  if(retires.length) h += '<details class="card db-ret"><summary>Retirés (' + retires.length + ')</summary><ul>' + retires.map(function(r){
+    return '<li data-d="' + esc(r.d.id) + '"' + (r.l ? ' data-l="' + esc(r.l.id) + '"' : '') + '><span>' + esc(r.txt) + '</span><button type="button" class="sem-act db-petit" data-a="remettre">Remettre</button></li>';
+  }).join('') + '</ul></details>';
+  return h;
+}
+function renderDebouches(){
+  var a = document.activeElement, garde = null;
+  if(a && a.closest && a.closest('#debView') && (a.dataset.f || a.id)){
+    var bd = a.closest('[data-d]'), bl = a.closest('[data-l]');
+    garde = {d:bd ? bd.dataset.d : '', l:bl ? bl.dataset.l : '', f:a.dataset.f, j:a.dataset.j, id:a.id};
+  }
+  debAttente = false;
+  var nouveau = $('#debNom') ? {nom:$('#debNom').value, colis:$('#debColis').value} : null;
+  $('#debView').innerHTML = debouchesHtml();
+  if(nouveau){ $('#debNom').value = nouveau.nom; $('#debColis').value = nouveau.colis; }
+  if(garde){
+    var sel = garde.id ? '#' + garde.id : (garde.d ? '#debView [data-d="' + garde.d + '"]' : '#debView .db-new') + (garde.l ? ' [data-l="' + garde.l + '"]' : '') + ' [data-f="' + garde.f + '"]' + (garde.j ? '[data-j="' + garde.j + '"]' : '');
+    var el = null; try{ el = document.querySelector(sel); }catch(x){}
+    if(el) el.focus();
+  }
+}
+// Modifier une copie de la liste puis l'écrire. fn reçoit (liste, débouché, livraison) ; un texte renvoyé = refus.
+function debModifier(dId, lId, fn, cleErr){
+  avecNom(function(){
+    var liste = debListe(), d = liste.filter(function(x){ return x.id === dId; })[0];
+    var l = d && lId ? d.livraisons.filter(function(x){ return x.id === lId; })[0] : null;
+    if(!d) return;
+    var err = fn(liste, d, l);
+    if(err){ debErr[cleErr || dId] = err; render(); return; }
+    delete debErr[cleErr || dId];
+    debEcrire(liste);
+  });
+}
+$('#debView').addEventListener('click', function(e){
+  var b = e.target.closest('[data-a]'); if(!b) return;
+  var a = b.dataset.a, boite = b.closest('[data-d]'), dId = boite && boite.dataset.d, lb = b.closest('[data-l]'), lId = lb && lb.dataset.l;
+  if(a === 'retour'){ ui.debouches = false; saveUi(); render(); scrollTo(0, 0); return; }
+  if(a === 'nouveau'){
+    var nom = $('#debNom').value.trim(), js = ui.debJours || [];
+    if(!nom){ debErr.nouveau = 'Donner un nom au débouché.'; render(); $('#debNom').focus(); return; }
+    if(!js.length){ debErr.nouveau = 'Cocher au moins un jour de livraison (ou « n\'importe quel jour »).'; render(); return; }
+    var colis = $('#debColis').value;
+    avecNom(function(){
+      var liste = debListe(), pris = idsPris(liste), id = debIdLibre(nom, pris);
+      liste.push({id:id, nom:nom, colis:colis, livraisons:[{id:id, jours:js.slice().sort(function(a, b){ return rangJour([a]) - rangJour([b]); })}]});
+      delete debErr.nouveau; ui.debJours = []; saveUi(); $('#debNom').value = ''; $('#debColis').value = 'plastique';
+      debEcrire(liste);
+    });
+    return;
+  }
+  if(a === 'monter' || a === 'descendre'){
+    debModifier(dId, null, function(liste, d){
+      var act = liste.filter(function(x){ return !x.archive; }), i = act.indexOf(d), autre = act[i + (a === 'monter' ? -1 : 1)];
+      if(!autre) return;
+      var p1 = liste.indexOf(d), p2 = liste.indexOf(autre); liste[p1] = autre; liste[p2] = d;
+    });
+    return;
+  }
+  if(a === 'ajouterL'){
+    debModifier(dId, null, function(liste, d){
+      var lv = d.livraisons.filter(function(l){ return !l.archive; }), der = lv[lv.length - 1];
+      var js = der ? der.jours.slice() : ['au choix'];
+      d.livraisons.push({id:debIdLibre(d.id + '-' + (js[0] === 'au choix' ? 'choix' : js[0].slice(0, 3)), idsPris(liste)), jours:js});
+    });
+    return;
+  }
+  if(a === 'retirerL'){
+    var dd = debListe().filter(function(x){ return x.id === dId; })[0], ll = dd && dd.livraisons.filter(function(x){ return x.id === lId; })[0];
+    if(!ll || !confirm('Retirer la livraison « ' + (ll.nom || dd.nom) + ', ' + jourTxt(ll) + ' » ? Sa colonne quitte la semaine en cours (elle reste tant qu\'elle a des quantités) ; les semaines passées ne changent pas. On peut la remettre plus bas.')) return;
+    debModifier(dId, lId, function(liste, d, l){
+      l.archive = true;
+      d.livraisons.forEach(function(x){ if(x.reprend === l.id) delete x.reprend; });
+    });
+    return;
+  }
+  if(a === 'retirerD'){
+    var d0 = debListe().filter(function(x){ return x.id === dId; })[0];
+    if(!d0 || !confirm('Retirer le débouché « ' + d0.nom + ' » ? Ses colonnes quittent la semaine en cours (elles restent tant qu\'elles ont des quantités) ; les semaines passées ne changent pas. On peut le remettre plus bas.')) return;
+    debModifier(dId, null, function(liste, d){ d.archive = true; });
+    return;
+  }
+  if(a === 'remettre'){
+    debModifier(dId, lId, function(liste, d, l){ if(l) l.archive = false; else d.archive = false; });
+  }
+});
+$('#debView').addEventListener('change', function(e){
+  var inp = e.target, f = inp.dataset.f;
+  var boite = inp.closest('[data-d]');
+  if(boite && boite.classList.contains('db-new')) boite = null;
+  if(f === 'jour' && !boite){
+    // Fiche du nouveau débouché : les jours cochés sont gardés en attendant « Ajouter ».
+    var js = (ui.debJours || []).filter(function(j){ return j !== inp.dataset.j; });
+    if(inp.checked) js = inp.dataset.j === 'au choix' ? ['au choix'] : js.filter(function(j){ return j !== 'au choix'; }).concat([inp.dataset.j]);
+    ui.debJours = js; saveUi(); delete debErr.nouveau; render();
+    return;
+  }
+  if(!f || !boite) return;
+  var dId = boite.dataset.d, lb = inp.closest('[data-l]'), lId = lb && lb.dataset.l, val = inp.type === 'checkbox' ? inp.checked : inp.value.trim();
+  if(f === 'jour'){
+    debModifier(dId, lId, function(liste, d, l){
+      var j = inp.dataset.j, js = l.jours.filter(function(x){ return x !== j; });
+      if(val) js = j === 'au choix' ? ['au choix'] : js.filter(function(x){ return x !== 'au choix'; }).concat([j]);
+      if(!js.length) return 'Chaque livraison a au moins un jour (ou « n\'importe quel jour »). Pour l\'arrêter, la retirer.';
+      js.sort(function(a, b){ return rangJour([a]) - rangJour([b]); });
+      l.jours = js;
+    }, dId + '|' + lId);
+    return;
+  }
+  debModifier(dId, lId, function(liste, d, l){
+    if(f === 'nom'){ if(!val) return 'Le débouché garde un nom.'; d.nom = val; }
+    else if(f === 'colis') d.colis = val;
+    else if(f === 'note') d.note = val;
+    else if(f === 'moment') l.moment = val;
+    else if(f === 'lnom') l.nom = val;
+    else if(f === 'court') l.court = val;
+    else if(f === 'reprend') l.reprend = val;
+  });
+});
+$('#debView').addEventListener('keydown', function(e){ if(e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type === 'text' && e.target.id !== 'debNom') e.target.blur(); });
+$('#debView').addEventListener('focusout', function(){ setTimeout(function(){ if(debAttente) render(); }, 0); });
+
 /* Quantités : colis, kilos ou unités, convertis d'après le contenu d'un colis de la fiche du produit. */
 function tableau(x){ if(!x) return []; return Array.isArray(x) ? x.filter(Boolean) : Object.keys(x).sort(function(a, b){ return a - b; }).map(function(k){ return x[k]; }); }
-function creneaux(){ var c = semLire('creneaux'); return c ? tableau(c) : ((CREN && CREN.creneaux) || []); }
+// Créneaux (colonnes) de la semaine ouverte : une semaine passée garde sa copie ; la semaine en cours et les
+// suivantes suivent les réglages des débouchés. Une livraison retirée reste affichée tant qu'elle a des quantités.
+var crCache = null;
+function semPassee(){ return !!sem.id && sem.id < lundiDe(new Date()); }
+function creneaux(){
+  if(crCache && crCache.id === sem.id) return crCache.v;
+  var copie = semLire('creneaux'), v;
+  if(copie && (semPassee() || !debVue())) v = tableau(copie);
+  else {
+    var utilises = {};
+    ['q', 'report'].forEach(function(k){ var o = semLire(k) || {}; Object.keys(o).forEach(function(pid){ Object.keys(o[pid] || {}).forEach(function(c){ utilises[c] = 1; }); }); });
+    var t = semLire('tout') || {}; Object.keys(t).forEach(function(pid){ if(t[pid] && t[pid].c) utilises[t[pid].c] = 1; });
+    v = creneauxDe(debListe(), true).filter(function(c){ return !c.retire || utilises[c.id]; });
+    // Une colonne de l'ancienne copie inconnue des réglages, mais qui a des quantités, reste aussi.
+    var ids = v.map(function(c){ return c.id; });
+    tableau(copie).forEach(function(c){ if(c && utilises[c.id] && ids.indexOf(c.id) < 0) v.push(c); });
+  }
+  crCache = {id:sem.id, v:v};
+  return v;
+}
+function canon(o){
+  if(Array.isArray(o)) return '[' + o.map(canon).join(',') + ']';
+  if(o && typeof o === 'object') return '{' + Object.keys(o).sort().filter(function(k){ return o[k] !== undefined && o[k] !== null; }).map(function(k){ return JSON.stringify(k) + ':' + canon(o[k]); }).join(',') + '}';
+  return JSON.stringify(o);
+}
 function pidDe(nom){ return nom.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
 function contenu(f){ return f.kg ? {u:'kg', n:+f.kg} : (f.par_colis ? {u:'u', n:+f.par_colis} : null); }
 function unitesDe(f){ var c = contenu(f); return c ? ['colis', c.u] : ['colis']; }
@@ -1184,7 +1541,7 @@ function quiQuand(o){
 function renderSemaine(){
   var id = semCourante();
   semOuvrir(id);
-  if(!REF || !CREN){
+  if(!REF || !debVue()){
     chargerRef();
     $('#semList').innerHTML = '<p class="empty">' + (refCharge ? 'Chargement…' : 'Impossible de charger les produits. Vérifie la connexion.') + '</p>';
     return;
@@ -1396,6 +1753,7 @@ $('#semView').addEventListener('click', function(e){
   var a = b.dataset.a, ligne = b.closest('.sr'), k = (ligne && ligne.dataset.k) || b.dataset.k;
   if(a === 'semPrec' || a === 'semSuiv'){ ui.semaine = decaler(semCourante(), a === 'semPrec' ? -1 : 1); semErr = {}; saveUi(); render(); return; }
   if(a === 'ajouter'){ ouvrirAjout(); return; }
+  if(a === 'debouches'){ ui.debouches = true; saveUi(); render(); scrollTo(0, 0); return; }
   if(a === 'reprendre'){ avecNom(reprendre); return; }
   if(a === 'propose' || !f) return;
   var cle = pid + '|' + k;
@@ -1548,18 +1906,18 @@ function setStatus(cls, txt){ var s = $('#sync'); s.className = 'pill ' + cls; s
 // État affiché dans la pastille : en ligne ou non, et ce qui attend d'être envoyé.
 var enLigne = false, refuse = false, connu = false;
 function enAttente(){
-  var n = pending.length + sem.pending.length;
-  var coches = !sem.pending.length && pending.every(function(p){ return p.path !== 'order'; });
+  var n = pending.length + sem.pending.length + (deb.pending ? 1 : 0);
+  var coches = !sem.pending.length && !deb.pending && pending.every(function(p){ return p.path !== 'order'; });
   return n + ' ' + (coches ? (n > 1 ? 'coches' : 'coche') : (n > 1 ? 'changements' : 'changement')) + ' en attente';
 }
 function majStatut(){
   if(!DB) return;
   if(refuse) return setStatus('err', 'Accès refusé par la base');
   if(!enLigne){
-    if(!connu && !pending.length && !sem.pending.length && !depuisCopie) return setStatus('wait', 'Connexion…');
-    return setStatus('wait', 'Hors ligne' + (pending.length || sem.pending.length ? ' · ' + enAttente() : ''));
+    if(!connu && !pending.length && !sem.pending.length && !deb.pending && !depuisCopie) return setStatus('wait', 'Connexion…');
+    return setStatus('wait', 'Hors ligne' + (pending.length || sem.pending.length || deb.pending ? ' · ' + enAttente() : ''));
   }
-  if(pending.length || sem.pending.length) return setStatus('wait', 'Envoi… ' + enAttente());
+  if(pending.length || sem.pending.length || deb.pending) return setStatus('wait', 'Envoi… ' + enAttente());
   setStatus('ok', 'Partagé');
 }
 
@@ -1632,9 +1990,9 @@ function connect(){
   if(!window.EventSource){ setStatus('err', 'Navigateur trop ancien'); return; }
   majStatut();
   ouvrir();
-  addEventListener('online', function(){ if(es && es.readyState === 2) ouvrir(); flush(); semRelancer(); });
+  addEventListener('online', function(){ if(es && es.readyState === 2) ouvrir(); flush(); semRelancer(); debRelancer(); });
   addEventListener('offline', function(){ enLigne = false; majStatut(); });
-  setInterval(function(){ if(es && es.readyState === 2) ouvrir(); flush(); semRelancer(); }, 15000);
+  setInterval(function(){ if(es && es.readyState === 2) ouvrir(); flush(); semRelancer(); debRelancer(); }, 15000);
 }
 function ouvrir(){
   if(es) es.close();

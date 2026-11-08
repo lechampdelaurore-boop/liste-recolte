@@ -1,0 +1,29 @@
+{
+ "source": "Débouchés et livraisons de départ de l'onglet « Semaine », d'après les débouchés et jours de livraison donnés par François le 06/11/2026 (docs/debouches.md). Ils se modifient dans l'appli (onglet Semaine, bouton « Débouchés et livraisons », étape 13B) ; dès la première modification, la base garde sa propre fiche (listes/reglages/debouches) et ce fichier ne sert plus. Une autre ferme met ici ses propres débouchés.",
+ "aide": "id : identifiant fixe du débouché (lettres, chiffres, tirets), repris comme circuit de la liste de récolte. nom : affiché. colis : 'plastique' (caisses PB, PH, GB, GH), 'bois' (petit, moyen, grand colis bois) ou '' (non précisé). note : remarque libre. livraisons : une par créneau de la semaine (colonne de la grille), avec son id fixe, ses jours (un seul jour, plusieurs jours = « l'un ou l'autre selon la semaine », ou 'au choix'), un moment facultatif (soir…), un nom s'il diffère de celui du débouché, un nom court (en-tête du tableau), et reprend : seconde livraison du même débouché, le reste de la première lui est proposé.",
+ "debouches": [
+  {"id": "ta", "nom": "Très Allier", "colis": "plastique", "note": "Magasin, prioritaire.", "livraisons": [
+   {"id": "ta-mar", "jours": ["mardi"], "court": "TA mar"},
+   {"id": "ta-jeu", "jours": ["jeudi"], "court": "TA jeu"}
+  ]},
+  {"id": "lm", "nom": "Panier La Magic", "colis": "plastique", "note": "Avec l'une des livraisons Très Allier, selon la semaine.", "livraisons": [
+   {"id": "lm", "jours": ["mardi", "jeudi"], "court": "La Magic"}
+  ]},
+  {"id": "ps", "nom": "Panier adéquat", "colis": "bois", "livraisons": [
+   {"id": "ps", "jours": ["mercredi"], "moment": "début d'après-midi", "court": "Panier adéq."}
+  ]},
+  {"id": "lv", "nom": "Locavore", "colis": "bois", "livraisons": [
+   {"id": "lv", "jours": ["mercredi"], "moment": "soir", "court": "Locavore"}
+  ]},
+  {"id": "av", "nom": "Auvabio", "colis": "", "note": "Un débouché en deux livraisons : le 63 reprend le reste du 03.", "livraisons": [
+   {"id": "av03", "nom": "Auvabio 03", "jours": ["jeudi"], "court": "Auvabio 03"},
+   {"id": "av63", "nom": "Auvabio 63", "jours": ["jeudi"], "court": "Auvabio 63", "reprend": "av03"}
+  ]},
+  {"id": "mk", "nom": "Marché de Tronget", "colis": "plastique", "livraisons": [
+   {"id": "mk", "jours": ["vendredi"], "court": "Marché ven"}
+  ]},
+  {"id": "el", "nom": "Élie", "colis": "", "note": "Client individuel.", "livraisons": [
+   {"id": "el", "jours": ["au choix"], "court": "Élie"}
+  ]}
+ ]
+}
