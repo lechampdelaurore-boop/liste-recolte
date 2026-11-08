@@ -315,10 +315,14 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 #semTable .rep{border-style:dashed}
 /* Onglet Semaine sur ordinateur : grille façon tableur, sur toute la largeur */
 body.large .wrap{max-width:1600px}
-.g-wrap{overflow:auto;max-height:78vh;border:var(--bw) solid var(--line);border-radius:var(--radius)}
+/* La grille s'affiche en entier : pas d'ascenseur à elle, c'est la page qui défile (demande de François du 8/11).
+   « clip » arrondit les coins sans créer de cadre qui défile : la ligne des titres reste collée sous la barre
+   des pages (Répartir, À récolter, Stock) et la colonne des produits au bord gauche. Fenêtre trop étroite : la page entière défile de côté. */
+.g-wrap{width:fit-content;min-width:100%;box-sizing:border-box;border:var(--bw) solid var(--line);border-radius:var(--radius);overflow:visible;overflow:clip}
+#semGrid .g-in{scroll-margin-top:calc(var(--g-haut,0px) + var(--g-tete,0px) + 8px);scroll-margin-left:calc(var(--g-prod,0px) + 8px)}
 #semGrid{border-collapse:separate;border-spacing:0;width:100%;font-size:.95rem;font-variant-numeric:tabular-nums}
 #semGrid th,#semGrid td{border-right:1.5px solid var(--line);border-bottom:1.5px solid var(--line);padding:0;vertical-align:middle;background:#fff}
-#semGrid thead th{position:sticky;top:0;z-index:2;background:var(--surface2);padding:7px 6px;font-weight:800;text-align:center;font-size:.85rem;line-height:1.15;border-bottom:var(--bw) solid var(--line)}
+#semGrid thead th{position:sticky;top:var(--g-haut,0px);z-index:2;background:var(--surface2);padding:7px 6px;font-weight:800;text-align:center;font-size:.85rem;line-height:1.15;border-bottom:var(--bw) solid var(--line)}
 #semGrid th small{display:block;font-weight:600;font-size:.8rem}
 #semGrid .g-prod{position:sticky;left:0;z-index:1;padding:6px 10px;font-weight:800;text-align:left;min-width:11em;border-right:var(--bw) solid var(--line)}
 #semGrid thead .g-prod{z-index:3}
@@ -1974,6 +1978,17 @@ function nomCreneau(id, court){
   var c = creneaux().filter(function(x){ return x.id === id; })[0];
   return c ? (court && c.court ? c.court : c.nom + (c.jour ? ' · ' + c.jour : '')) : id;
 }
+// La grille n'a pas d'ascenseur à elle : sa ligne de titres se colle sous la barre « Répartir · À récolter · Stock »
+// (elle-même collée en haut de l'écran), et une case qui reçoit le curseur ne passe ni sous les titres ni sous les produits.
+function grilleMesures(){
+  var w = $('#semGridWrap'), ctl = document.querySelector('.controls'), tete = document.querySelector('#semGrid thead'),
+    gp = document.querySelector('#semGrid tbody .g-prod');
+  if(!w || !tete || !tete.offsetHeight) return;
+  w.style.setProperty('--g-haut', (ctl && ctl.offsetHeight ? ctl.offsetHeight : 0) + 'px');
+  w.style.setProperty('--g-tete', tete.offsetHeight + 'px');
+  if(gp) w.style.setProperty('--g-prod', gp.offsetWidth + 'px');
+}
+window.addEventListener('resize', grilleMesures);
 function produitsSem(){
   var p = semLire('produits') || {};
   return Object.keys(p).filter(function(id){ return p[id] && p[id].nom; }).map(function(id){ return {id:id, f:p[id]}; })
@@ -2042,6 +2057,7 @@ function renderSemaine(){
   if(pc){
     $('#semList').innerHTML = ''; $('#semTable').innerHTML = '';
     $('#semGrid').innerHTML = prods.length ? grilleHtml(prods, calc, cr) : '';
+    grilleMesures();
     $('#semErrs').innerHTML = Object.keys(semErr).filter(function(k){ return k !== 'reprendre' && semErr[k]; }).map(function(k){
       var pid = k.split('|')[0], f = produitDe(pid), kk = k.split('|')[1];
       return f ? '<p class="sr-err" role="alert">' + esc(f.nom + ', ' + (kk === 'dispo' ? 'disponible' : kk.indexOf('stock/') === 0 ? nomStock(kk.split('/')[1]) : nomCreneau(kk.split('/')[1])) + ' : ' + semErr[k]) + '</p>' : '';

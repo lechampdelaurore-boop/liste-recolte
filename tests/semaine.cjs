@@ -343,6 +343,26 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await C.waitForTimeout(300);
   await C.evaluate(() => document.activeElement && document.activeElement.blur());
   await capture(C, '4-semaine-ordinateur');
+  // Pas d'ascenseur à la grille (demande de François du 8/11) : elle s'affiche en entier, c'est la page qui défile,
+  // la ligne des titres reste collée en haut de l'écran et la colonne des produits à gauche.
+  const deuxImages = () => new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r)));
+  await C.setViewportSize({ width: 1366, height: 240 });
+  await C.waitForTimeout(200);
+  const asc = await C.evaluate(() => { const w = document.querySelector('#semGridWrap'), t = document.querySelector('#semGrid'); return { ov: getComputedStyle(w).overflowY, wrapH: w.clientHeight, tabH: t.offsetHeight, lignes: t.querySelectorAll('tbody tr').length, page: document.documentElement.scrollHeight > innerHeight }; });
+  verifie(!['auto', 'scroll', 'hidden'].includes(asc.ov) && asc.wrapH >= asc.tabH && asc.tabH > 240 && asc.page, 'grille plus haute que l\'écran (' + asc.lignes + ' produits, ' + asc.tabH + ' px pour un écran de 240 px) : pas d\'ascenseur à elle, elle s\'affiche en entier et c\'est la page qui défile (cadre ' + asc.ov + ', ' + asc.wrapH + ' px)');
+  // La ligne des titres se colle sous la barre des pages (Répartir, À récolter, Stock), elle-même collée en haut.
+  await C.setViewportSize({ width: 1366, height: 500 });
+  await C.waitForTimeout(200);
+  const colle = await C.evaluate(async () => { const t = document.querySelector('#semGrid'), barre = document.querySelector('.controls'); scrollTo(0, t.getBoundingClientRect().top + scrollY - barre.offsetHeight + 40); await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); return { tete: Math.round(document.querySelector('#semGrid thead th').getBoundingClientRect().top), barre: Math.round(barre.getBoundingClientRect().bottom), table: Math.round(t.getBoundingClientRect().top), y: Math.round(scrollY) }; });
+  verifie(colle.y > 0 && colle.table < colle.tete && colle.tete === colle.barre, 'page descendue : la ligne des titres (débouchés) reste collée juste sous la barre « Répartir · À récolter · Stock » (titres à ' + colle.tete + ' px, barre jusqu\'à ' + colle.barre + ' px, haut de la grille à ' + colle.table + ' px)');
+  const curseur = await C.evaluate(async () => { scrollTo(0, document.documentElement.scrollHeight); await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); const c = document.querySelector('#semGrid tbody tr:first-child input[data-cell$="|dispo"]'); c.focus(); await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); const r = c.getBoundingClientRect(), h = document.querySelector('#semGrid thead').getBoundingClientRect(); c.blur(); return { haut: Math.round(r.top), titres: Math.round(h.bottom), bas: Math.round(r.bottom), y: Math.round(scrollY) }; });
+  verifie(curseur.haut >= curseur.titres && curseur.bas <= 500, 'curseur remis dans une case du haut, page descendue : la case se montre sous les titres collés, pas dessous (case à ' + curseur.haut + ' px, titres jusqu\'à ' + curseur.titres + ' px)');
+  await C.setViewportSize({ width: 1020, height: 600 });
+  await C.waitForTimeout(200);
+  const cote = await C.evaluate(async () => { const t = document.querySelector('#semGrid'), w = document.querySelector('#semGridWrap'); const deborde = document.documentElement.scrollWidth > innerWidth; scrollTo(document.documentElement.scrollWidth, t.getBoundingClientRect().top + scrollY + 150); await new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); const p = document.querySelector('#semGrid tbody tr:last-child .g-prod').getBoundingClientRect(), d = t.querySelector('thead th:last-child').getBoundingClientRect(); const res = { deborde, cadre: w.scrollWidth > w.clientWidth + 1, x: Math.round(scrollX), prod: Math.round(p.left), droite: Math.round(d.right), larg: innerWidth }; scrollTo(0, 0); return res; });
+  verifie(!cote.cadre && (!cote.deborde || (cote.x > 0 && cote.prod === 0 && cote.droite <= cote.larg)), 'fenêtre de 1020 px : la grille n\'a pas non plus d\'ascenseur de côté ; ' + (cote.deborde ? 'la page défile de côté (' + cote.x + ' px), la colonne des produits reste collée à gauche (' + cote.prod + ' px) et la dernière colonne se voit en entier' : 'elle tient en entier'));
+  await C.setViewportSize({ width: 1366, height: 768 });
+  await C.waitForTimeout(200);
   // Fenêtre étroite : retour aux fiches du téléphone
   await C.setViewportSize({ width: 800, height: 900 });
   await C.waitForTimeout(200);

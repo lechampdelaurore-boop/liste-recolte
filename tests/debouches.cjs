@@ -204,8 +204,10 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   const thC = await C.$$eval('#semGrid thead th', (e) => e.map((x) => x.textContent.trim()));
   verifie(thC.includes('Locavorejeudi soir') && thC.includes('Ferme Deschampsmercredi'), 'sur ordinateur, la grille montre Locavore jeudi soir et Ferme Deschamps mercredi');
   verifie(thC[2] === 'Stock Très Allierau magasin, hors du reste' && (await C.$$('#semGrid input[data-cell="bette|stock/ta"]')).length === 1, 'sur ordinateur, une colonne « Stock Très Allier » (au magasin, hors du reste) suit le disponible');
-  const larg = await C.evaluate(() => ({ deborde: document.querySelector('#semGridWrap').scrollWidth > document.querySelector('#semGridWrap').clientWidth, page: document.documentElement.scrollWidth > innerWidth }));
-  verifie(!larg.page, 'avec deux colonnes de plus, la page ne défile pas de côté (la grille ' + (larg.deborde ? 'défile dans son cadre' : 'tient en entier') + ')');
+  // Depuis le 8/11 au soir, la grille n'a plus d'ascenseur à elle : trop large pour la fenêtre, c'est la page qui défile
+  // de côté, la colonne des produits restant collée à gauche.
+  const larg = await C.evaluate(async () => { const w = document.querySelector('#semGridWrap'); const r = { cadre: w.scrollWidth > w.clientWidth + 1, page: document.documentElement.scrollWidth > innerWidth }; scrollTo(document.documentElement.scrollWidth, scrollY); await new Promise((f) => requestAnimationFrame(() => requestAnimationFrame(f))); r.prod = Math.round(document.querySelector('#semGrid tbody .g-prod').getBoundingClientRect().left); scrollTo(0, scrollY); return r; });
+  verifie(!larg.cadre && (!larg.page || larg.prod === 0), 'avec deux colonnes de plus, la grille n\'a pas d\'ascenseur à elle (' + (larg.page ? 'la page défile de côté, la colonne des produits reste collée à gauche' : 'elle tient en entier') + ')');
   await C.click('[data-a="semPrec"]');
   await C.waitForSelector('#semGrid tbody tr');
   const thP = await C.$$eval('#semGrid thead th', (e) => e.map((x) => x.textContent.trim()));
