@@ -37,8 +37,17 @@ h2{font-size:1.15rem;margin:8px 0 0;font-weight:900}
 .sub{margin:0;font-size:.95rem;font-weight:700}
 .hint{margin:0;font-size:.88rem;color:var(--muted)}
 .card{background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--radius);box-shadow:var(--ombre)}
-.cherche{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0;border-bottom:var(--bw) solid var(--line)}
-.cherche input{width:100%;min-height:48px;padding:8px 12px;border:var(--bw) solid var(--line);border-radius:12px;background:var(--bg)}
+.nav{display:grid;grid-template-columns:52px minmax(0,1fr) 52px;gap:8px;align-items:center;border:var(--bw) solid var(--line);border-radius:var(--radius);padding:6px;background:#d9f2c4;box-shadow:var(--ombre)}
+.nav button{min-height:48px;border:var(--bw) solid var(--line);border-radius:10px;background:#fff;font-size:1.5rem;font-weight:900;cursor:pointer}
+.nav div{text-align:center;font-weight:900;line-height:1.2}
+.nav small{display:block;font-weight:700;font-size:.85rem}
+.actions{display:flex;flex-wrap:wrap;gap:8px}
+.p-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px}
+.p-x{min-width:44px;min-height:44px;border:var(--bw) solid var(--line);border-radius:10px;background:#fff;font-size:1.3rem;font-weight:900;cursor:pointer}
+.add-list{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px;max-height:55vh;overflow:auto}
+.add-list button{width:100%;text-align:left;display:grid;gap:2px}
+.add-list small{font-weight:600}
+dialog.big{max-width:min(460px,94vw)}
 .liste{display:grid;gap:10px}
 .p{display:grid;gap:6px;padding:10px 12px}
 .p-nom{font-weight:800}
@@ -78,9 +87,17 @@ dialog label{display:grid;gap:4px;font-weight:700}
     <h1>Stock au magasin</h1>
     <p class="sub" id="semaine"></p>
   </div>
-  <p class="hint" id="aide">Notez ce qui reste au magasin, produit par produit. Chaque saisie part à la ferme avec votre prénom et l'heure.</p>
+  <div class="nav" id="nav" hidden>
+    <button type="button" data-a="prec" aria-label="Semaine précédente">‹</button>
+    <div id="navTxt"></div>
+    <button type="button" data-a="suiv" aria-label="Semaine suivante">›</button>
+  </div>
+  <p class="hint" id="aide">Ajoutez les produits que vous comptez, puis notez ce qui reste au magasin. Chaque saisie part à la ferme avec votre prénom et l'heure.</p>
   <div id="msg"></div>
-  <div class="cherche" id="chercheBloc" hidden><input id="cherche" type="search" placeholder="Chercher un produit" autocomplete="off" aria-label="Chercher un produit"></div>
+  <div class="actions" id="actions" hidden>
+    <button type="button" class="act" id="ajouter">＋ Ajouter un produit</button>
+    <button type="button" class="act" id="reprendre" hidden>Reprendre les produits de la semaine d'avant</button>
+  </div>
   <div id="liste" class="liste"></div>
   <div id="pied" hidden>
     <p class="hint" id="compteTxt"></p>
@@ -97,6 +114,14 @@ dialog label{display:grid;gap:4px;font-weight:700}
     <p class="err" id="authErr" role="alert" hidden></p>
     <button type="submit" id="authOk" class="oui">Se connecter</button>
   </form>
+</dialog>
+
+<dialog id="addDlg" class="big">
+  <h2>Ajouter un produit</h2>
+  <p class="hint">Toucher un produit pour l'ajouter à la semaine.</p>
+  <input id="addQ" placeholder="Chercher, par exemple carotte" autocomplete="off" aria-label="Chercher un produit">
+  <ul class="add-list" id="addList"></ul>
+  <div class="btns"><button type="button" id="addClose">Fermer</button></div>
 </dialog>
 
 <dialog id="quiDlg">
@@ -144,7 +169,7 @@ function decaler(id, n){ var d = deIso(id); d.setDate(d.getDate() + 7 * n); retu
 /* ---------- Produits et unités (mêmes règles que l'onglet Semaine de la liste de récolte) ---------- */
 var NOMS_CAISSES = {PB:'petite basse', PH:'petite haute', GB:'grande basse', GH:'grande haute'};
 function contenu(f){ return f.kg ? {u:'kg', n:+f.kg} : (f.par_colis ? {u:'u', n:+f.par_colis} : null); }
-function unitesDe(f){ var c = contenu(f); return c ? [c.u, 'colis'] : ['colis']; }
+function unitesDe(f){ var c = contenu(f); return c ? ['colis', c.u] : ['colis']; }
 function nomUnite(u, f, n){
   if(u === 'colis') return f.caisse || 'colis';
   if(u === 'kg') return 'kg';
@@ -189,6 +214,9 @@ var unites = ls('magasin.unites') || {};
 var pending = ls('magasin.pending') || [];
 var REF = null, DEBS = null;
 var did = compte && compte.did || null, w = lundiDe(new Date());
+// Produits ajoutés à la liste d'une semaine (sur ce téléphone) ; ceux qui ont une saisie viennent de la base.
+function cleListe(){ return 'magasin.liste.' + did + '.' + w; }
+function listeLocale(){ return ls(cleListe()) || []; }
 var data = {}, avant = {}, personnes = ls('magasin.personnes') || {};
 var es = null, enLigne = false, recu = false, refuse = '', flushing = false, erreurs = {}, msgEnvoi = '';
 var renouvEnCours = null, attente = false;
@@ -386,8 +414,9 @@ function ouvrir(force){
 // Toutes les 15 s et au retour du réseau : nouvelle semaine le lundi, jeton renouvelé, lecture rouverte, envoi de ce qui attend.
 function verifier(){
   if(!compte || !did) return;
+  // Le lundi, la page passe à la nouvelle semaine, sauf si la personne a choisi une autre semaine.
   var lundi = lundiDe(new Date());
-  if(lundi !== w){ w = lundi; data = ls('magasin.copie.' + did + '.' + w) || {}; avant = ls('magasin.copie.' + did + '.' + decaler(w, -1)) || {}; recu = false; ouvrir(true); render(); }
+  if(lundi !== courante){ if(w === courante) allerA(lundi); courante = lundi; }
   var avantJeton = compte.jeton;
   jetonFrais().then(function(){
     if(compte && compte.jeton !== avantJeton) ouvrir(true);
@@ -395,6 +424,20 @@ function verifier(){
     flush();
   }, function(){ enLigne = false; majStatut(); });
 }
+var courante = w;
+function allerA(sem){
+  w = sem; data = ls('magasin.copie.' + did + '.' + w) || {}; avant = ls('magasin.copie.' + did + '.' + decaler(w, -1)) || {};
+  pending.forEach(function(p){ if(p.w === w) data = setAt(data, p.pid, p.val); });
+  recu = false; erreurs = {}; ouvrir(true); render();
+}
+function texteSemaine(sem){ return 'semaine du lundi ' + deIso(sem).toLocaleDateString('fr-FR', {day:'numeric', month:'long'}); }
+// Changer de semaine : toujours confirmé (demande de François du 8/11).
+$('#nav').addEventListener('click', function(e){
+  var b = e.target.closest('[data-a]'); if(!b || !did) return;
+  var cible = decaler(w, b.dataset.a === 'prec' ? -1 : 1);
+  if(!confirm('Passer à la ' + texteSemaine(cible) + (cible === courante ? ' (cette semaine)' : '') + ' ? Les saisies iront dans cette semaine-là.')) return;
+  allerA(cible);
+});
 setInterval(verifier, 15000);
 addEventListener('online', verifier);
 addEventListener('offline', function(){ enLigne = false; majStatut(); });
@@ -402,7 +445,8 @@ addEventListener('offline', function(){ enLigne = false; majStatut(); });
 /* ---------- Saisie : affichée tout de suite, gardée sur le téléphone, puis envoyée ---------- */
 // Chaque saisie part avec une ligne du journal (prénom, ancienne et nouvelle valeur, heure), que personne ne peut effacer.
 function saisir(pid, val){
-  var ancien = data[pid] || null, t = Date.now();
+  var ancien = data[pid] || null, t = Date.now(), l = listeLocale();
+  if(l.indexOf(pid) < 0){ l.push(pid); ls(cleListe(), l); }
   var j = {pid:pid, by:qui, at:t};
   if(val){ j.n = val.n; j.u = val.u; }
   if(ancien && typeof ancien.n === 'number'){ j.an = ancien.n; j.au = ancien.u; }
@@ -459,11 +503,41 @@ function produits(){
     return {id:pidDe(p.produit), f:f};
   }).sort(function(a, b){ return a.f.nom.localeCompare(b.f.nom, 'fr'); });
 }
+function ficheDe(pid){ return produits().filter(function(p){ return p.id === pid; })[0]; }
+// Produits de la semaine : ajoutés sur ce téléphone, ou déjà saisis (par n'importe quel téléphone du magasin).
+function produitsSemaine(){
+  var ids = listeLocale().slice();
+  Object.keys(data).forEach(function(pid){ if(data[pid] && ids.indexOf(pid) < 0) ids.push(pid); });
+  return ids.map(ficheDe).filter(Boolean).sort(function(a, b){ return a.f.nom.localeCompare(b.f.nom, 'fr'); });
+}
+function ajouter(pids){ var l = listeLocale(); pids.forEach(function(pid){ if(l.indexOf(pid) < 0) l.push(pid); }); ls(cleListe(), l); render(); }
+function ouvrirAjout(){
+  var dlg = $('#addDlg'), q = $('#addQ');
+  function liste(){
+    var t = sansAccent(q.value.trim().toLowerCase()), deja = produitsSemaine().map(function(p){ return p.id; });
+    var l = produits().filter(function(p){ return deja.indexOf(p.id) < 0 && sansAccent(p.f.nom.toLowerCase()).indexOf(t) >= 0; });
+    $('#addList').innerHTML = l.length ? l.map(function(p){ return '<li><button type="button" data-pid="' + esc(p.id) + '"><span>' + esc(p.f.nom) + '</span><small>' + esc(colisTxt(p.f)) + '</small></button></li>'; }).join('') : '<li class="vide">Aucun produit trouvé.</li>';
+  }
+  q.value = ''; liste();
+  q.oninput = liste;
+  // Un produit à la fois : on l'ajoute, la fenêtre se ferme et la case du chiffre est prête.
+  $('#addList').onclick = function(e){
+    var b = e.target.closest('[data-pid]'); if(!b) return;
+    var pid = b.dataset.pid; ajouter([pid]); dlg.close();
+    var i = document.querySelector('#liste .p[data-pid="' + pid + '"] input');
+    if(i){ i.scrollIntoView({block:'center'}); i.focus(); }
+  };
+  $('#addClose').onclick = function(){ dlg.close(); };
+  dlg.showModal();
+}
+$('#ajouter').onclick = ouvrirAjout;
+$('#reprendre').onclick = function(){ ajouter(Object.keys(avant).filter(function(pid){ return avant[pid] && ficheDe(pid); })); };
 function uniteDe(pid, f){ var q = data[pid], us = unitesDe(f); return q && q.u ? q.u : (us.indexOf(unites[pid]) >= 0 ? unites[pid] : us[0]); }
 function ligneHtml(p){
   var f = p.f, q = data[p.id], av = avant[p.id], u = uniteDe(p.id, f), us = unitesDe(f), err = erreurs[p.id];
   var h = '<div class="card p' + (q ? ' fait' : '') + '" data-pid="' + esc(p.id) + '">' +
-    '<div class="p-nom">' + esc(f.nom) + ' <small>' + esc(colisTxt(f)) + '</small></div>' +
+    '<div class="p-top"><div class="p-nom">' + esc(f.nom) + ' <small>' + esc(colisTxt(f)) + '</small></div>' +
+    '<button type="button" class="p-x" data-a="retirer" aria-label="' + esc('Retirer ' + f.nom + ' de la semaine') + '">×</button></div>' +
     '<div class="ctl"><button type="button" data-a="moins" aria-label="' + esc('Moins, ' + f.nom) + '">−</button>' +
     '<input type="text" inputmode="decimal" enterkeyhint="done" value="' + (q ? esc(nb(q.n)) : '') + '" placeholder="?" aria-label="' + esc('Stock de ' + f.nom) + '">' +
     '<button type="button" data-a="unite"' + (us.length < 2 ? ' disabled' : '') + ' aria-label="' + esc('Changer d\'unité, ' + f.nom) + '">' + esc(nomUnite(u, f, q ? q.n : 2)) + '</button>' +
@@ -485,25 +559,19 @@ function render(){
   var msg = refuse ? '<p class="err" role="alert">' + esc(refuse) + '</p>' : (msgEnvoi ? '<p class="err" role="alert">' + esc(msgEnvoi) + '</p>' : '');
   $('#msg').innerHTML = msg;
   var pret = !!(compte && did && !refuse && REF);
-  $('#chercheBloc').hidden = !pret;
+  $('#actions').hidden = !pret; $('#nav').hidden = !pret; $('#semaine').hidden = pret;
+  $('#navTxt').innerHTML = 'Semaine du lundi ' + esc(d0.toLocaleDateString('fr-FR', {day:'numeric', month:'long'})) + '<small>' + (w === courante ? 'Cette semaine' : w < courante ? 'Semaine passée' : 'Semaine à venir') + '</small>';
   $('#aide').hidden = !!refuse;
   if(!pret){ $('#liste').innerHTML = compte && !refuse ? '<p class="vide">Chargement…</p>' : ''; return; }
   // Ne pas redessiner sous le doigt pendant une saisie : on redessine en quittant la case.
   var a = document.activeElement;
   if(a && a.closest && a.closest('#liste') && a.tagName === 'INPUT'){ attente = true; return; }
   attente = false;
-  var t = sansAccent($('#cherche').value.trim().toLowerCase());
-  var ps = produits().filter(function(p){ return !t || sansAccent(p.f.nom.toLowerCase()).indexOf(t) >= 0; });
-  // D'abord les produits comptés cette semaine ou la semaine d'avant, puis tous les autres.
-  var deja = ps.filter(function(p){ return data[p.id] || avant[p.id]; }), autres = ps.filter(function(p){ return !data[p.id] && !avant[p.id]; });
-  var n = produits().filter(function(p){ return data[p.id]; }).length;
-  var h = '<p class="hint">' + (n ? n + ' produit' + (n > 1 ? 's' : '') + ' compté' + (n > 1 ? 's' : '') + ' cette semaine.' : 'Rien de compté cette semaine pour l\'instant.') + '</p>';
-  if(deja.length) h += '<h2>Produits déjà comptés</h2>' + deja.map(ligneHtml).join('');
-  if(autres.length) h += '<h2>' + (deja.length ? 'Autres produits' : 'Produits') + '</h2>' + autres.map(ligneHtml).join('');
-  if(!ps.length) h += '<p class="vide">Aucun produit ne s\'appelle comme ça.</p>';
-  $('#liste').innerHTML = h;
+  var ps = produitsSemaine(), n = ps.filter(function(p){ return data[p.id]; }).length;
+  $('#reprendre').hidden = ps.length > 0 || !Object.keys(avant).some(function(pid){ return avant[pid] && ficheDe(pid); });
+  $('#liste').innerHTML = ps.length ? '<p class="hint">' + n + ' produit' + (n > 1 ? 's' : '') + ' compté' + (n > 1 ? 's' : '') + ' sur ' + ps.length + ' cette semaine.</p>' + ps.map(ligneHtml).join('')
+    : '<p class="vide">Aucun produit pour cette semaine. Touchez « Ajouter un produit ».</p>';
 }
-$('#cherche').addEventListener('input', render);
 function produitDe(pid){ return produits().filter(function(p){ return p.id === pid; })[0]; }
 function avecQui(fn){ if(qui) fn(); else demanderQui(); }
 $('#liste').addEventListener('click', function(e){
@@ -511,6 +579,12 @@ $('#liste').addEventListener('click', function(e){
   var c = b.closest('[data-pid]'), p = c && produitDe(c.dataset.pid); if(!p) return;
   var pid = p.id, f = p.f, q = data[pid], u = uniteDe(pid, f), us = unitesDe(f);
   delete erreurs[pid];
+  if(b.dataset.a === 'retirer'){
+    if(q && !confirm('Retirer « ' + f.nom + ' » de la semaine ? Sa saisie est effacée (elle reste dans le journal de la ferme).')) return;
+    var l = listeLocale().filter(function(x){ return x !== pid; }); ls(cleListe(), l);
+    if(q) avecQui(function(){ saisir(pid, null); var l2 = listeLocale().filter(function(x){ return x !== pid; }); ls(cleListe(), l2); render(); }); else render();
+    return;
+  }
   if(b.dataset.a === 'unite'){
     var u2 = us[(us.indexOf(u) + 1) % us.length];
     unites[pid] = u2; ls('magasin.unites', unites);

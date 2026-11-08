@@ -198,6 +198,8 @@ const compte = async (email, mdp) => {
     await M.fill('#authId', 'tresallier'); await M.fill('#authMdp', 'essai-magasin'); await M.click('#authOk');
     await M.waitForSelector('#quiDlg[open]');
     await M.fill('#quiAutre', 'Igor'); await M.click('#quiForm button[type="submit"]');
+    await M.waitForSelector('#actions:not([hidden])');
+    await M.click('#ajouter'); await M.fill('#addQ', 'poireau'); await M.click('#addList button[data-pid="poireau"]');
     await M.waitForSelector('#liste .p[data-pid="poireau"]');
     await M.fill('#liste .p[data-pid="poireau"] input', '7'); await M.press('#liste .p[data-pid="poireau"] input', 'Enter');
     await M.waitForFunction(() => document.querySelector('#sync').textContent.includes('Enregistré'), null, { timeout: 15000 }).catch(() => {});

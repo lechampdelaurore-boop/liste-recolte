@@ -58,13 +58,14 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   await fetch(`${BASE}/magasins/ta/semaines/${AVANT}/poireau.json?auth=${jetonM0}`, { method: 'PUT', body: JSON.stringify({ n: 8, u: 'kg', by: 'Igor', at: hier }) });
 
   const nav = await chromium.launch();
-  const erreurs = [];
+  const erreurs = [], dialogues = [];
+  let refuser = false;
   const ouvrir = async (nom, url, opts = devices['Pixel 7']) => {
     const ctx = await nav.newContext({ ...opts, serviceWorkers: 'block' });
     await ctx.addInitScript((n) => localStorage.setItem('recolte.qui', JSON.stringify(n)), nom);
     const p = await ctx.newPage();
     p.on('pageerror', (e) => erreurs.push(nom + ' : ' + e.message));
-    p.on('dialog', (d) => d.accept());
+    p.on('dialog', (d) => { dialogues.push(d.message()); if (refuser) d.dismiss(); else d.accept(); });
     await p.goto(`http://localhost:${PORT_SITE}/${url}`);
     return { p, ctx };
   };
@@ -106,22 +107,38 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   await capture(M, '2-prenom');
   await M.fill('#quiAutre', 'igor');
   await M.click('#quiForm button[type="submit"]');
-  await M.waitForSelector('#liste .p');
+  await M.waitForSelector('#actions:not([hidden])');
+  await M.waitForFunction(() => !document.querySelector('#reprendre').hidden, null, { timeout: 8000 }).catch(() => {});
   verifie((await M.textContent('#quiNom')) === 'Igor · changer', 'le prénom tapé « igor » devient « Igor », en haut de l\'écran (obtenu « ' + (await M.textContent('#quiNom')) + ' »)');
   await attendreQue(() => base.lire('magasins/ta/personnes/igor'));
   verifie((base.lire('magasins/ta/personnes/igor') || {}).nom === 'Igor', 'le prénom est gardé dans la liste des prénoms du magasin');
-  verifie((await M.textContent('#titre')) === 'Stock · Très Allier' && (await M.textContent('#semaine')).startsWith('Semaine du lundi ' + lundi(0).getDate() + ' '), 'le magasin du compte (Très Allier) et la semaine en cours sont affichés');
-  verifie((await M.$$eval('#liste h2', (e) => e.map((x) => x.textContent))).join('|') === 'Produits déjà comptés|Autres produits', 'deux groupes : les produits déjà comptés, puis les autres');
-  const pDeja = await M.$$eval('#liste h2 + .p', (e) => e.map((x) => x.dataset.pid));
-  verifie(pDeja[0] === 'poireau' && (await M.textContent(ligne('poireau') + ' .p-qui')).startsWith('Semaine d\'avant : 8 kg (Igor, '), 'le poireau, compté la semaine d\'avant, est en tête, avec « Semaine d\'avant : 8 kg (Igor, …) »');
-  verifie((await M.$$('#liste .p')).length === 74, 'tous les produits du référentiel sont proposés (obtenu ' + (await M.$$('#liste .p')).length + ')');
+  verifie((await M.textContent('#titre')) === 'Stock · Très Allier' && (await M.textContent('#navTxt')) === 'Semaine du lundi ' + lundi(0).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + 'Cette semaine', 'le magasin du compte (Très Allier) et la semaine en cours sont affichés, avec « Cette semaine » (obtenu « ' + (await M.textContent('#navTxt')) + ' »)');
+  verifie((await M.$$('#liste .p')).length === 0 && (await M.textContent('#liste')).includes('Aucun produit pour cette semaine'), 'au départ, la liste est vide : « Aucun produit pour cette semaine »');
+  verifie(await M.isVisible('#reprendre'), 'le bouton « Reprendre les produits de la semaine d\'avant » est proposé (le poireau y était compté)');
+  await capture(M, '3-liste-vide');
+  await M.click('#reprendre');
+  await M.waitForSelector(ligne('poireau'));
+  verifie((await M.$$eval('#liste .p', (e) => e.map((x) => x.dataset.pid))).join() === 'poireau' && (await M.textContent(ligne('poireau') + ' .p-qui')).startsWith('Semaine d\'avant : 8 kg (Igor, '), 'reprendre la semaine d\'avant : le poireau arrive, case vide, avec « Semaine d\'avant : 8 kg (Igor, …) »');
+  verifie(!(await M.isVisible('#reprendre')), 'le bouton « Reprendre » disparaît une fois la liste commencée');
+  verifie(base.lire(`magasins/ta/semaines/${SEM}`) === null, 'ajouter un produit à la liste n\'écrit rien dans la base (seul le chiffre part)');
+
+  // 1 bis. Ajouter un produit un par un, en colis par défaut
+  await M.click('#ajouter');
+  await M.waitForSelector('#addDlg[open]');
+  verifie((await M.$$('#addList button')).length === 73, 'la fenêtre « Ajouter un produit » propose tous les produits du référentiel, sauf ceux déjà dans la liste (obtenu ' + (await M.$$('#addList button')).length + ')');
+  await M.fill('#addQ', 'carotte');
+  verifie((await M.$$eval('#addList button', (e) => e.map((x) => x.dataset.pid))).join() === 'carotte-botte,carotte-lavee', 'la recherche « carotte » ne garde que les carottes');
+  await capture(M, '3-ajouter');
+  await M.click('#addList button[data-pid="carotte-lavee"]');
+  await M.waitForSelector(ligne('carotte-lavee'));
+  verifie(!(await M.isVisible('#addDlg')) && (await M.evaluate(() => document.activeElement.closest('.p') && document.activeElement.closest('.p').dataset.pid)) === 'carotte-lavee', 'un appui sur « Carotte lavée » : la fenêtre se ferme, le curseur est dans la case de la carotte');
+  verifie((await M.$$eval('#liste .p', (e) => e.map((x) => x.dataset.pid))).join() === 'carotte-lavee,poireau', 'la liste a maintenant deux produits, par ordre alphabétique');
+  verifie((await M.textContent(ligne('carotte-lavee') + ' button[data-a="unite"]')) === 'PH', 'une case vide se remplit en colis par défaut (PH pour la carotte lavée)');
+  await M.click(ligne('carotte-lavee') + ' button[data-a="unite"]');
+  verifie((await M.textContent(ligne('carotte-lavee') + ' button[data-a="unite"]')) === 'kg', 'un appui sur l\'unité passe en kilos');
   await capture(M, '3-liste');
 
   // 2. Une saisie : prénom et heure, journal
-  await M.fill('#cherche', 'carotte');
-  await M.waitForTimeout(200);
-  verifie((await M.$$eval('#liste .p', (e) => e.map((x) => x.dataset.pid))).join() === 'carotte-botte,carotte-lavee', 'la recherche « carotte » ne garde que les carottes');
-  verifie((await M.textContent(ligne('carotte-lavee') + ' button[data-a="unite"]')) === 'kg', 'une case vide se remplit en kilos pour un produit vendu au kilo');
   await M.fill(ligne('carotte-lavee') + ' input', '12');
   await M.press(ligne('carotte-lavee') + ' input', 'Enter');
   await attendreQue(() => base.lire(`magasins/ta/semaines/${SEM}/carotte-lavee`));
@@ -140,7 +157,6 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   await M.waitForTimeout(200);
   verifie((await M.textContent(ligne('carotte-lavee'))).includes('Écrire un nombre') && base.lire(`magasins/ta/semaines/${SEM}/carotte-lavee`).n === 13, 'un texte qui n\'est pas un nombre est refusé, avec une explication');
   verifie((await M.inputValue(ligne('carotte-lavee') + ' input')) === '13', 'en quittant la case, elle revient à la dernière valeur enregistrée (13)');
-  await M.fill('#cherche', '');
 
   // 3. Le magasin ne lit rien d'autre que son stock
   const jetonM = await M.evaluate(() => JSON.parse(localStorage.getItem('magasin.compte')).jeton);
@@ -159,16 +175,19 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   await M2.fill('#quiAutre', 'Léa');
   await M2.click('#quiForm button[type="submit"]');
   await M2.waitForSelector(ligne('carotte-lavee'));
-  verifie((await M2.inputValue(ligne('carotte-lavee') + ' input')) === '13', 'Léa voit les 13 kg saisis par Igor');
-  await M2.click(ligne('ail-sec') + ' button[data-a="unite"]');
-  verifie((await M2.textContent(ligne('ail-sec') + ' button[data-a="unite"]')) === 'PH', 'le bouton d\'unité passe aux caisses (PH pour l\'ail sec)');
+  verifie((await M2.$$eval('#liste .p', (e) => e.map((x) => x.dataset.pid))).join() === 'carotte-lavee' && (await M2.inputValue(ligne('carotte-lavee') + ' input')) === '13', 'sur le deuxième téléphone, la liste a le produit déjà saisi : Léa voit les 13 kg saisis par Igor');
+  await M2.click('#ajouter');
+  await M2.fill('#addQ', 'ail');
+  await M2.click('#addList button[data-pid="ail-sec"]');
+  await M2.waitForSelector(ligne('ail-sec'));
+  verifie((await M2.textContent(ligne('ail-sec') + ' button[data-a="unite"]')) === 'PH', 'Léa ajoute l\'ail sec : en colis par défaut (PH)');
   await M2.fill(ligne('ail-sec') + ' input', '2');
   await M2.press(ligne('ail-sec') + ' input', 'Enter');
   await attendreQue(() => base.lire(`magasins/ta/semaines/${SEM}/ail-sec`));
   s = base.lire(`magasins/ta/semaines/${SEM}/ail-sec`) || {};
   verifie(s.n === 2 && s.u === 'colis' && s.by === 'Léa', 'Léa saisit 2 PH d\'ail sec : enregistré à son prénom');
   await attendreQue(async () => (await M.inputValue(ligne('ail-sec') + ' input')) === '2');
-  verifie((await M.inputValue(ligne('ail-sec') + ' input')) === '2' && (await M.textContent(ligne('ail-sec') + ' .p-qui')).includes('Léa'), 'le premier téléphone voit tout de suite la saisie de Léa');
+  verifie((await M.inputValue(ligne('ail-sec') + ' input')) === '2' && (await M.textContent(ligne('ail-sec') + ' .p-qui')).includes('Léa'), 'le premier téléphone voit tout de suite la saisie de Léa, l\'ail sec s\'ajoute à sa liste');
 
   // 5. Changer de prénom d'un appui ; « igor. » est le même Igor
   await M2.click('#qui');
@@ -235,6 +254,49 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   await PC.waitForSelector('#semGrid input[data-cell="poireau|stock/ta"]');
   await PC.waitForFunction(() => document.querySelector('#semGrid input[data-cell="ail-sec|stock/ta"]').value === '2', null, { timeout: 8000 }).catch(() => {});
   verifie((await PC.inputValue('#semGrid input[data-cell="ail-sec|stock/ta"]')) === '2' && (await PC.getAttribute('#semGrid input[data-cell="poireau|stock/ta"]', 'placeholder')) === '(8 kg)', 'grille de l\'ordinateur : ail sec 2 ; poireau vide avec « (8 kg) » de la semaine d\'avant en grisé');
+
+  // 9 bis. Un produit compté au magasin mais absent de la semaine de la ferme
+  await M.click('#ajouter');
+  await M.fill('#addQ', 'fenouil');
+  await M.click('#addList button[data-pid="fenouil"]');
+  await M.waitForSelector(ligne('fenouil'));
+  await M.fill(ligne('fenouil') + ' input', '3');
+  await M.press(ligne('fenouil') + ' input', 'Enter');
+  await attendreQue(() => base.lire(`magasins/ta/semaines/${SEM}/fenouil`));
+  await F.click('[data-sem="stock"]');
+  await F.waitForSelector('#semStkList li[data-hors="fenouil"]', { timeout: 8000 }).catch(() => {});
+  const hors = await F.$$eval('#semStkList .mag-hors li', (e) => e.map((x) => x.textContent));
+  verifie(hors.length === 1 && hors[0].startsWith('Fenouil : 3 PH · Igor, '), 'page Stock de la ferme : « Compté par le magasin, pas dans votre semaine » montre le fenouil, 3 colis, Igor (obtenu ' + hors.join('|') + ')');
+  await capture(F, '4-ferme-hors-semaine');
+  await F.click('#semStkList [data-a="ajouter-produit"][data-p="fenouil"]');
+  await attendreQue(() => base.lire(`listes/semaines/${SEM}/produits/fenouil`));
+  await F.waitForSelector(caseF('fenouil') + ' input', { timeout: 8000 }).catch(() => {});
+  verifie(!!base.lire(`listes/semaines/${SEM}/produits/fenouil`) && (await F.inputValue(caseF('fenouil') + ' input')) === '3' && (await F.$$('#semStkList .mag-hors')).length === 0, '« Ajouter à la semaine » : le fenouil entre dans la semaine de la ferme, avec les 3 du magasin dans sa case');
+  await F.click('[data-a="semPrec"]');
+  await F.waitForSelector('#semStkList li[data-hors="poireau"]', { timeout: 8000 }).catch(() => {});
+  verifie((await F.$$('#semStkList .stk-l')).length === 0 && (await F.textContent('#semStkList')).includes('Aucun produit dans votre semaine') && ((await F.textContent('#semStkList li[data-hors="poireau"]').catch(() => '')) || '').startsWith('Poireau : 8 kg'), 'une semaine de la ferme sans produit montre quand même ce que le magasin a compté (poireau 8 kg, semaine d\'avant)');
+  await F.click('[data-a="semSuiv"]');
+
+  // 9 ter. Le magasin change de semaine, toujours avec une confirmation
+  refuser = true;
+  await M.click('#nav [data-a="prec"]');
+  await M.waitForTimeout(200);
+  verifie(dialogues[dialogues.length - 1] === 'Passer à la semaine du lundi ' + lundi(-1).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + ' ? Les saisies iront dans cette semaine-là.' && (await M.textContent('#navTxt')).endsWith('Cette semaine'), 'flèche ‹ : la page demande confirmation ; en refusant, on reste sur la semaine en cours (message « ' + dialogues[dialogues.length - 1] + ' »)');
+  refuser = false;
+  await M.click('#nav [data-a="prec"]');
+  await M.waitForFunction(() => document.querySelector('#navTxt').textContent.endsWith('Semaine passée'));
+  await M.waitForFunction(() => { const i = document.querySelector('#liste .p[data-pid="poireau"] input'); return i && i.value === '8'; }, null, { timeout: 8000 }).catch(() => {});
+  verifie((await M.$$eval('#liste .p', (e) => e.map((x) => x.dataset.pid))).join() === 'poireau' && (await M.inputValue(ligne('poireau') + ' input')) === '8', 'en confirmant : « Semaine passée », avec le poireau à 8 kg saisi cette semaine-là');
+  await capture(M, '6-semaine-passee');
+  await M.click('#nav [data-a="suiv"]');
+  await M.waitForFunction(() => document.querySelector('#navTxt').textContent.endsWith('Cette semaine'));
+  verifie(dialogues[dialogues.length - 1].endsWith('(cette semaine) ? Les saisies iront dans cette semaine-là.') && (await M.$$eval('#liste .p', (e) => e.map((x) => x.dataset.pid))).join() === 'ail-sec,carotte-lavee,fenouil,poireau', 'retour à la semaine en cours (« (cette semaine) » dans la question), la liste est retrouvée');
+
+  // 9 quater. Retirer un produit de la liste
+  await M.click(ligne('fenouil') + ' button[data-a="retirer"]');
+  await attendreQue(() => base.lire(`magasins/ta/semaines/${SEM}/fenouil`) === null);
+  await M.waitForTimeout(200);
+  verifie(dialogues[dialogues.length - 1].startsWith('Retirer « Fenouil » de la semaine ?') && !(await M.$(ligne('fenouil'))) && base.lire(`magasins/ta/semaines/${SEM}/fenouil`) === null && journal().some((x) => x.pid === 'fenouil' && x.n === undefined && x.an === 3), '× sur le fenouil : confirmation, il quitte la liste, sa saisie est effacée et le journal le note (avant : 3)');
 
   // 10. Hors ligne au magasin : la saisie attend, puis part
   const ctxM = M.context();
