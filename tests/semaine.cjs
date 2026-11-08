@@ -63,6 +63,15 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   const reste = (p, pid) => p.textContent(carte(pid) + ' .sp-head .reste');
   const ouvrir = async (p, pid) => { if ((await p.getAttribute(carte(pid) + ' .sp-head', 'aria-expanded')) !== 'true') await p.click(carte(pid) + ' .sp-head'); };
 
+  // 0. Les onglets (refonte du 8/11) : même place et même taille quel que soit l'onglet ouvert
+  const onglets = (p) => p.evaluate(() => { scrollTo(0, 0); return [...document.querySelectorAll('#tabs button')].filter((b) => !b.hidden).map((b) => { const r = b.getBoundingClientRect(); return b.dataset.view + ':' + [r.x, r.y, r.width, r.height].map(Math.round).join(','); }).join(' '); });
+  const tailles = async (p) => { const r = []; for (const v of ['semaine', 'recolte', 'prep', 'reglages', 'semaine', 'recolte']) { await p.click(`[data-view="${v}"]`); await p.waitForTimeout(250); r.push(await onglets(p)); } return r; };
+  const tA = await tailles(A);
+  verifie(tA.every((x) => x === tA[0]) && tA[0].split(' ').map((x) => x.split(':')[0]).join() === 'semaine,recolte,prep,reglages', 'téléphone : quatre onglets (Semaine, Récolte, Préparation, Réglages), même place et même taille sur chaque page (' + tA[0] + ')');
+  verifie(await A.evaluate(() => { const n = document.querySelector('#tabs').getBoundingClientRect(); return n.bottom === innerHeight && n.width === innerWidth; }), 'téléphone : les onglets sont en bas de l\'écran');
+  const basOk = await A.evaluate(() => { scrollTo(0, document.documentElement.scrollHeight); const f = document.querySelector('#source').getBoundingClientRect(), n = document.querySelector('#tabs').getBoundingClientRect(); scrollTo(0, 0); return f.bottom <= n.top; });
+  verifie(basOk, 'téléphone : tout en bas de la liste, rien n\'est caché sous les onglets');
+
   // 1. L'onglet
   verifie(await A.isVisible('[data-view="semaine"]'), 'un onglet « Semaine » à côté de Récolte et Préparation');
   await A.click('[data-view="semaine"]');
@@ -156,18 +165,21 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   verifie(touts.join() === 'q/ta-jeu', 'cocher « tout » jeudi décoche mardi : un seul « tout » par produit (obtenu ' + touts.join() + ')');
   await attendre(B);
   verifie((await B.textContent(carte('tomate-ronde-rouge') + ' .sp-resume')).includes('TA jeu tout'), 'Aurore voit « TA jeu tout »');
-  const sommaire = await B.textContent('#semSum');
-  verifie(sommaire === '4 produits : 2 placés, 0 à placer, 1 en manque, 1 à remplir.', 'le haut de l\'onglet compte les produits placés, à placer, en manque (obtenu « ' + sommaire + ' »)');
+  const sommaire = (await B.$$eval('#semSum > span', (e) => e.map((x) => x.textContent))).join(', ');
+  verifie(sommaire === '4 produits, 2 placés, 0 à placer, 1 en manque, 1 à remplir', 'le haut de l\'onglet compte les produits placés, à placer, en manque (obtenu « ' + sommaire + ' »)');
   await capture(B, '2-semaine-repartie');
 
-  // 9. Tableau de la semaine
-  await B.click('#semTab summary');
+  // 9. Tableau de la semaine (page « Tableau » de l'onglet Semaine)
+  await B.click('[data-sem="tableau"]');
+  verifie(await B.isVisible('#semTable') && !(await B.isVisible('#semList')) && (await B.isVisible('#semNav')), 'page « Tableau » : le tableau à la place des fiches, le choix de la semaine reste en haut');
   const enTetes = await B.$$eval('#semTable th', (e) => e.map((x) => x.textContent));
   verifie(enTetes.join('|') === 'Produit|Dispo|Stock Très Allier|TA mar|La Magic|Panier adéq.|Locavore|TA jeu|Auvabio 03|Auvabio 63|Marché ven|Élie|Reste|Reste Auvabio 03 → Auvabio 63', 'le tableau a le stock chez Très Allier, une colonne par créneau, le reste, puis le reste 03 → 63 à part (obtenu ' + enTetes.join('|') + ')');
   const rangBette = await B.$$eval('#semTable tr[data-pid="bette"] td', (e) => e.map((x) => x.textContent));
   verifie(rangBette.join('|') === 'Bette|10||2||2||3|5||||−2 GH (−10 kg)|0', 'ligne bette du tableau (obtenu ' + rangBette.join('|') + ')');
   verifie(await B.evaluate(() => innerWidth === 412 && document.documentElement.scrollWidth <= innerWidth), 'tableau ouvert : la page garde la largeur du téléphone, le tableau défile dans son cadre');
   await capture(B, '3-tableau');
+  await B.click('[data-sem="repartir"]');
+  verifie(await B.isVisible('#semList section.sp') && !(await B.isVisible('#semTable')), 'page « Répartir » : retour aux fiches');
 
   // 10. Hors ligne : le changement attend, puis part ; la dernière action gagne
   await ctxA.setOffline(true); base.couperFlux();
@@ -225,7 +237,12 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   const valeur = (p, pid, k) => p.inputValue(cellule(pid, k));
   const resteG = (p, pid) => p.textContent(`#semGrid tr[data-pid="${pid}"] .g-reste`);
   const focusG = (p) => p.evaluate(() => { const a = document.activeElement; return a && a.dataset.cell ? a.dataset.cell : ''; });
-  verifie(await C.isVisible('#semGrid') && !(await C.isVisible('#semList')) && !(await C.isVisible('#semTab')), 'sur ordinateur, l\'onglet Semaine montre la grille à la place des fiches et du tableau du téléphone');
+  verifie(await C.isVisible('#semGrid') && !(await C.isVisible('#semList')) && !(await C.isVisible('#semTab')) && !(await C.isVisible('[data-sem="tableau"]')), 'sur ordinateur, l\'onglet Semaine montre la grille à la place des fiches et du tableau du téléphone (pas de page « Tableau »)');
+  const tC = await tailles(C);
+  verifie(tC.every((x) => x === tC[0]), 'ordinateur : les onglets gardent leur place et leur taille d\'une page à l\'autre, grille large comprise (' + tC[0] + ')');
+  verifie(await C.evaluate(() => document.querySelector('#tabs').getBoundingClientRect().top < 100), 'ordinateur : les onglets sont en haut');
+  await C.click('[data-view="semaine"]');
+  await C.waitForSelector('#semGrid tbody tr');
   const larg = await C.evaluate(() => ({ wrap: document.querySelector('.wrap').getBoundingClientRect().width, deborde: document.querySelector('#semGridWrap').scrollWidth > document.querySelector('#semGridWrap').clientWidth, page: document.documentElement.scrollWidth > innerWidth }));
   verifie(larg.wrap > 1200 && !larg.deborde && !larg.page, 'écran de 1366 px : la grille prend la largeur et tient en entier, sans défilement de côté (largeur ' + Math.round(larg.wrap) + ' px)');
   const rangG = await C.$$eval('#semGrid tr[data-pid="bette"] input[data-cell]', (e) => e.map((x) => x.value));

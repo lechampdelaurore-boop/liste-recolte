@@ -83,10 +83,10 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await A.click('[data-view="semaine"]');
   await B.click('[data-view="semaine"]');
   await A.waitForSelector('#semView section.sp');
-  verifie(await A.isVisible('[data-a="debouches"]'), 'l\'onglet Semaine a un bouton « Débouchés et livraisons »');
-  await A.click('[data-a="debouches"]');
+  verifie(await A.isVisible('[data-view="reglages"]'), 'un onglet « Réglages » (refonte du 8/11 : les débouchés sortent de la Semaine)');
+  await A.click('[data-view="reglages"]');
   await A.waitForSelector('#debView section.db');
-  verifie(await A.isVisible('#debView') && !(await A.isVisible('#semView')), 'le bouton ouvre l\'écran des débouchés à la place de la semaine');
+  verifie(await A.isVisible('#debView') && !(await A.isVisible('#semView')) && (await A.getAttribute('[data-reg="debouches"]', 'aria-pressed')) === 'true', 'l\'onglet Réglages s\'ouvre sur « Débouchés et livraisons »');
 
   // 2. Les débouchés de départ, repris de referentiel/debouches.json
   const n0 = await noms(A);
@@ -116,7 +116,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
 
   // 4. La semaine suit : chez Aurore, Locavore passe après Très Allier jeudi
   await attendre(B);
-  await B.click('#semTab summary');
+  await B.click('[data-sem="tableau"]');
   const t1 = await enTete(B);
   verifie(t1.slice(0, 12).join('|') === 'Produit|Dispo|Stock Très Allier|TA mar|La Magic|Panier adéq.|TA jeu|Locavore|Auvabio 03|Auvabio 63|Marché ven|Élie', 'chez Aurore, la colonne Locavore passe au jeudi, après Très Allier jeudi (obtenu ' + t1.join('|') + ')');
   const ligneB = await B.$$eval('#semTable tr[data-pid="bette"] td', (e) => e.map((x) => x.textContent));
@@ -210,7 +210,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   verifie(thP.includes('Locavoremercredi soir') && !thP.some((t) => t.startsWith('Ferme Deschamps')), 'la semaine dernière garde ses colonnes d\'alors (Locavore mercredi soir, pas de Ferme Deschamps)');
   verifie(JSON.stringify(base.lire('listes/semaines/' + PASSEE + '/creneaux')) === JSON.stringify(copieAvant), 'la copie des créneaux de la semaine dernière n\'est pas touchée dans la base');
   await C.click('[data-a="semSuiv"]');
-  await C.click('[data-a="debouches"]');
+  await C.click('[data-view="reglages"]');
   await C.waitForSelector('#debView section.db');
   const largD = await C.evaluate(() => ({ cols: getComputedStyle(document.querySelector('#debView .db-list')).gridTemplateColumns.split(' ').length, page: document.documentElement.scrollWidth > innerWidth }));
   verifie(largD.cols === 2 && !largD.page, 'sur ordinateur, les fiches des débouchés sont sur deux colonnes, sans défilement de côté');
@@ -232,6 +232,9 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   const rj = (r) => `#debView section.rj[data-r="${r}"]`;
   const coches = (p, r) => p.$$eval(`${rj(r)} input[data-rf="liv"]:checked`, (e) => e.map((x) => x.dataset.c));
   const rec = () => (reglages().recoltes || []).map((r) => r.jour + ':' + (r.livraisons || []).join(','));
+  await A.click('[data-reg="recoltes"]');
+  await A.waitForSelector(rj('lun'));
+  verifie(!(await A.isVisible('#debView .db-list section.db[data-d]')), 'page « Jours de récolte » des Réglages : les fiches des débouchés n\'y sont pas');
   verifie((await A.inputValue(`${rj('lun')} select[data-rf="jour"]`)) === 'lundi' && (await coches(A, 'lun')).join() === 'ta-mar,lm', 'jour de récolte du lundi repris de l\'exemple de François : Très Allier mardi et Panier La Magic');
   verifie((await coches(A, 'mer')).sort().join() === 'av03,av63,lv,mk,ps,ta-jeu', 'mercredi : Panier adéquat, Locavore, Très Allier jeudi, Auvabio 03 et 63, marché de Tronget');
   verifie((await A.textContent('#debView .rj-sans')).includes('Élie au choix') && (await A.textContent('#debView .rj-sans')).includes('Ferme Deschamps mercredi'), 'les livraisons sans jour de récolte sont signalées (Élie, Ferme Deschamps)');
@@ -257,6 +260,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await attendre(A);
   // Dans la semaine : ce qu'il y a à récolter chaque jour
   await attendre(B);
+  await B.click('[data-sem="recolter"]');
   const jourRec = (r) => `#semRecList .rc-jour[data-r="${r}"]`;
   verifie(await B.isVisible('#semRec') && (await B.textContent(jourRec('mer') + ' h3')).startsWith('Mercredi'), 'l\'onglet Semaine montre « À récolter, jour par jour »');
   const betteMer = await B.textContent(jourRec('mer') + ' li[data-pid="bette"]');
@@ -264,6 +268,9 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   verifie((await B.textContent(jourRec('lun'))).includes('Rien à récolter.'), 'lundi : rien à récolter (aucune quantité pour Très Allier mardi ni La Magic)');
 
   // 13. Stock chez Très Allier (fin de 13B) : saisi par la ferme, information hors du reste
+  await A.click('[data-reg="debouches"]');
+  await A.waitForSelector(fiche('ta'));
+  await B.click('[data-sem="repartir"]');
   verifie(await A.isChecked(`${fiche('ta')} input[data-f="stock"]`) && !(await A.isChecked(`${fiche('lv')} input[data-f="stock"]`)), 'la fiche Très Allier suit son stock au magasin (pas celle de Locavore)');
   const sp = (pid) => `section.sp[data-pid="${pid}"]`;
   const caseStock = sp('bette') + ' .sr[data-k="stock/ta"]';
@@ -275,9 +282,10 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   const s1 = base.lire('listes/semaines/' + SEM + '/stock/bette/ta');
   verifie(s1 && s1.n === 3 && s1.u === 'colis' && s1.by === 'Aurore' && s1.at > 0, 'Aurore saisit 3 GH de bette en stock : enregistré avec son prénom et l\'heure');
   verifie((await B.textContent(sp('bette') + ' .sp-head .reste')) === resteAvant, 'le stock n\'entre pas dans le reste (toujours « ' + resteAvant + ' »)');
-  await B.click('#semTab summary').catch(() => {});
+  await B.click('[data-sem="tableau"]');
   verifie((await enTete(B)).includes('Stock Très Allier'), 'le tableau de la semaine a une colonne « Stock Très Allier »');
-  await A.click('[data-a="retour"]');
+  await B.click('[data-sem="repartir"]');
+  await A.click('[data-view="semaine"]');
   await A.waitForSelector(sp('bette'));
   if ((await A.getAttribute(sp('bette') + ' .sp-head', 'aria-expanded')) !== 'true') await A.click(sp('bette') + ' .sp-head');
   verifie((await A.inputValue(caseStock + ' input')) === '3', 'François voit le stock saisi par Aurore');
@@ -288,7 +296,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await attendre(A, 300);
   verifie((await A.textContent(caseStock)).includes('« tout » se met seulement dans un créneau de vente') && base.lire('listes/semaines/' + SEM + '/stock/bette/ta').n === 2, '« tout » est refusé pour le stock');
   await A.fill(caseStock + ' input', '2'); await A.press(caseStock + ' input', 'Enter');
-  await A.click('[data-a="debouches"]');
+  await A.click('[data-view="reglages"]');
   await A.waitForSelector('#debView section.db');
   await A.click(`${fiche('ta')} input[data-f="stock"]`);
   await attendre(B);
@@ -300,9 +308,9 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   // 14. Rechargement, retour à la semaine, rien d'autre de touché
   await A.reload(); await A.waitForSelector('#debView section.db');
   verifie((await A.inputValue(`${fiche('el')} [data-f="note"]`)) === 'Client individuel, commande par téléphone.' && (await jours(A, 'lv', 'lv')).join() === 'jeudi', 'après rechargement : écran des débouchés et modifications gardés');
-  await A.click('[data-a="retour"]');
+  await A.click('[data-view="semaine"]');
   await A.waitForSelector('#semView section.sp', { timeout: 3000 }).catch(() => {});
-  verifie(await A.isVisible('#semView section.sp') && !(await A.isVisible('#debView')), '« Retour à la semaine » ramène la répartition');
+  verifie(await A.isVisible('#semView section.sp') && !(await A.isVisible('#debView')), 'l\'onglet Semaine ramène la répartition');
   verifie(JSON.stringify(base.lire('listes/2026-11-04')) === JSON.stringify(listeAvant), 'la liste de récolte du 04/11 dans la base est inchangée');
   verifie(JSON.stringify(base.lire('listes/semaines/' + SEM + '/q/bette/lv')) === JSON.stringify(qLv) && base.lire('listes/semaines/' + SEM + '/dispo/bette').n === 10, 'les quantités de la semaine en cours sont inchangées');
 
