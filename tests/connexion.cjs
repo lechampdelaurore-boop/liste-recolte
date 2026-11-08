@@ -186,6 +186,25 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   await D.waitForSelector('#authErr:not([hidden])');
   verifie((await D.textContent('#authErr')).includes('clé web'), 'clé web fausse : le message le dit (obtenu « ' + (await D.textContent('#authErr')) + ' »)');
 
+  // 13. Appli rouverte sur l'onglet Semaine (le cas du téléphone de François le 8/11) : aucune liste de récolte
+  // n'est ouverte, la pastille doit quand même passer à « Partagé » grâce au flux de la semaine.
+  const ctxE = await nav.newContext({ ...devices['Pixel 7'], serviceWorkers: 'block' });
+  await ctxE.addInitScript(() => { localStorage.setItem('recolte.qui', JSON.stringify('François')); localStorage.setItem('recolte.ui', JSON.stringify({ view: 'semaine' })); });
+  const E = await ctxE.newPage();
+  E.on('pageerror', (e) => erreurs.push('E : ' + e.message));
+  await E.goto(`http://localhost:${PORT_SITE}/`);
+  await E.waitForSelector('#authDlg[open]', { timeout: 10000 }).catch(() => {});
+  verifie(await E.isVisible('#authDlg'), 'adresse simple : la fenêtre « Se connecter » s\'ouvre aussi');
+  await connecter(E, 'francois', MDP_F);
+  const okE = await partage(E).then(() => true, () => false);
+  verifie(okE && !(await E.$('li.item')), 'onglet Semaine, aucune liste ouverte : la pastille passe à « Partagé » (obtenu « ' + (await statut(E)) + ' », ' + (await E.$$eval('li.item', (x) => x.length)) + ' lignes)');
+  await ctxE.setOffline(true);
+  await E.waitForFunction(() => document.querySelector('#sync').textContent.includes('Hors ligne'), null, { timeout: 15000 }).catch(() => {});
+  verifie((await statut(E)).startsWith('Hors ligne'), 'sans liste ouverte, sans réseau : « Hors ligne » (obtenu « ' + (await statut(E)) + ' »)');
+  await ctxE.setOffline(false);
+  const okE2 = await partage(E).then(() => true, () => false);
+  verifie(okE2, 'sans liste ouverte, retour du réseau : « Partagé »');
+
   verifie(erreurs.length === 0, 'aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));
   await nav.close(); site.close(); base.close();
   console.log(echecs ? `\n${echecs} échec(s)` : '\nTout est bon.');

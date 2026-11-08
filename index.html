@@ -1267,9 +1267,9 @@ function semConnecter(){
     else semSetAt(m.path, m.data);
     semRecouvrir(); semGarder(); if(!drag) render();
   }
-  flux.addEventListener('put', function(ev){ if(sem.id === id) sem.recu = true; appliquer(ev, false); semFlush(); });
+  flux.addEventListener('put', function(ev){ if(sem.id === id) sem.recu = true; appliquer(ev, false); fluxRecu(); semFlush(); });
   flux.addEventListener('patch', function(ev){ appliquer(ev, true); });
-  flux.addEventListener('error', function(){ if(sem.id === id && !sem.recu){ sem.recu = true; render(); } });
+  flux.addEventListener('error', function(){ if(sem.es === flux) fluxCoupe(flux); if(sem.id === id && !sem.recu){ sem.recu = true; render(); } });
   flux.addEventListener('auth_revoked', jetonRevoque);
   flux.addEventListener('cancel', function(){ refusBase({}); });
 }
@@ -1416,7 +1416,8 @@ function debConnecter(){
     }
     ls('recolte.debouches', deb.data); crCache = null; debRender();
   }
-  flux.addEventListener('put', function(ev){ appliquer(ev); debFlush(); });
+  flux.addEventListener('put', function(ev){ appliquer(ev); fluxRecu(); debFlush(); });
+  flux.addEventListener('error', function(){ if(deb.es === flux) fluxCoupe(flux); });
   flux.addEventListener('patch', function(ev){
     var m = JSON.parse(ev.data); if(!m) return;
     Object.keys(m.data || {}).forEach(function(k){ appliquer({data:JSON.stringify({path:m.path.replace(/\/$/, '') + '/' + k, data:m.data[k]})}); });
@@ -2819,7 +2820,17 @@ function verifier(){
     if(!dbPret()) return;
     if(lid && es && es.readyState === 2) ouvrir();
     flush(); semRelancer(); debRelancer();
+    if(!enLigne && navigator.onLine) sonder();
   }, function(){ enLigne = false; majStatut(); });
+}
+// Encore « Hors ligne » alors que le réseau est revenu : un flux resté ouvert n'envoie rien de neuf
+// tant que personne ne change rien. Une petite lecture dit si la base répond ; si oui, « Partagé ».
+function sonder(){
+  var ouvert = [es, sem.es, deb.es].some(function(f){ return f && f.readyState === 1; });
+  if(!ouvert) return;
+  dbFetch(lid ? '/listes/' + lid : '/listes/reglages/debouches', {cache:'no-store'}, 'shallow=true').then(function(r){
+    if(r.ok && !enLigne) fluxRecu();
+  }).catch(function(){});
 }
 // Ouvre les flux temps réel (liste du jour, semaine, débouchés) puis envoie ce qui attend.
 // tous = true : nouveau jeton, on rouvre aussi les flux encore ouverts (ils portent l'ancien).
@@ -2830,6 +2841,19 @@ function relancerTout(tous){
   if(sem.id && (tous || !sem.es || sem.es.readyState === 2)){ if(sem.es) sem.es.close(); sem.es = null; semConnecter(); }
   if(refCharge && (tous || !deb.es || deb.es.readyState === 2)){ if(deb.es) deb.es.close(); deb.es = null; debConnecter(); }
   flush(); semFlush(); debFlush();
+}
+// Un flux de la base (liste, semaine ou débouchés) a répondu : la pastille passe à « Partagé ».
+// Sans jour de récolte dans la semaine, aucune liste n'est ouverte : la semaine suffit (sinon « Connexion… » restait).
+function fluxRecu(){
+  enLigne = true; connu = true; renouvSansSucces = 0;
+  if(refuse){ refuse = false; if(ui.view === 'reglages') render(); }
+  majStatut();
+}
+// Flux de la semaine ou des débouchés coupé : hors ligne, sauf si le flux de la liste est encore ouvert.
+function fluxCoupe(flux){
+  if(es && es.readyState === 1) return;
+  enLigne = false; connu = true; majStatut();
+  if(CLE && compte && flux.readyState === 2) diagnostiquer();
 }
 function ouvrir(){
   if(es) es.close();
@@ -2844,7 +2868,7 @@ function ouvrir(){
     pending.forEach(function(p){ setAt(p.path, p.val); });
     persist(); if(!drag) render();
   }
-  flux.addEventListener('put', function(ev){ apply(ev, false); enLigne = true; connu = true; renouvSansSucces = 0; if(refuse){ refuse = false; if(ui.view === 'reglages') render(); } majStatut(); flush(); });
+  flux.addEventListener('put', function(ev){ apply(ev, false); fluxRecu(); flush(); });
   flux.addEventListener('patch', function(ev){ apply(ev, true); });
   flux.addEventListener('cancel', function(){ refusBase({}); });
   flux.addEventListener('auth_revoked', jetonRevoque);
@@ -2858,7 +2882,7 @@ var dernierDiag = 0;
 function diagnostiquer(){
   if(Date.now() - dernierDiag < 10000) return;
   dernierDiag = Date.now();
-  if(lid) dbFetch('/listes/' + lid, {cache:'no-store'}, 'shallow=true').catch(function(){});
+  dbFetch(lid ? '/listes/' + lid : '/listes/reglages/debouches', {cache:'no-store'}, 'shallow=true').catch(function(){});
 }
 
 /* ---------- Compte (Firebase Authentication, par son API web, sans bibliothèque) ---------- */
