@@ -248,6 +248,39 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 #semGrid td.g-stk,#semGrid th.stk{background:var(--surface2);border-right:3px dashed var(--line)}
 #semGrid td.g-stk{min-width:8.5em}
 .db label.dj small{font-weight:600}
+/* Filtre par jour de récolte et impression du tableau de la semaine */
+.sem-filtre{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;border:var(--bw) solid var(--line);border-radius:var(--radius);padding:8px 10px;background:var(--surface)}
+.sf-l{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex:1 1 auto}
+.sf-t{font-weight:900;margin-right:4px}
+.sem-filtre label.dj{display:inline-flex;align-items:center;gap:8px;border:2px solid var(--line);border-radius:12px;padding:6px 12px;min-height:48px;cursor:pointer;font-weight:900}
+.sem-filtre label.dj input{width:24px;height:24px;margin:0;flex:none;accent-color:var(--accent)}
+.sem-filtre label.dj small{display:block;font-weight:600;font-size:.8rem}
+.sem-filtre label.dj:has(input:not(:checked)){border-style:dashed;background:var(--surface2)}
+.sf-imp{flex:none}
+.sf-note{flex:1 1 100%;margin:0;font-size:.88rem;font-weight:700;background:var(--warn-bg);border:2px solid #000;border-radius:8px;padding:4px 8px}
+#semPrint{display:none}
+@media print{
+  @page{size:A4 landscape;margin:10mm}
+  html,body{background:#fff}
+  body>*:not(#semPrint){display:none !important}
+  #semPrint{display:block;color:#000;font-size:11pt;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+  #semPrint h1{font-size:15pt;margin:0 0 2mm}
+  #semPrint p{margin:0 0 3mm;font-size:10pt;font-weight:600}
+  .imp-t{border-collapse:collapse;width:100%;font-variant-numeric:tabular-nums}
+  .imp-t th,.imp-t td{border:1.2pt solid #000;padding:1.5mm 2mm;text-align:right;height:9mm}
+  .imp-t th{font-size:9pt;font-weight:800;background:#eee;height:auto;text-align:center}
+  .imp-t .g-qui{border:0}
+  .imp-t th:first-child,.imp-t td:first-child{text-align:left;font-weight:800}
+  .imp-t thead{display:table-header-group}
+  .imp-t tr{break-inside:avoid}
+  .imp-t .dc{color:var(--dc)}
+  .imp-t th.dc{box-shadow:inset 0 2mm 0 var(--dc)}
+  .imp-t td.r-place{background:var(--accent);color:#fff;font-weight:900}
+  .imp-t td.r-aplacer{background:#ffb000;font-weight:900}
+  .imp-t td.r-manque{background:#b00000;color:#fff;font-weight:900}
+  .imp-t .rep{border-style:dashed}
+  .imp-t .g-qui{display:block;font-size:7pt;font-weight:600}
+}
 /* Couleur des débouchés : choix dans Réglages, colonnes de la page « Répartir » (variable --dc) */
 .db[style]{border-left:10px solid var(--dc)}
 .db[style] .db-nom input{color:var(--dc)}
@@ -500,6 +533,7 @@ dialog.big{max-width:min(460px,94vw);width:100%}
   </div>
 
   <div id="semView" hidden>
+    <div id="semFiltre" class="sem-page" hidden></div>
     <div id="semRep" class="sem-page">
       <div class="sem-barre">
         <div class="sem-sum" id="semSum"></div>
@@ -537,6 +571,7 @@ dialog.big{max-width:min(460px,94vw);width:100%}
     <p id="source"></p>
   </footer>
 </main>
+<div id="semPrint" aria-hidden="true"></div>
 
 <dialog id="whoDlg">
   <h2>Qui récolte ?</h2>
@@ -2113,6 +2148,7 @@ function renderSemaine(){
   $('#semQuand').textContent = id === now ? 'Cette semaine' : id === decaler(now, 1) ? 'Semaine prochaine' : id === decaler(now, -1) ? 'Semaine dernière' : '';
   $('#semNav').classList.toggle('pas-cette', id !== now);
   var prods = produitsSem(), cr = creneaux();
+  semFiltre = filtreCtx(cr);
   var compte = {place:0, aplacer:0, manque:0, sansdispo:0, vide:0};
   var calc = {};
   prods.forEach(function(p){ calc[p.id] = calcul(p.id, p.f); compte[calc[p.id].etat]++; });
@@ -2132,6 +2168,8 @@ function renderSemaine(){
   $('#semStkList').innerHTML = page !== 'stock' ? '' : prods.length || stocks().length ? stockHtml(prods, calc, cr) :
     '<p class="card empty rc-vide">Aucun produit cette semaine. Ajouter d\'abord les produits dans la page « Répartir ».</p>';
   $('#semRep').hidden = page !== 'repartir';
+  $('#semFiltre').hidden = !prods.length || (page !== 'repartir' && page !== 'cumul');
+  $('#semFiltre').innerHTML = $('#semFiltre').hidden ? '' : filtreHtml();
   $('#semVide').hidden = !!prods.length;
   $('#semVide').innerHTML = prods.length ? '' : '<p class="empty">Aucun produit pour cette semaine.</p>' +
     '<button type="button" class="sem-act" data-a="reprendre" style="width:100%">Reprendre les produits de la semaine précédente</button>' +
@@ -2253,6 +2291,52 @@ function horsHtml(x, prods){
   }).join('') + '</ul></div>';
 }
 
+/* Filtre par jour de récolte (demande de François du 8/11) : en haut des pages « Répartir » et « Cumul », une case
+   par jour de récolte de la semaine, toutes cochées au départ ; décocher un jour masque les colonnes des livraisons
+   récoltées ce jour-là (et le stock d'un débouché dont toutes les livraisons sont masquées). Le reste compte toujours
+   toutes les livraisons. Le choix est gardé sur l'appareil (par nom de jour : « lundi », « sans » pour les livraisons
+   sans jour de récolte), pas dans la base : chacun regarde ce qu'il veut. */
+var semFiltre = null;
+function filtreCtx(cr){
+  var js = joursSemaine(), ou = {}, cles = [];
+  js.forEach(function(j){ var k = jourDe(j.date); cles.push({k:k, date:j.date, cs:cr.filter(function(c){ return j.livraisons.indexOf(c.id) >= 0; })}); j.livraisons.forEach(function(c){ ou[c] = k; }); });
+  var sans = cr.filter(function(c){ return !ou[c.id]; });
+  if(sans.length) cles.push({k:'sans', cs:sans});
+  var m = (ui.semMasque || []).filter(function(k){ return cles.some(function(x){ return x.k === k; }); });
+  return {ou:ou, cles:cles, masque:m};
+}
+function visibleC(c){ return !semFiltre || semFiltre.masque.indexOf(semFiltre.ou[c.id] || 'sans') < 0; }
+function stocksVisibles(st, cr){
+  return st.filter(function(x){ var l = cr.filter(function(c){ return c.circuit === x.id; }); return !l.length || l.some(visibleC); });
+}
+function filtreHtml(){
+  var f = semFiltre;
+  if(!f || !f.cles.length) return '';
+  var masquees = [];
+  f.cles.forEach(function(x){ if(f.masque.indexOf(x.k) >= 0) x.cs.forEach(function(c){ masquees.push(c.court || c.nom); }); });
+  return '<div class="sem-filtre"><div class="sf-l" role="group" aria-label="Récoltes affichées"><span class="sf-t">Récoltes affichées</span>' + f.cles.map(function(x){
+    var nom = x.k === 'sans' ? 'Sans jour de récolte' : majuscule(titreJour(x.date));
+    return '<label class="dj sf-j"><input type="checkbox" data-a="filtre" data-j="' + x.k + '"' + (f.masque.indexOf(x.k) < 0 ? ' checked' : '') + '><span>' + esc(nom) +
+      '<small>' + esc(x.cs.length ? x.cs.map(function(c){ return c.court || c.nom; }).join(', ') : 'aucune livraison') + '</small></span></label>';
+  }).join('') + '</div><button type="button" class="sem-act sf-imp" data-a="imprimer">Imprimer</button>' +
+    (masquees.length ? '<p class="sf-note">Colonnes masquées : ' + esc(masquees.join(', ')) + '. Le reste compte toujours toutes les livraisons.</p>' : '') + '</div>';
+}
+// Impression : le tableau de la semaine tel que filtré (noms courts, chiffres et unités, couleurs des débouchés),
+// en paysage, avec des lignes assez hautes pour écrire à la main. Le reste de la page n'est pas imprimé.
+function imprimerSemaine(){
+  var prods = produitsSem(), cr = creneaux(), calc = {};
+  if(!prods.length) return;
+  prods.forEach(function(p){ calc[p.id] = calcul(p.id, p.f); });
+  dcCache = couleurs();
+  var f = semFiltre, rec = f ? f.cles.filter(function(x){ return f.masque.indexOf(x.k) < 0; }).map(function(x){ return x.k === 'sans' ? 'sans jour de récolte' : titreJour(x.date); }) : [];
+  var d = deIso(sem.id), maintenant = new Date();
+  $('#semPrint').innerHTML = '<h1>Répartition · semaine du ' + esc(d.toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'})) + '</h1>' +
+    '<p>' + esc((f && f.cles.length ? (rec.length ? 'Récoltes : ' + rec.join(', ') : 'Aucune récolte cochée') + (f.masque.length ? ' (les autres sont masquées ; le reste compte toutes les livraisons)' : '') + ' · ' : '') +
+      'imprimé le ' + maintenant.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}) + ' à ' + maintenant.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})) + '</p>' +
+    '<table class="imp-t">' + tableHtml(prods, calc, cr) + '</table>';
+  window.print();
+}
+
 /* Grille de l'ordinateur : une ligne par produit, une case à taper par créneau. */
 // Chaque case a son menu d'unité (la caisse du produit, ou kg, ou bottes…) ; le nombre tapé est dans cette unité.
 function caseHtml(pid, f, k, q, opts){
@@ -2267,9 +2351,9 @@ function caseHtml(pid, f, k, q, opts){
       ' aria-label="' + esc('Unité, ' + (opts.aria || '')) + '">' + us.map(function(x){ return '<option value="' + x + '"' + (x === u ? ' selected' : '') + '>' + esc(nomUnite(x, f, 2)) + '</option>'; }).join('') + '</select>');
 }
 function grilleHtml(prods, calc, cr){
-  var reports = cr.filter(function(c){ return c.reprend; });
-  var st = stocks();
-  var cols = colonnes(cr, st);
+  var reports = cr.filter(function(c){ return c.reprend && visibleC(c); });
+  var st = stocksVisibles(stocks(), cr);
+  var cols = colonnes(cr.filter(visibleC), st);
   var h = '<thead><tr><th class="g-prod">Produit</th><th>Disponible</th>' +
     cols.map(function(o){ var c = o.c, x = o.s;
       return x ? '<th class="stk dc"' + dc(x.id) + '>Stock ' + esc(x.nom) + '<small>au magasin, hors du reste</small></th>' : '<th class="dc"' + dc(c.circuit) + '>' + esc(c.nom) + (c.jour ? '<small>' + esc(c.jour) + '</small>' : '') + '</th>'; }).join('') + '<th>Reste</th>' +
@@ -2332,9 +2416,9 @@ function carteHtml(pid, f, r, cr){
   var ouvert = !!semOuvert[pid], resume = [];
   var d = semLire('dispo/' + pid);
   resume.push('Dispo ' + (d ? qCourt(d, f) : '—'));
-  var st = stocks();
+  var st = stocksVisibles(stocks(), cr);
   st.forEach(function(x){ var q = stockVu(pid, x.id); if(q) resume.push('Stock ' + x.nom + ' ' + qCourt(q, f)); });
-  cr.forEach(function(c){
+  cr.filter(visibleC).forEach(function(c){
     if(r.toutC === c.id){ resume.push((c.court || c.nom) + ' tout'); return; }
     var q = semLire('q/' + pid + '/' + c.id);
     if(q) resume.push((c.court || c.nom) + ' ' + qCourt(q, f));
@@ -2346,7 +2430,7 @@ function carteHtml(pid, f, r, cr){
   if(!ouvert) return h + '</section>';
   h += '<div class="sp-body">';
   h += ligneHtml(pid, f, 'dispo', 'Disponible', d, {cls:'dispo', aria:'Disponible de ' + f.nom, ph:'?'});
-  colonnes(cr, st).forEach(function(o){
+  colonnes(cr.filter(visibleC), st).forEach(function(o){
     var c = o.c, x = o.s;
     if(x){
       h += ligneHtml(pid, f, 'stock/' + x.id, 'Stock chez ' + esc(x.nom) + ' <small>au magasin, hors du reste</small>', stockVu(pid, x.id), {cls:'stock', dc:x.id, aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?', note: stockVu(pid, x.id) ? '' : avantTxt(pid, f, x.id)});
@@ -2388,9 +2472,9 @@ function derniere(pid){
   return best;
 }
 function tableHtml(prods, calc, cr){
-  var reports = cr.filter(function(c){ return c.reprend; });
-  var st = stocks();
-  var cols = colonnes(cr, st);
+  var reports = cr.filter(function(c){ return c.reprend && visibleC(c); });
+  var st = stocksVisibles(stocks(), cr);
+  var cols = colonnes(cr.filter(visibleC), st);
   var h = '<thead><tr><th>Produit</th><th>Dispo</th>' + cols.map(function(o){ return o.s ? '<th class="stk dc"' + dc(o.s.id) + '>' + esc('Stock ' + o.s.nom) + '</th>' : '<th class="dc"' + dc(o.c.circuit) + '>' + esc(o.c.court || o.c.nom) + '</th>'; }).join('') + '<th>Reste</th>' +
     reports.map(function(c){ var a = cr.filter(function(x){ return x.id === c.reprend; })[0]; return '<th class="rep dc"' + dc(c.circuit) + '>' + esc('Reste ' + (a ? a.court || a.nom : '') + ' → ' + (c.court || c.nom)) + '</th>'; }).join('') + '</tr></thead><tbody>';
   prods.forEach(function(p){
@@ -2443,6 +2527,8 @@ $('#semView').addEventListener('click', function(e){
     return;
   }
   var a = b.dataset.a, ligne = b.closest('.sr'), k = (ligne && ligne.dataset.k) || b.dataset.k;
+  if(a === 'imprimer'){ imprimerSemaine(); return; }
+  if(a === 'filtre') return;
   if(a === 'ajouter'){ ouvrirAjout(); return; }
   if(a === 'voir-jour'){ ui.jour = b.dataset.date; ui.jourLe = jourIso(new Date()); ui.circ = ''; ui.view = 'recolte'; saveUi(); render(); scrollTo(0, 0); return; }
   if(a === 'ajouter-jour'){ var aj = $('#ajJour'); if(aj && aj.value) ajouterJour(aj.value); return; }
@@ -2492,6 +2578,11 @@ $('#semView').addEventListener('click', function(e){
 });
 $('#semView').addEventListener('change', function(e){
   var inp = e.target;
+  if(inp.dataset.a === 'filtre'){
+    var m = (ui.semMasque || []).filter(function(k){ return k !== inp.dataset.j; });
+    if(!inp.checked) m.push(inp.dataset.j);
+    ui.semMasque = m; saveUi(); render(); return;
+  }
   if(inp.dataset.a === 'jliv'){ cocherLivraison(inp.dataset.date, inp.dataset.c, inp.checked); return; }
   if(inp.dataset.a === 'chaque'){ chaqueSemaine(inp.dataset.date, inp.checked); return; }
   var carte = inp.closest('[data-pid]'); if(!carte) return;
