@@ -189,6 +189,9 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 .db-pied{display:flex;flex-wrap:wrap;gap:8px}
 .db-petit{min-height:40px;padding:6px 12px;justify-self:start}
 .rj-livs{display:flex;flex-wrap:wrap;gap:6px}
+.db label.db-stock{justify-self:start;border-radius:12px}
+.sr.stock{background:var(--surface)}
+#semGrid td.g-stk,#semGrid th.stk{background:var(--surface2);border-right:3px dashed var(--line)}
 .db label.dj small{font-weight:600}
 .rj-sans{margin:0;font-weight:800}
 .sem-rec{padding:0;overflow:hidden}
@@ -999,6 +1002,7 @@ function endDrag(){
 //   tout/<pid>             {c: <créneau>, by, at} : tout ce qui reste va à ce créneau (un seul par produit)
 //   report/<pid>/<créneau> reste reporté vers une seconde livraison, modifié à la main (sinon calculé)
 //   propose/<pid>/<créneau> {v, by, at} : produit proposé ou non au débouché à deux livraisons
+//   stock/<pid>/<débouché> {n, u, by, at} : stock au magasin (Très Allier), information hors du reste
 //   creneaux               copie des créneaux (livraisons des débouchés, voir plus bas) : gardée pour l'historique ;
 //                          une semaine passée garde la sienne, la semaine en cours et les suivantes suivent les réglages
 //   maj/<chemin>           heure de la dernière action : « la dernière action gagne », comme la liste
@@ -1139,6 +1143,17 @@ function recoltesListe(){
   return tableau(r).map(function(x){ return {id:x.id, jour:x.jour, livraisons:tableau(x.livraisons)}; })
     .sort(function(a, b){ return JOURS.indexOf(a.jour) - JOURS.indexOf(b.jour); });
 }
+// Stock au magasin (Très Allier) : une case par produit et par semaine, saisie par la ferme, pour chaque
+// débouché dont la fiche suit le stock. Information seulement : n'entre ni dans le disponible ni dans le reste.
+function stocks(){
+  var r = debListe().filter(function(d){ return d.stock && !d.archive; }).map(function(d){ return {id:d.id, nom:d.nom}; });
+  var ids = r.map(function(x){ return x.id; }), o = semLire('stock') || {};
+  Object.keys(o).forEach(function(pid){ Object.keys(o[pid] || {}).forEach(function(did){
+    if(ids.indexOf(did) < 0){ var d = debListe().filter(function(x){ return x.id === did; })[0]; r.push({id:did, nom:d ? d.nom : did}); ids.push(did); }
+  }); });
+  return r;
+}
+function nomStock(did){ var x = stocks().filter(function(s){ return s.id === did; })[0]; return 'stock chez ' + (x ? x.nom : did); }
 function rangJour(js){
   var r = 9;
   js.forEach(function(j){ var i = j === 'au choix' ? 7 : JOURS.indexOf(j); if(i >= 0 && i < r) r = i; });
@@ -1198,7 +1213,7 @@ function debRender(){
 function debEcrire(liste, recoltes){
   recoltes = recoltes || recoltesListe();
   recoltes.forEach(function(r){ r.livraisons = (r.livraisons || []).slice(); });
-  liste.forEach(function(d){ d.livraisons.forEach(function(l){ if(!l.moment) delete l.moment; if(!l.nom) delete l.nom; if(!l.reprend) delete l.reprend; if(!l.court) delete l.court; if(!l.archive) delete l.archive; }); if(!d.note) delete d.note; if(!d.archive) delete d.archive; });
+  liste.forEach(function(d){ d.livraisons.forEach(function(l){ if(!l.moment) delete l.moment; if(!l.nom) delete l.nom; if(!l.reprend) delete l.reprend; if(!l.court) delete l.court; if(!l.archive) delete l.archive; }); if(!d.note) delete d.note; if(!d.archive) delete d.archive; if(!d.stock) delete d.stock; });
   var src = debVue() || {};
   deb.pending = {source:src.source || '', debouches:liste, recoltes:recoltes, rec:true, by:me, at:Date.now()};
   ls('recolte.debouches.pending', deb.pending);
@@ -1276,6 +1291,7 @@ function debouchesHtml(){
       (debErr[d.id] ? '<p class="sr-err" role="alert">' + esc(debErr[d.id]) + '</p>' : '') +
       '<div class="db-champs"><label>Colis<select data-f="colis">' + COLIS_TYPES.map(function(c){ return '<option value="' + c[0] + '"' + ((d.colis || '') === c[0] ? ' selected' : '') + '>' + esc(c[1]) + '</option>'; }).join('') + '</select></label>' +
       '<label>Remarque<input type="text" data-f="note" value="' + esc(d.note || '') + '" autocomplete="off"></label></div>' +
+      '<label class="dj db-stock"><input type="checkbox" data-f="stock"' + (d.stock ? ' checked' : '') + '><span>Suivre son stock au magasin (une case « Stock » par produit dans la semaine)</span></label>' +
       '<h3 class="db-h3">' + (lv.length > 1 ? lv.length + ' livraisons' : 'Livraison') + '</h3>' +
       lv.map(function(l){ return livraisonHtml(d, l, lv); }).join('') +
       '<div class="db-pied"><button type="button" class="sem-act" data-a="ajouterL">＋ Ajouter une livraison</button>' +
@@ -1462,6 +1478,7 @@ $('#debView').addEventListener('change', function(e){
     if(f === 'nom'){ if(!val) return 'Le débouché garde un nom.'; d.nom = val; }
     else if(f === 'colis') d.colis = val;
     else if(f === 'note') d.note = val;
+    else if(f === 'stock') d.stock = val;
     else if(f === 'moment') l.moment = val;
     else if(f === 'lnom') l.nom = val;
     else if(f === 'court') l.court = val;
@@ -1663,7 +1680,7 @@ function renderSemaine(){
     $('#semGrid').innerHTML = prods.length ? grilleHtml(prods, calc, cr) : '';
     $('#semErrs').innerHTML = Object.keys(semErr).filter(function(k){ return k !== 'reprendre' && semErr[k]; }).map(function(k){
       var pid = k.split('|')[0], f = produitDe(pid), kk = k.split('|')[1];
-      return f ? '<p class="sr-err" role="alert">' + esc(f.nom + ', ' + (kk === 'dispo' ? 'disponible' : nomCreneau(kk.split('/')[1])) + ' : ' + semErr[k]) + '</p>' : '';
+      return f ? '<p class="sr-err" role="alert">' + esc(f.nom + ', ' + (kk === 'dispo' ? 'disponible' : kk.indexOf('stock/') === 0 ? nomStock(kk.split('/')[1]) : nomCreneau(kk.split('/')[1])) + ' : ' + semErr[k]) + '</p>' : '';
     }).join('');
     if(garde){
       var el = document.querySelector('#semGrid input[data-cell="' + garde.cell.replace(/"/g, '') + '"]');
@@ -1725,7 +1742,9 @@ function caseHtml(pid, f, k, q, opts){
 }
 function grilleHtml(prods, calc, cr){
   var reports = cr.filter(function(c){ return c.reprend; });
+  var st = stocks();
   var h = '<thead><tr><th class="g-prod">Produit</th><th>Disponible</th>' +
+    st.map(function(x){ return '<th class="stk">Stock ' + esc(x.nom) + '<small>au magasin, hors du reste</small></th>'; }).join('') +
     cr.map(function(c){ return '<th>' + esc(c.nom) + (c.jour ? '<small>' + esc(c.jour) + '</small>' : '') + '</th>'; }).join('') + '<th>Reste</th>' +
     reports.map(function(c){ var a = cr.filter(function(x){ return x.id === c.reprend; })[0];
       return '<th class="rep">Reste ' + esc(a ? a.nom : c.reprend) + ' → ' + esc(c.nom) + '<small>proposé, hors du reste</small></th>'; }).join('') +
@@ -1733,7 +1752,8 @@ function grilleHtml(prods, calc, cr){
   prods.forEach(function(p){
     var pid = p.id, f = p.f, r = calc[pid];
     h += '<tr data-pid="' + esc(pid) + '"><td class="g-prod">' + esc(f.nom) + '<small>' + esc(colisTxt(f)) + '</small></td>' +
-      '<td class="g-dispo">' + caseHtml(pid, f, 'dispo', semLire('dispo/' + pid), {aria:'Disponible, ' + f.nom}) + '</td>';
+      '<td class="g-dispo">' + caseHtml(pid, f, 'dispo', semLire('dispo/' + pid), {aria:'Disponible, ' + f.nom}) + '</td>' +
+      st.map(function(x){ return '<td class="g-stk">' + caseHtml(pid, f, 'stock/' + x.id, semLire('stock/' + pid + '/' + x.id), {aria:'Stock chez ' + x.nom + ', ' + f.nom}) + '</td>'; }).join('');
     cr.forEach(function(c){
       var tout = r.toutC === c.id;
       h += '<td>' + caseHtml(pid, f, 'q/' + c.id, tout ? null : semLire('q/' + pid + '/' + c.id), {tout:tout, aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom,
@@ -1780,6 +1800,8 @@ function carteHtml(pid, f, r, cr){
   var ouvert = !!semOuvert[pid], resume = [];
   var d = semLire('dispo/' + pid);
   resume.push('Dispo ' + (d ? qCourt(d, f) : '—'));
+  var st = stocks();
+  st.forEach(function(x){ var q = semLire('stock/' + pid + '/' + x.id); if(q) resume.push('Stock ' + x.nom + ' ' + qCourt(q, f)); });
   cr.forEach(function(c){
     if(r.toutC === c.id){ resume.push((c.court || c.nom) + ' tout'); return; }
     var q = semLire('q/' + pid + '/' + c.id);
@@ -1792,6 +1814,9 @@ function carteHtml(pid, f, r, cr){
   if(!ouvert) return h + '</section>';
   h += '<div class="sp-body">';
   h += ligneHtml(pid, f, 'dispo', 'Disponible', d, {cls:'dispo', aria:'Disponible de ' + f.nom, ph:'?'});
+  st.forEach(function(x){
+    h += ligneHtml(pid, f, 'stock/' + x.id, 'Stock chez ' + esc(x.nom) + ' <small>au magasin, hors du reste</small>', semLire('stock/' + pid + '/' + x.id), {cls:'stock', aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?'});
+  });
   cr.forEach(function(c){
     var nom = esc(c.nom) + (c.jour ? ' <small>' + esc(c.jour) + '</small>' : '');
     if(c.reprend){
@@ -1825,16 +1850,17 @@ function derniere(pid){
   var best = null;
   function voir(o){ if(o && o.at && (!best || o.at > best.at)) best = o; }
   voir(semLire('produits/' + pid)); voir(semLire('dispo/' + pid)); voir(semLire('tout/' + pid));
-  ['q', 'report', 'propose'].forEach(function(k){ var o = semLire(k + '/' + pid) || {}; Object.keys(o).forEach(function(c){ voir(o[c]); }); });
+  ['q', 'report', 'propose', 'stock'].forEach(function(k){ var o = semLire(k + '/' + pid) || {}; Object.keys(o).forEach(function(c){ voir(o[c]); }); });
   return best;
 }
 function tableHtml(prods, calc, cr){
   var reports = cr.filter(function(c){ return c.reprend; });
-  var h = '<thead><tr><th>Produit</th><th>Dispo</th>' + cr.map(function(c){ return '<th>' + esc(c.court || c.nom) + '</th>'; }).join('') + '<th>Reste</th>' +
+  var st = stocks();
+  var h = '<thead><tr><th>Produit</th><th>Dispo</th>' + st.map(function(x){ return '<th>' + esc('Stock ' + x.nom) + '</th>'; }).join('') + cr.map(function(c){ return '<th>' + esc(c.court || c.nom) + '</th>'; }).join('') + '<th>Reste</th>' +
     reports.map(function(c){ var a = cr.filter(function(x){ return x.id === c.reprend; })[0]; return '<th class="rep">' + esc('Reste ' + (a ? a.court || a.nom : '') + ' → ' + (c.court || c.nom)) + '</th>'; }).join('') + '</tr></thead><tbody>';
   prods.forEach(function(p){
     var r = calc[p.id], f = p.f, d = semLire('dispo/' + p.id);
-    h += '<tr data-pid="' + esc(p.id) + '"><td>' + esc(f.nom) + '</td><td>' + (d ? esc(qCourt(d, f)) : '') + '</td>' + cr.map(function(c){
+    h += '<tr data-pid="' + esc(p.id) + '"><td>' + esc(f.nom) + '</td><td>' + (d ? esc(qCourt(d, f)) : '') + '</td>' + st.map(function(x){ var q = semLire('stock/' + p.id + '/' + x.id); return '<td>' + (q ? esc(qCourt(q, f)) : '') + '</td>'; }).join('') + cr.map(function(c){
       if(r.toutC === c.id) return '<td>tout</td>';
       var q = semLire('q/' + p.id + '/' + c.id); return '<td>' + (q ? esc(qCourt(q, f)) : '') + '</td>';
     }).join('') + '<td class="r-' + r.etat + '">' + (r.reste === null ? (r.etat === 'place' ? '0' : '') : esc(deux(r.reste, f))) + '</td>' + reports.map(function(c){
@@ -1978,7 +2004,7 @@ function retirer(pid){
   var ch = {}, d = sem.data;
   ch['produits/' + pid] = null;
   ['dispo', 'tout'].forEach(function(k){ if(lireA(d, k + '/' + pid)) ch[k + '/' + pid] = null; });
-  ['q', 'report', 'propose'].forEach(function(k){ Object.keys(lireA(d, k + '/' + pid) || {}).forEach(function(c){ ch[k + '/' + pid + '/' + c] = null; }); });
+  ['q', 'report', 'propose', 'stock'].forEach(function(k){ Object.keys(lireA(d, k + '/' + pid) || {}).forEach(function(c){ ch[k + '/' + pid + '/' + c] = null; }); });
   delete semOuvert[pid];
   semEcrire(ch);
 }

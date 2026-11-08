@@ -28,6 +28,7 @@ listes/
       tout/tomate-ronde-rouge: {"c":"ta-jeu","by":…,"at":…}      // « tout » : un seul créneau par produit
       report/bette/av63: {"n":0.5,"u":"colis",…}                 // reste 03 → 63 modifié à la main (absent = calculé)
       propose/bette/av63: {"v":true,…}                           // proposé ou non à Auvabio
+      stock/bette/ta: {"n":2,"u":"colis","by":…,"at":…}          // stock au magasin Très Allier (information, hors du reste)
       creneaux: [ … ]                                            // copie des créneaux : tenue à jour tant que la semaine n'est pas passée, puis gardée
       maj/…                                                      // heure de chaque action, comme pour les listes
   reglages/                                   // réglages partagés (depuis le 08/11/2026, étape 13B)
