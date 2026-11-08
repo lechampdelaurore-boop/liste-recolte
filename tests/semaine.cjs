@@ -98,9 +98,9 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await A.click(ligne('bette', 'q/ta-mar') + ' [data-a="moins"]');
   await A.click(ligne('bette', 'q/ta-mar') + ' [data-a="plus"]');
   await saisir(A, 'bette', 'q/ps', '10 kg');
-  verifie((await A.textContent(ligne('bette', 'q/ps') + ' [data-a="unite"]')) === 'kg' && (await A.textContent(ligne('bette', 'q/ps') + ' .sr-eq')).startsWith('= 2 colis'), '« 10 kg » tapé pour Panier adéquat reste en kilos, = 2 colis');
+  verifie((await A.textContent(ligne('bette', 'q/ps') + ' [data-a="unite"]')) === 'kg' && (await A.textContent(ligne('bette', 'q/ps') + ' .sr-eq')).startsWith('= 2 GH'), '« 10 kg » tapé pour Panier adéquat reste en kilos, = 2 colis');
   await attendre(B);
-  verifie((await reste(B, 'bette')) === 'À placer : 6 colis (30 kg)', 'chez Aurore : reste bette = 10 − 2 − 2 = 6 colis (30 kg), à placer (obtenu « ' + (await reste(B, 'bette')) + ' »)');
+  verifie((await reste(B, 'bette')) === 'À placer : 6 GH (30 kg)', 'chez Aurore : reste bette = 10 − 2 − 2 = 6 GH (30 kg), à placer (obtenu « ' + (await reste(B, 'bette')) + ' »)');
   verifie(await B.$eval(carte('bette') + ' .sp-head .reste', (x) => x.classList.contains('aplacer')), 'le reste à placer est en orange');
   verifie((await B.textContent(carte('bette') + ' .sp-resume')) === 'Dispo 10 · TA mar 2 · Panier adéq. 10 kg', 'la ligne repliée résume la répartition (obtenu « ' + (await B.textContent(carte('bette') + ' .sp-resume')) + ' »)');
   const q = base.lire(CHEMIN + '/q/bette/ps');
@@ -108,7 +108,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
 
   // 4. Changer d'unité d'une case : 10 kg → 2 colis
   await A.click(ligne('bette', 'q/ps') + ' [data-a="unite"]');
-  verifie((await A.inputValue(ligne('bette', 'q/ps') + ' input')) === '2' && (await A.textContent(ligne('bette', 'q/ps') + ' [data-a="unite"]')) === 'colis', 'le bouton d\'unité convertit 10 kg en 2 colis');
+  verifie((await A.inputValue(ligne('bette', 'q/ps') + ' input')) === '2' && (await A.textContent(ligne('bette', 'q/ps') + ' [data-a="unite"]')) === 'GH', 'le bouton d\'unité convertit 10 kg en 2 colis');
 
   // 5. Auvabio : un débouché en deux livraisons, reste 03 → 63 calculé, à part, modifiable
   await saisir(A, 'bette', 'q/av03', '5');
@@ -118,8 +118,8 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await attendre(B);
   await ouvrir(B, 'bette');
   verifie((await B.inputValue(ligne('bette', 'report/av63') + ' input')) === '0,5' && (await B.textContent(ligne('bette', 'report/av63') + ' .sr-nom')).includes('modifié'), 'François baisse le reste proposé à la 63 à 0,5 : Aurore le voit, marqué « modifié »');
-  verifie((await B.textContent(ligne('bette', 'report/av63') + ' .sr-eq')).includes('Calcul : 1 colis (5 kg)'), 'le calcul reste affiché à côté de la valeur modifiée');
-  verifie((await reste(B, 'bette')) === 'À placer : 1 colis (5 kg)', 'le reste proposé à la 63 n\'entre pas dans le reste de la ligne (toujours 1 colis)');
+  verifie((await B.textContent(ligne('bette', 'report/av63') + ' .sr-eq')).includes('Calcul : 1 GH (5 kg)'), 'le calcul reste affiché à côté de la valeur modifiée');
+  verifie((await reste(B, 'bette')) === 'À placer : 1 GH (5 kg)', 'le reste proposé à la 63 n\'entre pas dans le reste de la ligne (toujours 1 colis)');
   await B.click(ligne('bette', 'report/av63') + ' [data-a="auto"]');
   verifie((await B.inputValue(ligne('bette', 'report/av63') + ' input')) === '1', '« Revenir au calcul » remet 1 colis');
   await B.click(carte('bette') + ' input[data-a="propose"]');
@@ -130,23 +130,23 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   // 6. Manque (rouge)
   await saisir(A, 'bette', 'q/ta-jeu', '3');
   await attendre(B);
-  verifie((await reste(B, 'bette')) === 'Manque : 2 colis (10 kg)' && await B.$eval(carte('bette') + ' .sp-head .reste', (x) => x.classList.contains('manque')), 'trop réparti : « Manque : 2 colis (10 kg) » en rouge (obtenu « ' + (await reste(B, 'bette')) + ' »)');
+  verifie((await reste(B, 'bette')) === 'Manque : 2 GH (10 kg)' && await B.$eval(carte('bette') + ' .sp-head .reste', (x) => x.classList.contains('manque')), 'trop réparti : « Manque : 2 GH (10 kg) » en rouge (obtenu « ' + (await reste(B, 'bette')) + ' »)');
   verifie((await B.inputValue(ligne('bette', 'report/av63') + ' input')) === '0', 'plus rien à proposer à la 63 quand il manque');
 
   // 7. Produit à l'unité (bottes), unité tapée invalide
   await ouvrir(A, 'radis-long-rose');
   await saisir(A, 'radis-long-rose', 'dispo', '36 bottes');
-  verifie((await A.textContent(ligne('radis-long-rose', 'dispo') + ' [data-a="unite"]')) === 'bottes' && (await A.textContent(ligne('radis-long-rose', 'dispo') + ' .sr-eq')).startsWith('= 3 colis'), '« 36 bottes » de radis = 3 colis');
+  verifie((await A.textContent(ligne('radis-long-rose', 'dispo') + ' [data-a="unite"]')) === 'bottes' && (await A.textContent(ligne('radis-long-rose', 'dispo') + ' .sr-eq')).startsWith('= 3 GB'), '« 36 bottes » de radis = 3 colis');
   await saisir(A, 'radis-long-rose', 'q/ta-mar', '2');
-  verifie((await reste(A, 'radis-long-rose')) === 'À placer : 1 colis (12 bottes)', 'radis : 3 colis − 2 colis = « 1 colis (12 bottes) » (obtenu « ' + (await reste(A, 'radis-long-rose')) + ' »)');
+  verifie((await reste(A, 'radis-long-rose')) === 'À placer : 1 GB (12 bottes)', 'radis : 3 colis − 2 colis = « 1 GB (12 bottes) » (obtenu « ' + (await reste(A, 'radis-long-rose')) + ' »)');
   await saisir(A, 'radis-long-rose', 'q/mk', '5 kg');
   await A.waitForTimeout(100);
-  verifie((await A.textContent(ligne('radis-long-rose', 'q/mk') + ' .sr-err')).includes('Ce produit se compte en colis ou en bottes'), '« 5 kg » pour un produit en bottes est refusé avec une explication');
+  verifie((await A.textContent(ligne('radis-long-rose', 'q/mk') + ' .sr-err')).includes('Ce produit se compte en GB (grande basse) ou en bottes'), '« 5 kg » pour un produit en bottes est refusé avec une explication');
   verifie(base.lire(CHEMIN + '/q/radis-long-rose/mk') === null, 'rien n\'est enregistré pour une saisie refusée');
 
   // 8. Case « tout » : un seul créneau par produit, sans chiffre, prend ce qui reste
   await A.click(ligne('radis-long-rose', 'q/mk') + ' [data-a="tout"]');
-  verifie((await A.textContent(ligne('radis-long-rose', 'q/mk') + ' .sr-toutv')) === 'Tout ce qui reste : 1 colis (12 bottes)', '« tout » au marché : tout ce qui reste, 1 colis (12 bottes)');
+  verifie((await A.textContent(ligne('radis-long-rose', 'q/mk') + ' .sr-toutv')) === 'Tout ce qui reste : 1 GB (12 bottes)', '« tout » au marché : tout ce qui reste, 1 GB (12 bottes)');
   verifie((await reste(A, 'radis-long-rose')) === 'Placé · tout → Marché ven', 'avec « tout », le radis est placé');
   await ouvrir(A, 'tomate-ronde-rouge');
   await A.click(ligne('tomate-ronde-rouge', 'q/ta-mar') + ' [data-a="tout"]');
@@ -165,7 +165,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   const enTetes = await B.$$eval('#semTable th', (e) => e.map((x) => x.textContent));
   verifie(enTetes.join('|') === 'Produit|Dispo|TA mar|La Magic|Panier adéq.|Locavore|TA jeu|Auvabio 03|Auvabio 63|Marché ven|Élie|Reste|Reste Auvabio 03 → Auvabio 63', 'le tableau a une colonne par créneau, le reste, puis le reste 03 → 63 à part (obtenu ' + enTetes.join('|') + ')');
   const rangBette = await B.$$eval('#semTable tr[data-pid="bette"] td', (e) => e.map((x) => x.textContent));
-  verifie(rangBette.join('|') === 'Bette|10|2||2||3|5||||−2 colis (−10 kg)|0', 'ligne bette du tableau (obtenu ' + rangBette.join('|') + ')');
+  verifie(rangBette.join('|') === 'Bette|10|2||2||3|5||||−2 GH (−10 kg)|0', 'ligne bette du tableau (obtenu ' + rangBette.join('|') + ')');
   verifie(await B.evaluate(() => innerWidth === 412 && document.documentElement.scrollWidth <= innerWidth), 'tableau ouvert : la page garde la largeur du téléphone, le tableau défile dans son cadre');
   await capture(B, '3-tableau');
 
@@ -194,7 +194,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   verifie(repris.join() === 'bette,mesclun,radis-long-rose,tomate-ronde-rouge' && (await A.textContent(carte('bette') + ' .reste')) === 'À remplir', 'reprendre les produits de la semaine précédente : mêmes produits, sans les quantités');
   verifie(base.lire('listes/semaines/' + iso(lundi(1)) + '/q') === null, 'la semaine suivante n\'a aucune quantité copiée');
   await A.click('[data-a="semPrec"]');
-  verifie((await reste(A, 'bette')) === 'Manque : 2 colis (10 kg)', 'retour à cette semaine : la répartition est toujours là');
+  verifie((await reste(A, 'bette')) === 'Manque : 2 GH (10 kg)', 'retour à cette semaine : la répartition est toujours là');
 
   // 12. Retirer un produit
   await ouvrir(A, 'mesclun');
@@ -204,7 +204,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
 
   // 13. Rechargement, base, liste de récolte intacte
   await B.reload(); await B.waitForSelector('#semView:not([hidden]) section.sp');
-  verifie((await B.getAttribute('[data-view="semaine"]', 'aria-pressed')) === 'true' && (await reste(B, 'bette')) === 'Manque : 2 colis (10 kg)', 'après rechargement : onglet Semaine et répartition gardés');
+  verifie((await B.getAttribute('[data-view="semaine"]', 'aria-pressed')) === 'true' && (await reste(B, 'bette')) === 'Manque : 2 GH (10 kg)', 'après rechargement : onglet Semaine et répartition gardés');
   const cr = base.lire(CHEMIN + '/creneaux');
   verifie(Array.isArray(cr) && cr.length === 9 && cr[6].reprend === 'av03', 'la semaine garde sa copie des créneaux dans la base (9 créneaux, Auvabio 63 reprend Auvabio 03)');
   verifie(JSON.stringify(base.lire('listes/2026-11-04')) === JSON.stringify(listeAvant), 'la liste de récolte du 04/11 dans la base est inchangée');
@@ -230,7 +230,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   verifie(larg.wrap > 1200 && !larg.deborde && !larg.page, 'écran de 1366 px : la grille prend la largeur et tient en entier, sans défilement de côté (largeur ' + Math.round(larg.wrap) + ' px)');
   const rangG = await C.$$eval('#semGrid tr[data-pid="bette"] input[data-cell]', (e) => e.map((x) => x.value));
   verifie(rangG.join('|') === '10|2||2||3|5||||' + '0', 'ligne bette de la grille : 10 | 2 | | 2 | | 3 | 5 | | | | puis le reste 03 → 63 (obtenu ' + rangG.join('|') + ')');
-  verifie((await resteG(C, 'bette')) === 'Manque : 2 colis (10 kg)', 'reste bette dans la grille : Manque : 2 colis (10 kg)');
+  verifie((await resteG(C, 'bette')) === 'Manque : 2 GH (10 kg)', 'reste bette dans la grille : Manque : 2 GH (10 kg)');
   // Taper dans une case, Tab : le reste se met à jour, le curseur est dans la case de droite
   await C.click(cellule('bette', 'q/ta-jeu'));
   await C.keyboard.type('1');
@@ -259,7 +259,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await C.keyboard.type('5 kg');
   await C.keyboard.press('Enter');
   await C.waitForTimeout(200);
-  verifie((await C.textContent('#semErrs')).includes('Radis long rose, Panier La Magic · mardi ou jeudi : Ce produit se compte en colis ou en bottes.') && await C.$eval(cellule('radis-long-rose', 'q/lm'), (x) => x.classList.contains('err')), '« 5 kg » pour le radis : message au-dessus de la grille et case en rouge');
+  verifie((await C.textContent('#semErrs')).includes('Radis long rose, Panier La Magic · mardi ou jeudi : Ce produit se compte en GB (grande basse) ou en bottes.') && await C.$eval(cellule('radis-long-rose', 'q/lm'), (x) => x.classList.contains('err')), '« 5 kg » pour le radis : message au-dessus de la grille et case en rouge');
   // Reste 03 → 63 : calculé, modifiable, vidé = retour au calcul
   verifie(await C.$eval(cellule('bette', 'report/av63'), (x) => x.classList.contains('auto') && x.value === '0'), 'reste bette proposé à la 63 : 0, calculé (en italique)');
   await C.click(cellule('bette', 'report/av63'));
@@ -278,12 +278,50 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await ouvrir(A, 'bette');
   await saisir(A, 'bette', 'dispo', '12');
   await C.waitForTimeout(600);
-  verifie((await resteG(C, 'bette')) === 'À placer : 2 colis (10 kg)' && (await focusG(C)) === 'radis-long-rose|q/ta-jeu' && (await valeur(C, 'radis-long-rose', 'q/ta-jeu')) === '0,5', 'pendant une saisie, le changement de François arrive (bette à placer : 2 colis) sans effacer « 0,5 » en cours de frappe');
+  verifie((await resteG(C, 'bette')) === 'À placer : 2 GH (10 kg)' && (await focusG(C)) === 'radis-long-rose|q/ta-jeu' && (await valeur(C, 'radis-long-rose', 'q/ta-jeu')) === '0,5', 'pendant une saisie, le changement de François arrive (bette à placer : 2 colis) sans effacer « 0,5 » en cours de frappe');
   await C.keyboard.press('Enter');
   await C.waitForTimeout(300);
   const qr = base.lire(CHEMIN + '/q/radis-long-rose/ta-jeu');
   verifie(qr && qr.n === 0.5 && qr.u === 'colis' && qr.by === 'Martin', 'la saisie est ensuite enregistrée : 0,5 colis par Martin');
-  await C.click('#semGrid'); // sort de la case pour la capture
+  // 15. Unité choisie case par case (demande de François du 8/11) : caisse du produit (PB, PH, GB, GH), kg ou bottes
+  const menu = (pid, k) => `#semGrid select[data-cell="${pid}|${k}"]`;
+  verifie((await C.$$eval(menu('bette', 'q/ta-mar') + ' option', (o) => o.map((x) => x.textContent))).join() === 'GH,kg' && (await C.$$eval(menu('radis-long-rose', 'dispo') + ' option', (o) => o.map((x) => x.textContent))).join() === 'GB,bottes', 'chaque case a son menu d\'unité : GH ou kg pour la bette, GB ou bottes pour le radis');
+  verifie((await valeur(C, 'radis-long-rose', 'dispo')) === '4' && (await C.$eval(menu('radis-long-rose', 'dispo'), (x) => x.value)) === 'u', 'le disponible du radis saisi en bottes s\'affiche « 4 » avec « bottes » dans le menu');
+  await C.selectOption(menu('radis-long-rose', 'q/ps'), 'u');
+  await C.click(cellule('radis-long-rose', 'q/ps'));
+  await C.keyboard.type('24');
+  await C.keyboard.press('Enter');
+  await C.waitForTimeout(300);
+  const qps = base.lire(CHEMIN + '/q/radis-long-rose/ps');
+  verifie(qps && qps.n === 24 && qps.u === 'u' && (await C.$eval(menu('radis-long-rose', 'q/ps'), (x) => x.value)) === 'u', 'case vide mise en bottes puis « 24 » tapé : enregistré 24 bottes (Panier adéquat commande en bottes)');
+  verifie((await C.getAttribute(cellule('radis-long-rose', 'q/ps'), 'title')).startsWith('24 bottes · = 2 GB'), 'au survol : 24 bottes = 2 GB');
+  await A.waitForTimeout(300);
+  await ouvrir(A, 'radis-long-rose');
+  verifie((await A.inputValue(ligne('radis-long-rose', 'q/ps') + ' input')) === '24' && (await A.textContent(ligne('radis-long-rose', 'q/ps') + ' [data-a="unite"]')) === 'bottes', 'le téléphone de François voit 24 bottes pour Panier adéquat');
+  await C.selectOption(menu('bette', 'q/ta-mar'), 'kg');
+  await C.waitForTimeout(300);
+  const qtm = base.lire(CHEMIN + '/q/bette/ta-mar');
+  verifie((await valeur(C, 'bette', 'q/ta-mar')) === '10' && qtm.n === 10 && qtm.u === 'kg', 'menu d\'une case remplie passé de GH à kg : 2 GH deviennent 10 kg (même quantité)');
+  await C.click(cellule('bette', 'dispo'));
+  await C.keyboard.type('10 GH');
+  await C.keyboard.press('Enter');
+  await C.waitForTimeout(300);
+  const qd = base.lire(CHEMIN + '/dispo/bette');
+  verifie(qd.n === 10 && qd.u === 'colis' && (await resteG(C, 'bette')) === 'Placé', '« 10 GH » tapé pour la bette : 10 caisses GH, la bette est placée');
+  await C.click(cellule('bette', 'q/lv'));
+  await C.keyboard.type('3 petites basses');
+  await C.keyboard.press('Enter');
+  await C.waitForTimeout(300);
+  verifie((await C.textContent('#semErrs')).includes('Bette part en GH (grande haute), pas en PB.') && base.lire(CHEMIN + '/q/bette/lv') === null, '« 3 petites basses » pour la bette (en GH) est refusé avec une explication');
+  await C.click(cellule('bette', 'q/lv'));
+  await C.keyboard.type('1 grande haute');
+  await C.keyboard.press('Enter');
+  await C.waitForTimeout(300);
+  verifie(base.lire(CHEMIN + '/q/bette/lv').n === 1 && base.lire(CHEMIN + '/q/bette/lv').u === 'colis', '« 1 grande haute » est accepté pour la bette');
+  await C.click(cellule('bette', 'q/lv'));
+  await C.keyboard.press('Delete');
+  await C.keyboard.press('Enter');
+  await C.waitForTimeout(300);
   await C.evaluate(() => document.activeElement && document.activeElement.blur());
   await capture(C, '4-semaine-ordinateur');
   // Fenêtre étroite : retour aux fiches du téléphone

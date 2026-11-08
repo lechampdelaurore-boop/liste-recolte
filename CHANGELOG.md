@@ -2,6 +2,8 @@
 
 ## 2026-11-08
 
+- **Onglet Semaine : l'unité se choisit dans chaque case** (demande de François : certains clients commandent en bottes et pas en colis). Sur ordinateur, chaque case de la grille a un petit menu d'unité (caisse du produit, kg, ou bottes, bouquets, pièces…) : sur une case remplie il convertit, sur une case vide il règle l'unité du nombre tapé. Le colis s'appelle partout par sa caisse (« 6 GH (30 kg) », « 1 GB (12 bottes) ») ; « 10 PB » ou « 10 petites basses » se tapent aussi, une autre caisse que celle du produit est refusée. `CACHE` → `recolte-v20`. `tests/semaine.cjs` : 77 vérifications (9 nouvelles).
+
 - **Licence** : ajout de `LICENSE` (PolyForm Noncommercial 1.0.0, usage commercial interdit), section « Licence » dans le README, décision notée. Aucun changement de l'appli ni de `sw.js`.
 
 ## 2026-11-06
