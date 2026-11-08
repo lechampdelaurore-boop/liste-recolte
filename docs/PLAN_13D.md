@@ -72,7 +72,7 @@ Lecture de la roadmap : 13D = **Opus 5.5 · Élevé (proposé)**, « à reparler
 
 ## Les questions à trancher (une par une, avec recommandation)
 
-1. **Liste calculée en direct, ou fichier créé ?** Recommandation : en direct (pas de fichier, pas de PR, rien de la base réécrit), le fichier restant possible pour les anciennes listes.
+1. **(Tranché par François le 8/11 : en direct.)** **Liste calculée en direct, ou fichier créé ?** Recommandation : en direct (pas de fichier, pas de PR, rien de la base réécrit), le fichier restant possible pour les anciennes listes.
 2. **Si la semaine change après les premières coches ?** Recommandation : figer la liste au premier clic, signaler tout changement ultérieur sur la ligne.
 3. **Peut-on corriger une quantité sur la liste elle-même ?** Recommandation : non au début (on corrige dans Semaine) ; une note libre par ligne pourra venir après.
 4. **Auvabio 03 et 63, Panier La Magic, Ferme Deschamps dans la liste.** Recommandation : Auvabio 03 et 63 réunis en un seul circuit « Auvabio » (une même récolte, le mercredi) ; Panier La Magic rattaché au lundi comme aujourd'hui ; Ferme Deschamps seulement si François l'ajoute dans « Débouchés et livraisons ».
