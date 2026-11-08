@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "Liste de récolte – Le Champ de l'Aurore",
-  "short_name": "Récolte",
-  "description": "Liste de récolte partagée du Champ de l'Aurore.",
+  "name": "Cumul – Le Champ de l'Aurore",
+  "short_name": "Cumul",
+  "description": "Cumul : répartition de la semaine, listes de récolte et préparation des commandes du Champ de l'Aurore.",
   "lang": "fr",
   "start_url": "./",
   "scope": "./",

@@ -247,13 +247,22 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   await F.click('[data-sem="cumul"]');
   await F.waitForSelector('#semTable');
   const ligneT = await F.$$eval('#semTable tbody tr[data-pid="ail-sec"] td.stk', (e) => e.map((x) => x.textContent));
-  verifie(ligneT.join() === '2', 'le Cumul montre le stock du magasin (ail sec : 2)');
+  verifie(ligneT.length === 1 && ligneT[0].startsWith('2Léa (magasin) · '), 'le Cumul montre le stock du magasin (ail sec : 2), avec « Léa (magasin) · date heure » (obtenu ' + ligneT.join() + ')');
   const { p: PC } = await ouvrir('François', '?liste=2026-11-04', { viewport: { width: 1280, height: 900 } });
   await connecter(PC, 'francois', MDP_F);
   await PC.click('[data-view="semaine"]');
   await PC.waitForSelector('#semGrid input[data-cell="poireau|stock/ta"]');
   await PC.waitForFunction(() => document.querySelector('#semGrid input[data-cell="ail-sec|stock/ta"]').value === '2', null, { timeout: 8000 }).catch(() => {});
   verifie((await PC.inputValue('#semGrid input[data-cell="ail-sec|stock/ta"]')) === '2' && (await PC.getAttribute('#semGrid input[data-cell="poireau|stock/ta"]', 'placeholder')) === '(8 kg)', 'grille de l\'ordinateur : ail sec 2 ; poireau vide avec « (8 kg) » de la semaine d\'avant en grisé');
+  const quiG = await PC.textContent('#semGrid tr[data-pid="ail-sec"] td.g-stk .g-qui').catch(() => '');
+  verifie(/^Léa \(magasin\) · \d\d\/\d\d \d\d:\d\d$/.test(quiG) && !(await PC.$('#semGrid tr[data-pid="poireau"] td.g-stk .g-qui')), 'grille : sous la case du stock, qui et quand (« ' + quiG + ' ») ; rien sous une case vide');
+
+  await PC.fill('#semGrid input[data-cell="carotte-lavee|stock/ta"]', '7');
+  await PC.press('#semGrid input[data-cell="carotte-lavee|stock/ta"]', 'Tab');
+  await attendreQue(() => (base.lire(`listes/semaines/${SEM}/stock/carotte-lavee/ta`) || {}).n === 7);
+  await PC.waitForTimeout(300);
+  const quiF = await PC.textContent('#semGrid tr[data-pid="carotte-lavee"] td.g-stk .g-qui').catch(() => '');
+  verifie(/^François · \d\d\/\d\d \d\d:\d\d$/.test(quiF), 'saisie dans le tableau de l\'ordinateur : la case montre « François · date heure » (obtenu « ' + quiF + ' »)');
 
   // 9 bis. Un produit compté au magasin mais absent de la semaine de la ferme
   await M.click('#ajouter');
@@ -264,17 +273,37 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   await M.press(ligne('fenouil') + ' input', 'Enter');
   await attendreQue(() => base.lire(`magasins/ta/semaines/${SEM}/fenouil`));
   await F.click('[data-sem="stock"]');
+  await attendreQue(() => base.lire(`listes/semaines/${SEM}/produits/fenouil`));
+  const pf = base.lire(`listes/semaines/${SEM}/produits/fenouil`) || {};
+  verifie(pf.nom === 'Fenouil' && pf.by === 'Igor (magasin)' && base.lire(`listes/semaines/${SEM}/magAjout/ta/fenouil`) === base.lire(`magasins/ta/semaines/${SEM}/fenouil`).at, 'le fenouil saisi au magasin entre tout seul dans la semaine de la ferme (fiche du référentiel, « Igor (magasin) »)');
+  await F.waitForSelector(caseF('fenouil') + ' input', { timeout: 8000 }).catch(() => {});
+  verifie((await F.inputValue(caseF('fenouil') + ' input')) === '3' && (await F.textContent(caseF('fenouil') + ' .sr-eq')).includes('Igor (magasin)') && (await F.$$('#semStkList .mag-hors')).length === 0, 'page Stock de la ferme : le fenouil a sa case, 3 PH, « Igor (magasin) »');
+  await capture(F, '4-ferme-stock-auto');
+  await F.click('[data-sem="repartir"]');
+  await F.waitForSelector('#semView section.sp');
+  verifie(((await F.textContent('#semView')) || '').includes('Fenouil'), 'page Répartir : le fenouil y est aussi');
+  await PC.waitForSelector('#semGrid input[data-cell="fenouil|stock/ta"]', { timeout: 8000 }).catch(() => {});
+  await PC.waitForFunction(() => { const i = document.querySelector('#semGrid input[data-cell="fenouil|stock/ta"]'); return i && i.value === '3'; }, null, { timeout: 8000 }).catch(() => {});
+  verifie((await PC.inputValue('#semGrid input[data-cell="fenouil|stock/ta"]').catch(() => '')) === '3', 'grille de l\'ordinateur : fenouil, 3 dans la colonne « Stock Très Allier »');
+  await capture(PC, '4-ordinateur-repartir');
+  // La ferme retire le fenouil : il ne revient pas tout seul, il reste proposé à part.
+  await PC.click('#semGrid tr[data-pid="fenouil"] button[data-a="retirer"]');
+  await attendreQue(() => !base.lire(`listes/semaines/${SEM}/produits/fenouil`));
+  await F.click('[data-sem="stock"]');
   await F.waitForSelector('#semStkList li[data-hors="fenouil"]', { timeout: 8000 }).catch(() => {});
+  await F.waitForTimeout(800);
   const hors = await F.$$eval('#semStkList .mag-hors li', (e) => e.map((x) => x.textContent));
-  verifie(hors.length === 1 && hors[0].startsWith('Fenouil : 3 PH · Igor, '), 'page Stock de la ferme : « Compté par le magasin, pas dans votre semaine » montre le fenouil, 3 colis, Igor (obtenu ' + hors.join('|') + ')');
+  verifie(!base.lire(`listes/semaines/${SEM}/produits/fenouil`) && hors.length === 1 && hors[0].startsWith('Fenouil : 3 PH · Igor, '), 'retiré par la ferme : le fenouil ne revient pas tout seul ; il est proposé dans « Compté par le magasin, pas dans votre semaine » (obtenu ' + hors.join('|') + ')');
   await capture(F, '4-ferme-hors-semaine');
   await F.click('#semStkList [data-a="ajouter-produit"][data-p="fenouil"]');
   await attendreQue(() => base.lire(`listes/semaines/${SEM}/produits/fenouil`));
   await F.waitForSelector(caseF('fenouil') + ' input', { timeout: 8000 }).catch(() => {});
-  verifie(!!base.lire(`listes/semaines/${SEM}/produits/fenouil`) && (await F.inputValue(caseF('fenouil') + ' input')) === '3' && (await F.$$('#semStkList .mag-hors')).length === 0, '« Ajouter à la semaine » : le fenouil entre dans la semaine de la ferme, avec les 3 du magasin dans sa case');
+  verifie(!!base.lire(`listes/semaines/${SEM}/produits/fenouil`) && (await F.inputValue(caseF('fenouil') + ' input')) === '3' && (await F.$$('#semStkList .mag-hors')).length === 0, '« Ajouter à la semaine » : le fenouil revient, avec les 3 du magasin dans sa case');
   await F.click('[data-a="semPrec"]');
-  await F.waitForSelector('#semStkList li[data-hors="poireau"]', { timeout: 8000 }).catch(() => {});
-  verifie((await F.$$('#semStkList .stk-l')).length === 0 && (await F.textContent('#semStkList')).includes('Aucun produit dans votre semaine') && ((await F.textContent('#semStkList li[data-hors="poireau"]').catch(() => '')) || '').startsWith('Poireau : 8 kg'), 'une semaine de la ferme sans produit montre quand même ce que le magasin a compté (poireau 8 kg, semaine d\'avant)');
+  await attendreQue(() => base.lire(`listes/semaines/${AVANT}/produits/poireau`));
+  await F.waitForSelector(caseF('poireau') + ' input', { timeout: 8000 }).catch(() => {});
+  await F.waitForFunction(() => { const i = document.querySelector('#semStkList .stk-l[data-pid="poireau"] input'); return i && i.value === '8'; }, null, { timeout: 8000 }).catch(() => {});
+  verifie((await F.inputValue(caseF('poireau') + ' input').catch(() => '')) === '8' && Object.keys(base.lire(`listes/semaines/${AVANT}/produits`) || {}).join() === 'poireau', 'semaine passée, sans produit chez la ferme : le poireau compté par le magasin (8 kg) y entre aussi');
   await F.click('[data-a="semSuiv"]');
 
   // 9 ter. Le magasin change de semaine, toujours avec une confirmation
