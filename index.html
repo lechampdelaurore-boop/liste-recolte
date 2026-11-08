@@ -19,36 +19,65 @@
 :root{
   --bg:#ffffff; --surface:#ffffff; --surface2:#e6e6e6; --fg:#000000; --muted:#1f1f1f; --line:#000000;
   --accent:#0a5a1c; --accent-fg:#ffffff; --done:#3a3a3a; --warn-bg:#ffe680; --warn-fg:#000000;
+  --brand:#0a4d19; --leaf:#d9f2c4;
   --pb:#0a3d91; --ph:#004f57; --gb:#6e3900; --gh:#9e110a;
-  --radius:12px; --bw:2px;
+  --radius:14px; --bw:2px; --ombre:0 3px 0 #000;
+  --nav-h:68px;
   color-scheme: only light;
   font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
 }
 *{box-sizing:border-box}
-html{-webkit-text-size-adjust:100%}
-body{margin:0;background:var(--bg);color:var(--fg);font-size:19px;line-height:1.3;font-weight:500;overscroll-behavior-y:contain}
+html{-webkit-text-size-adjust:100%;scrollbar-gutter:stable}
+body{margin:0;background:var(--bg);color:var(--fg);font-size:19px;line-height:1.3;font-weight:500;overscroll-behavior-y:contain;
+  padding-bottom:calc(var(--nav-h) + env(safe-area-inset-bottom))}
 button,select,input{font:inherit;color:inherit}
-.wrap{max-width:720px;margin:0 auto;padding:12px max(12px,env(safe-area-inset-right)) calc(40px + env(safe-area-inset-bottom)) max(12px,env(safe-area-inset-left));display:grid;gap:14px}
-header{display:grid;gap:4px;padding-top:env(safe-area-inset-top)}
-.top{display:flex;align-items:center;gap:8px;justify-content:space-between}
-h1{font-size:1.45rem;margin:0;line-height:1.15;font-weight:800}
-.sub{margin:0;color:var(--muted);font-size:.9rem}
-.pill{display:inline-flex;align-items:center;gap:7px;border:var(--bw) solid var(--line);background:var(--surface);border-radius:999px;padding:4px 11px;font-size:.85rem;font-weight:700;white-space:nowrap}
+.wrap{max-width:760px;margin:0 auto;padding:14px max(14px,env(safe-area-inset-right)) 40px max(14px,env(safe-area-inset-left));display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+/* Bandeau du haut : vert foncé, texte blanc (contraste 10:1). Toujours la même hauteur, quel que soit l'onglet. */
+.appbar{background:var(--brand);color:#fff;padding-top:env(safe-area-inset-top)}
+.appbar-in{max-width:1600px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+  padding:8px max(14px,env(safe-area-inset-right)) 8px max(14px,env(safe-area-inset-left));min-height:56px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:1.1rem;letter-spacing:.01em;white-space:nowrap}
+@media (max-width:519px){.brand span{display:none}.appbar-in{flex-wrap:nowrap;min-height:52px}}
+.brand img{border-radius:9px;border:2px solid #fff;display:block}
+.appbar-r{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
+.appbar .pill{border-color:#fff}
+/* Onglets : quatre cases de même largeur, qui ne bougent jamais. Téléphone : en bas, sous le pouce ; ordinateur : en haut. */
+.tabs{position:fixed;left:0;right:0;bottom:0;z-index:20;background:#fff;border-top:3px solid var(--line);padding-bottom:env(safe-area-inset-bottom)}
+.tabs-in{max-width:760px;margin:0 auto;display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px;padding:6px 8px;height:var(--nav-h)}
+.tabs button{border:0;background:none;border-radius:12px;display:grid;justify-items:center;align-content:center;gap:2px;padding:4px 2px;font-size:.78rem;font-weight:800;cursor:pointer;min-width:0}
+.tabs button span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tabs svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
+.tabs button[aria-pressed="true"]{background:var(--accent);color:#fff}
+.tabs button[hidden]{display:none}
+@media (min-width:1000px){
+  body{padding-bottom:0}
+  .tabs{position:static;border-top:0;border-bottom:3px solid var(--line);padding:0}
+  .tabs-in{max-width:1600px;grid-auto-flow:column;grid-auto-columns:190px;justify-content:start;height:auto;padding:8px max(14px,env(safe-area-inset-left));gap:8px}
+  .tabs button{grid-auto-flow:column;gap:10px;font-size:1.05rem;padding:10px 14px;border:var(--bw) solid var(--line);box-shadow:var(--ombre)}
+  .tabs button[aria-pressed="true"]{border-color:var(--accent);box-shadow:0 3px 0 #000}
+  .tabs svg{width:26px;height:26px}
+}
+.page-head{display:grid;gap:4px}
+h1{font-size:1.55rem;margin:0;line-height:1.15;font-weight:900;letter-spacing:-.01em}
+.sub{margin:0;color:var(--muted);font-size:.9rem;font-weight:600}
+.sub:empty{display:none}
+.pill{display:inline-flex;align-items:center;gap:7px;border:var(--bw) solid var(--line);background:var(--surface);color:var(--fg);border-radius:999px;padding:4px 11px;font-size:.85rem;font-weight:800;white-space:nowrap}
 .pill i{width:12px;height:12px;border-radius:50%;background:var(--done);display:inline-block;border:1.5px solid var(--line)}
 .pill.ok i{background:#00a83a} .pill.wait i{background:#ffb300} .pill.err i{background:#e00000}
 .who{cursor:pointer}
-.controls{display:grid;gap:8px;position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0 8px;margin-top:-8px;border-bottom:var(--bw) solid var(--line)}
-.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;border:var(--bw) solid var(--line);border-radius:10px;overflow:hidden}
+.controls{display:grid;gap:8px;position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0;margin-top:-6px;border-bottom:var(--bw) solid var(--line)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);border:var(--bw) solid var(--line);border-radius:12px;overflow:hidden}
 .seg[hidden]{display:none}
-.seg button{border:0;background:var(--surface);padding:10px 4px;font-weight:800;cursor:pointer}
+.seg button{border:0;background:var(--surface);padding:11px 4px;font-weight:800;cursor:pointer;min-height:46px}
 .seg button+button{border-left:var(--bw) solid var(--line)}
+.seg button[hidden]{display:none}
 .seg button[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
 .chips{display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
 .chips[hidden]{display:none}
 .chips::-webkit-scrollbar{display:none}
 .chip{flex:none;border:var(--bw) solid var(--line);background:var(--surface);border-radius:999px;padding:7px 13px;font-size:.9rem;font-weight:700;cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
-.card{background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--radius)}
+.card{background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--radius);box-shadow:var(--ombre)}
 details.crates>summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:800}
 details.crates>summary::-webkit-details-marker{display:none}
 .chev{transition:transform .2s;display:inline-block;font-weight:900}
@@ -83,7 +112,7 @@ details.prog[hidden],.prog-row[hidden]{display:none}
 .prog-row .prog-top{font-size:1rem}
 .prog-row .prog-top b{font-size:1.1rem}
 ul.list{list-style:none;margin:0;padding:0;display:grid;gap:8px}
-li.item{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;padding:12px;background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--radius);touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:transform .15s}
+li.item{display:grid;grid-template-columns:auto 1fr auto;gap:4px 12px;align-items:center;padding:12px;background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--radius);box-shadow:var(--ombre);touch-action:pan-y;-webkit-user-select:none;user-select:none;-webkit-touch-callout:none;transition:transform .15s}
 li.item.pressing{transform:scale(.97)}
 li.item.dragging{position:fixed;z-index:50;box-shadow:0 0 0 4px var(--accent),0 12px 30px rgba(0,0,0,.45);pointer-events:none;transform:none}
 li.ph{border:3px dashed var(--accent);border-radius:var(--radius);background:transparent}
@@ -112,7 +141,7 @@ li.done .box{background:var(--accent);border-color:var(--accent)} li.done .box s
 .repart .col{font-weight:600;color:var(--muted)}
 .by{grid-column:2 / 4;font-size:.85rem;color:var(--muted);font-weight:600}
 li.done .prod{text-decoration:line-through;text-decoration-thickness:2px}
-li.done{border-style:dashed}
+li.done{border-style:dashed;box-shadow:none}
 .empty{padding:16px;text-align:center;color:var(--muted);font-weight:700}
 details.donesec>summary{list-style:none;cursor:pointer;padding:14px 12px;font-weight:800;display:flex;gap:10px;align-items:center;border:var(--bw) solid var(--line);border-radius:var(--radius)}
 details.donesec>summary::-webkit-details-marker{display:none}
@@ -152,20 +181,31 @@ dialog button{padding:13px;border-radius:10px;border:var(--bw) solid var(--line)
 dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid var(--line);background:var(--bg)}
 /* Onglet Semaine : répartition de la semaine entre les créneaux de vente (étape 13A) */
 #semView{display:grid;gap:12px;grid-template-columns:minmax(0,1fr);min-width:0} /* le tableau défile dans son cadre, pas la page */
-.sem-nav{display:grid;grid-template-columns:auto 1fr auto;gap:8px;align-items:center}
+.sem-nav{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;background:var(--leaf);border:var(--bw) solid var(--line);border-radius:var(--radius);padding:6px;box-shadow:var(--ombre)}
+.sem-nav.pas-cette{background:var(--warn-bg)}
+@media (min-width:1000px){.sem-nav{max-width:620px}.controls .seg{max-width:620px}}
 .sem-btn{width:48px;height:48px;border:var(--bw) solid var(--line);border-radius:10px;background:var(--surface);font-size:1.6rem;font-weight:900;line-height:1;cursor:pointer;padding:0}
 .sem-titre{display:grid;text-align:center;gap:2px}
-.sem-titre b{font-size:1.1rem;font-weight:900}
-.sem-titre span{font-size:.85rem;color:var(--muted);font-weight:700}
-.sem-sum{margin:0;font-weight:800}
-.sem-add,.sem-act{border:var(--bw) solid var(--line);border-radius:10px;background:var(--surface);padding:12px;font-weight:800;cursor:pointer;min-height:48px}
-.sem-add{background:var(--fg);color:var(--bg)}
-.sem-list{display:grid;gap:10px}
-.sem-boutons{display:grid;grid-template-columns:1fr;gap:8px}
-@media (min-width:600px){.sem-boutons{grid-template-columns:auto auto;justify-content:start}}
+.sem-titre b{font-size:1.15rem;font-weight:900}
+.sem-titre>span{font-size:.85rem;font-weight:700}
+#semQuand{font-weight:900}
+#semQuand:not(:empty)::after{content:' ·'}
+.sem-page{display:grid;gap:12px;min-width:0;grid-template-columns:minmax(0,1fr)}
+.sem-barre{display:grid;gap:10px}
+.sem-sum{display:flex;flex-wrap:wrap;gap:6px;align-items:center;font-weight:800}
+.sem-sum:empty{display:none}
+.sem-sum .reste{font-size:.9rem}
+.sem-sum .n{font-weight:900;margin-right:2px}
+@media (min-width:600px){.sem-barre{grid-template-columns:1fr auto;align-items:center}}
+.sem-add,.sem-act{border:var(--bw) solid var(--line);border-radius:12px;background:var(--surface);padding:12px 16px;font-weight:800;cursor:pointer;min-height:48px}
+.sem-add{background:var(--accent);color:#fff;border-color:#000;box-shadow:var(--ombre)}
+.sem-add:active,.sem-act:active{transform:translateY(2px);box-shadow:none}
+.sem-list{display:grid;gap:12px}
+.legende{display:grid;gap:6px;padding:12px;border:var(--bw) dashed var(--line);border-radius:var(--radius);font-size:.88rem;font-weight:600}
+.legende .reste{display:inline-block;margin-right:6px;font-size:.85rem}
+.legende .hint{margin-top:4px}
 #debView{display:grid;gap:12px;grid-template-columns:minmax(0,1fr);min-width:0}
 #debView[hidden]{display:none}
-.db-nav{display:flex}
 .db-h{margin:0;font-size:1.3rem;font-weight:900}
 .db-h3{margin:4px 0 0;font-size:1rem;font-weight:900}
 .db-list{display:grid;gap:12px}
@@ -194,23 +234,27 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 #semGrid td.g-stk,#semGrid th.stk{background:var(--surface2);border-right:3px dashed var(--line)}
 .db label.dj small{font-weight:600}
 .rj-sans{margin:0;font-weight:800}
-.sem-rec{padding:0;overflow:hidden}
-.sem-rec>summary{display:flex;justify-content:space-between;align-items:center;padding:12px;font-weight:900;cursor:pointer;list-style:none}
-.sem-rec>summary::-webkit-details-marker{display:none}
-.sem-rec[open]>summary .chev{transform:rotate(90deg)}
-.rc-jour{border-top:var(--bw) solid var(--line);padding:10px 12px;display:grid;gap:6px}
-.rc-jour h3{margin:0;font-size:1.05rem;font-weight:900}
+.rc-vide{padding:16px}
+.rc-jours{display:grid;gap:12px}
+.rc-jour{padding:0;display:grid;overflow:hidden}
+.rc-jour h3{margin:0;font-size:1.15rem;font-weight:900;background:var(--leaf);border-bottom:var(--bw) solid var(--line);padding:10px 12px}
 .rc-jour h3 small{display:block;font-size:.85rem;font-weight:600;color:var(--muted)}
+.rc-jour li{padding:4px 0;border-top:1.5px solid var(--line)}
+.rc-jour li:first-child{border-top:0}
 .rc-jour ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
 .rc-jour li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;font-weight:800}
 .rc-jour li small{grid-column:1 / 3;font-weight:600;color:var(--muted)}
 .rc-jour li b{text-align:right;font-variant-numeric:tabular-nums}
-@media (min-width:1000px){.sem-rec .rc-jours{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}.rc-jour{border-right:var(--bw) solid var(--line)}}
+@media (min-width:1000px){.rc-jours{grid-template-columns:repeat(auto-fit,minmax(340px,1fr));align-items:start}}
+.rc-pied{display:grid;gap:8px;justify-items:start}
+.rc-jour>ul{padding:6px 12px 10px}
+.rc-jour>.sr-eq{padding:10px 12px;margin:0}
 .db-ret{padding:12px}
 .db-ret summary{font-weight:900;cursor:pointer}
 .db-ret ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
 .db-ret li{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700}
-.sp{overflow:hidden}
+.sp{overflow:hidden;border-left-width:12px}
+.sp.e-place{border-left-color:var(--accent)} .sp.e-aplacer{border-left-color:#ffb000} .sp.e-manque{border-left-color:#b00000}
 .sp-head{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;width:100%;text-align:left;border:0;background:var(--surface);padding:12px;cursor:pointer}
 .sp-nom{font-weight:900;font-size:1.15rem;line-height:1.15}
 .sp-colis{display:block;font-size:.85rem;font-weight:600;color:var(--muted)}
@@ -246,9 +290,8 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 .sr.total .reste{font-size:1.05rem}
 .sp-foot{display:grid;gap:6px;padding:10px 12px;border-top:1.5px solid var(--line)}
 .sp-by{font-size:.85rem;font-weight:600;color:var(--muted)}
-details.sem-tab>summary{list-style:none;cursor:pointer;padding:12px 14px;display:flex;justify-content:space-between;align-items:center;font-weight:800}
-details.sem-tab>summary::-webkit-details-marker{display:none}
-.sem-scroll{overflow-x:auto;border-top:var(--bw) solid var(--line)}
+.sem-tab{overflow:hidden}
+.sem-scroll{overflow-x:auto}
 #semTable{border-collapse:collapse;font-size:.88rem;font-variant-numeric:tabular-nums;min-width:100%}
 #semTable th,#semTable td{border:1.5px solid var(--line);padding:6px 7px;text-align:right;white-space:nowrap}
 #semTable th{font-weight:800;background:var(--surface2)}
@@ -259,8 +302,7 @@ details.sem-tab>summary::-webkit-details-marker{display:none}
 #semTable td.r-manque{background:#b00000;color:#fff;font-weight:900}
 #semTable .rep{border-style:dashed}
 /* Onglet Semaine sur ordinateur : grille façon tableur, sur toute la largeur */
-body.sem-pc .wrap{max-width:1600px}
-body.sem-pc .sem-add{justify-self:start;padding:12px 26px}
+body.large .wrap{max-width:1600px}
 .g-wrap{overflow:auto;max-height:78vh;border:var(--bw) solid var(--line);border-radius:var(--radius)}
 #semGrid{border-collapse:separate;border-spacing:0;width:100%;font-size:.95rem;font-variant-numeric:tabular-nums}
 #semGrid th,#semGrid td{border-right:1.5px solid var(--line);border-bottom:1.5px solid var(--line);padding:0;vertical-align:middle;background:#fff}
@@ -294,26 +336,48 @@ dialog.big{max-width:min(460px,94vw);width:100%}
 </style>
 </head>
 <body>
-<div class="wrap">
-  <header>
-    <div class="top">
-      <h1 id="titre">Liste de récolte</h1>
-      <button class="pill who" id="who" type="button" title="Changer de nom">?</button>
-    </div>
+<header class="appbar">
+  <div class="appbar-in">
+    <span class="brand"><img src="icons/icon.svg" alt="" width="36" height="36"><span>Liste de récolte</span></span>
+    <span class="appbar-r"><span class="pill" id="sync"><i></i><span>…</span></span><button class="pill who" id="who" type="button" title="Changer de nom">?</button></span>
+  </div>
+</header>
+
+<nav class="tabs" id="tabs" aria-label="Pages">
+  <div class="tabs-in">
+    <button type="button" data-view="semaine" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4M7.5 14h3M13.5 14h3M7.5 17.5h3"/></svg><span>Semaine</span></button>
+    <button type="button" data-view="recolte" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 10h19l-2.2 10.5H4.7z"/><path d="M8 14v3.5M12 14v3.5M16 14v3.5"/><path d="M12 10c-.6-3.4.6-6 3.8-7.5-.3 3.6-1.7 6-3.8 7.5zM11.5 10C9.3 8.4 7.8 6.6 7.3 4c2.9.7 4.1 2.9 4.2 6z"/></svg><span>Récolte</span></button>
+    <button type="button" data-view="detail" aria-pressed="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg><span>Détail</span></button>
+    <button type="button" data-view="prep" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5L12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5L12 12l9-4.5M12 12v9"/></svg><span>Préparation</span></button>
+    <button type="button" data-view="reglages" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M19 6h1M4 12h3M13 12h7M4 18h11M21 18h-1"/><circle cx="16" cy="6" r="2.5"/><circle cx="10" cy="12" r="2.5"/><circle cx="17.5" cy="18" r="2.5"/></svg><span>Réglages</span></button>
+  </div>
+</nav>
+
+<main class="wrap">
+  <div class="page-head">
+    <h1 id="titre">Liste de récolte</h1>
     <p class="sub" id="pour"></p>
-    <div><span class="pill" id="sync"><i></i><span>…</span></span></div>
-  </header>
+  </div>
+  <!-- Choix de la semaine : vaut pour les trois pages de l'onglet Semaine (Répartir, Tableau, À récolter). -->
+  <div class="sem-nav" id="semNav" hidden>
+    <button type="button" class="sem-btn" data-a="semPrec" aria-label="Semaine précédente">‹</button>
+    <div class="sem-titre"><b id="semTitre"></b><span><span id="semQuand"></span> <span id="semJusque"></span></span></div>
+    <button type="button" class="sem-btn" data-a="semSuiv" aria-label="Semaine suivante">›</button>
+  </div>
 
   <div class="controls">
-    <div class="seg" role="group" aria-label="Vue">
-      <button type="button" data-view="recolte" aria-pressed="true">Récolte</button>
-      <button type="button" data-view="detail" aria-pressed="false">Détail</button>
-      <button type="button" data-view="prep" aria-pressed="false">Préparation</button>
-      <button type="button" data-view="semaine" aria-pressed="false">Semaine</button>
-    </div>
     <div class="seg" id="prepSort" role="group" aria-label="Trier la préparation" hidden>
       <button type="button" data-sort="client" aria-pressed="true">Par client</button>
       <button type="button" data-sort="produit" aria-pressed="false">Par produit</button>
+    </div>
+    <div class="seg" id="semSub" role="group" aria-label="Pages de la semaine" hidden>
+      <button type="button" data-sem="repartir" aria-pressed="true">Répartir</button>
+      <button type="button" data-sem="tableau" aria-pressed="false">Tableau</button>
+      <button type="button" data-sem="recolter" aria-pressed="false">À récolter</button>
+    </div>
+    <div class="seg" id="regSub" role="group" aria-label="Pages des réglages" hidden>
+      <button type="button" data-reg="debouches" aria-pressed="true">Débouchés</button>
+      <button type="button" data-reg="recoltes" aria-pressed="false">Jours de récolte</button>
     </div>
     <div class="chips" id="zones" aria-label="Zone"></div>
     <div class="chips" id="circs" aria-label="Circuit"></div>
@@ -366,30 +430,31 @@ dialog.big{max-width:min(460px,94vw);width:100%}
   </div>
 
   <div id="semView" hidden>
-    <div class="sem-nav">
-      <button type="button" class="sem-btn" data-a="semPrec" aria-label="Semaine précédente">‹</button>
-      <div class="sem-titre"><b id="semTitre"></b><span id="semQuand"></span></div>
-      <button type="button" class="sem-btn" data-a="semSuiv" aria-label="Semaine suivante">›</button>
+    <div id="semRep" class="sem-page">
+      <div class="sem-barre">
+        <div class="sem-sum" id="semSum"></div>
+        <button type="button" class="sem-add" data-a="ajouter">＋ Ajouter un produit</button>
+      </div>
+      <div id="semVide" hidden></div>
+      <div class="sem-list" id="semList"></div>
+      <div id="semPc" hidden>
+        <div id="semErrs"></div>
+        <div class="g-wrap" id="semGridWrap"><table id="semGrid"></table></div>
+        <p class="hint">Taper un nombre dans une case : il est compté dans l'unité choisie sous la case (la caisse du produit, PB, PH, GB ou GH, ou kg, ou bottes…). On peut aussi taper « 10 PB », « 12 kg », « 36 bottes » ou « tout ». <b>Entrée</b> ou flèche du bas : case du dessous ; <b>Tab</b> : case de droite ; <b>Échap</b> : annuler la saisie ; case vidée : effacée.</p>
+      </div>
+      <div class="legende" id="semLegende">
+        <span><b class="reste place">Placé</b> le reste est à zéro</span>
+        <span><b class="reste aplacer">À placer</b> il reste à vendre</span>
+        <span><b class="reste manque">Manque</b> on a promis plus qu'on n'a</span>
+        <p class="hint">Reste = disponible − tout ce qui est réparti. Une case se remplit dans l'unité choisie à côté d'elle : la caisse du produit (« 3 » ou « 3 PB »), des kilos (« 12 kg ») ou des unités (« 36 bottes »).</p>
+      </div>
     </div>
-    <p class="sem-sum" id="semSum"></p>
-    <div class="sem-boutons"><button type="button" class="sem-add" data-a="ajouter">＋ Ajouter un produit</button>
-    <button type="button" class="sem-act" data-a="debouches">Débouchés et livraisons</button></div>
-    <div id="semVide" hidden></div>
-    <div class="sem-list" id="semList"></div>
-    <div id="semPc" hidden>
-      <p class="hint">Taper un nombre dans une case : il est compté dans l'unité choisie sous la case (la caisse du produit, PB, PH, GB ou GH, ou kg, ou bottes…). On peut aussi taper « 10 PB », « 12 kg », « 36 bottes » ou « tout ». <b>Entrée</b> ou flèche du bas : case du dessous ; <b>Tab</b> : case de droite ; <b>Échap</b> : annuler la saisie ; case vidée : effacée.</p>
-      <div id="semErrs"></div>
-      <div class="g-wrap" id="semGridWrap"><table id="semGrid"></table></div>
-    </div>
-    <details class="card sem-rec" id="semRec">
-      <summary><span>À récolter, jour par jour</span><span class="chev">›</span></summary>
-      <div id="semRecList"></div>
-    </details>
-    <details class="card sem-tab" id="semTab">
-      <summary><span>Tableau de la semaine</span><span class="chev">›</span></summary>
+    <div class="card sem-page sem-tab" id="semTab" hidden>
       <div class="sem-scroll"><table id="semTable"></table></div>
-    </details>
-    <p class="hint">Reste = disponible − tout ce qui est réparti. <b>Placé</b> : le reste est à zéro. <b>À placer</b> : il reste à vendre. <b>Manque</b> : on a promis plus qu'on n'a. Une case se remplit dans l'unité choisie sous elle (sur ordinateur) ou à côté d'elle (sur téléphone) : la caisse du produit (« 3 » ou « 3 PB »), des kilos (« 12 kg ») ou des unités (« 36 bottes »).</p>
+    </div>
+    <div class="sem-page" id="semRec" hidden>
+      <div id="semRecList"></div>
+    </div>
   </div>
 
   <div id="debView" hidden></div>
@@ -398,7 +463,7 @@ dialog.big{max-width:min(460px,94vw);width:100%}
     <p class="note" id="noShare" hidden>Le partage n'est pas encore activé : les coches et l'ordre restent sur ce téléphone.</p>
     <p id="source"></p>
   </footer>
-</div>
+</main>
 
 <dialog id="whoDlg">
   <h2>Qui récolte ?</h2>
@@ -439,7 +504,10 @@ function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'
 function fr(n){ return String(n).replace('.', ','); }
 
 var list = null, byId = {}, mirror = {order:null, done:{}, prep:{}, prepClient:{}};
-var ui = Object.assign({view:'recolte', zone:'', circ:'', perCirc:true, cratesOpen:false, doneOpen:false, progOpen:false, prepSort:'client', prepDoneOpen:false}, ls('recolte.ui') || {});
+var ui = Object.assign({view:'recolte', zone:'', circ:'', perCirc:true, cratesOpen:false, doneOpen:false, progOpen:false, prepSort:'client', prepDoneOpen:false, semPage:'repartir', regPage:'debouches'}, ls('recolte.ui') || {});
+// Avant la refonte du 8/11, les débouchés s'ouvraient depuis la Semaine : ils sont maintenant dans l'onglet Réglages.
+if(ui.debouches){ ui.view = 'reglages'; delete ui.debouches; }
+var VUES = ['semaine', 'recolte', 'detail', 'prep', 'reglages'];
 var me = ls('recolte.qui');
 var pending = [];
 var MKEY;
@@ -522,8 +590,14 @@ function buildChips(){
   c.innerHTML = '<button class="chip" type="button" data-c="">Tous circuits</button>' +
     used.map(function(ci){ return '<button class="chip" type="button" data-c="' + ci.id + '">' + esc(ci.nom) + '</button>'; }).join('');
   c.onclick = function(e){ var b = e.target.closest('[data-c]'); if(!b) return; ui.circ = b.dataset.c; saveUi(); render(); };
-  document.querySelectorAll('.seg button[data-view]').forEach(function(b){
-    b.onclick = function(){ ui.view = b.dataset.view; saveUi(); render(); };
+  document.querySelectorAll('#tabs button[data-view]').forEach(function(b){
+    b.onclick = function(){ var neuf = ui.view !== b.dataset.view; ui.view = b.dataset.view; saveUi(); render(); if(neuf) scrollTo(0, 0); };
+  });
+  document.querySelectorAll('#semSub button').forEach(function(b){
+    b.onclick = function(){ ui.semPage = b.dataset.sem; saveUi(); render(); };
+  });
+  document.querySelectorAll('#regSub button').forEach(function(b){
+    b.onclick = function(){ ui.regPage = b.dataset.reg; saveUi(); render(); };
   });
   document.querySelectorAll('#prepSort button').forEach(function(b){
     b.onclick = function(){ ui.prepSort = b.dataset.sort; saveUi(); render(); };
@@ -674,20 +748,35 @@ function itemHtml(it, done){
     '<div class="qty">' + qtyHtml(it) + '</div>' + d + by + more + '</li>';
 }
 
+// Titre de chaque page, sous le bandeau.
+function enTete(){
+  var v = ui.view, t = list.titre, sous = list.pour || '';
+  if(v === 'prep'){ t = 'Préparation des commandes'; sous = list.titre; }
+  else if(v === 'semaine'){ t = 'Semaine'; sous = ''; }
+  else if(v === 'reglages'){ t = 'Réglages'; sous = 'Débouchés, livraisons et jours de récolte.'; }
+  $('#titre').textContent = t; $('#pour').textContent = sous;
+}
 function render(){
   if(!list) return;
   if(!MONTRER_DETAIL && ui.view === 'detail'){ ui.view = 'recolte'; saveUi(); }
-  $('.seg button[data-view="detail"]').hidden = !MONTRER_DETAIL;
-  document.querySelectorAll('.seg button[data-view]').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.view === ui.view)); });
-  var prep = ui.view === 'prep', semV = ui.view === 'semaine';
-  ['#dragHint', '#todo', '#doneSec'].forEach(function(s){ $(s).hidden = prep || semV; });
+  if(VUES.indexOf(ui.view) < 0) ui.view = 'recolte';
+  $('#tabs button[data-view="detail"]').hidden = !MONTRER_DETAIL;
+  document.querySelectorAll('#tabs button[data-view]').forEach(function(b){
+    var on = b.dataset.view === ui.view;
+    b.setAttribute('aria-pressed', String(on));
+    if(on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
+  });
+  var prep = ui.view === 'prep', semV = ui.view === 'semaine', regV = ui.view === 'reglages', autre = semV || regV;
+  enTete();
+  ['#dragHint', '#todo', '#doneSec'].forEach(function(s){ $(s).hidden = prep || autre; });
   $('#prepView').hidden = !prep; $('#prepSort').hidden = !prep;
-  // Onglet Semaine : ni filtres de circuit, ni caisses, ni barre de récolte (ils concernent la liste du jour).
-  ['#circs', '#crates', '#source'].forEach(function(s){ $(s).hidden = semV; });
-  $('#zones').hidden = !MONTRER_LIEU || semV;
-  var debV = semV && !!ui.debouches;
-  $('#semView').hidden = !semV || debV; $('#debView').hidden = !debV;
-  document.body.classList.toggle('sem-pc', semV && PC.matches);
+  // Semaine et Réglages : ni filtres de circuit, ni caisses, ni barre de récolte (ils concernent la liste du jour).
+  ['#circs', '#crates', '#source'].forEach(function(s){ $(s).hidden = autre; });
+  $('#zones').hidden = !MONTRER_LIEU || autre;
+  $('#semSub').hidden = !semV; $('#regSub').hidden = !regV;
+  $('#semView').hidden = !semV; $('#semNav').hidden = !semV; $('#debView').hidden = !regV;
+  $('.controls').hidden = !document.querySelector('.controls > :not([hidden])');
+  document.body.classList.toggle('large', autre && PC.matches);
   document.querySelectorAll('#zones .chip').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.z === ui.zone)); });
   document.querySelectorAll('#circs .chip').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.c === ui.circ)); });
   var o = order().map(function(id){ return byId[id]; }).filter(visible);
@@ -702,7 +791,11 @@ function render(){
   if(prep) renderPrep();
   renderCrates();
   renderProgress();
-  if(semV){ $('#prog').hidden = true; if(debV){ if(!debVue()){ chargerRef(); $('#debView').innerHTML = '<p class="empty">Chargement…</p>'; } else { debConnecter(); renderDebouches(); } } else renderSemaine(); }
+  if(autre) $('#prog').hidden = true;
+  if(regV){
+    document.querySelectorAll('#regSub button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.reg === (ui.regPage === 'recoltes' ? 'recoltes' : 'debouches'))); });
+    if(!debVue()){ chargerRef(); $('#debView').innerHTML = '<p class="empty">Chargement…</p>'; } else { debConnecter(); renderDebouches(); }
+  } else if(semV) renderSemaine();
 }
 
 /* ---------- Préparation de commandes ---------- */
@@ -970,9 +1063,9 @@ function place(){
 }
 function autoScroll(){
   if(!drag) return;
-  var m = 80, v = 0;
+  var m = 80, v = 0, nav = $('#tabs').getBoundingClientRect(), bas = nav.top > innerHeight / 2 ? nav.top : innerHeight;
   if(drag.y < m) v = -Math.ceil((m - drag.y) / 6);
-  else if(drag.y > innerHeight - m) v = Math.ceil((drag.y - (innerHeight - m)) / 6);
+  else if(drag.y > bas - m) v = Math.ceil((drag.y - (bas - m)) / 6);
   if(v){ scrollBy(0, v); place(); }
   drag.raf = requestAnimationFrame(autoScroll);
 }
@@ -1206,7 +1299,7 @@ function debRelancer(){ if(deb.es && deb.es.readyState === 2){ deb.es = null; de
 // Pendant une saisie dans la fiche, on attend d'avoir quitté la case pour redessiner.
 function debRender(){
   var a = document.activeElement;
-  if(ui.view === 'semaine' && ui.debouches && a && a.closest && a.closest('#debView') && a.tagName === 'INPUT' && a.type === 'text' && a.value !== a.defaultValue){ debAttente = true; return; }
+  if(ui.view === 'reglages' && a && a.closest && a.closest('#debView') && a.tagName === 'INPUT' && a.type === 'text' && a.value !== a.defaultValue){ debAttente = true; return; }
   render();
 }
 // Chaque modification remplace la fiche entière (qui et quand), affichée tout de suite, puis envoyée.
@@ -1277,11 +1370,12 @@ function livraisonHtml(d, l, actives){
 function debouchesHtml(){
   var liste = debListe(), v = debVue() || {};
   var actifs = liste.filter(function(d){ return !d.archive; });
-  var h = '<div class="db-nav"><button type="button" class="sem-act" data-a="retour">‹ Retour à la semaine</button></div>' +
-    '<h2 class="db-h">Débouchés et livraisons</h2>' +
+  var by = v.by && v.at ? '<p class="sp-by">Dernière modification : ' + esc(quiQuand(v)) + '</p>' : '<p class="sp-by">Réglages de départ (pas encore modifiés).</p>';
+  // Deux pages : les débouchés (avec leurs livraisons), puis les jours de récolte.
+  if(ui.regPage === 'recoltes') return recoltesHtml(liste) + by;
+  var h = '<h2 class="db-h">Débouchés et livraisons</h2>' +
     '<p class="hint">Chaque livraison est une colonne de la semaine, rangée par jour. Un changement vaut pour la semaine en cours et les suivantes ; les semaines passées gardent leurs colonnes. Rien n\'est effacé : un débouché retiré peut être remis.</p>' +
-    (v.by && v.at ? '<p class="sp-by">Dernière modification : ' + esc(quiQuand(v)) + '</p>' : '<p class="sp-by">Débouchés de départ (pas encore modifiés).</p>') +
-    '<div class="db-list">';
+    by + '<div class="db-list">';
   actifs.forEach(function(d, i){
     var lv = d.livraisons.filter(function(l){ return !l.archive; });
     h += '<section class="card db" data-d="' + esc(d.id) + '">' +
@@ -1303,7 +1397,6 @@ function debouchesHtml(){
     '<label>Colis<select id="debColis">' + COLIS_TYPES.map(function(c){ return '<option value="' + c[0] + '">' + esc(c[1]) + '</option>'; }).join('') + '</select></label></div>' +
     joursHtml(ui.debJours || [], 'nouveau') +
     '<button type="button" class="sem-add" data-a="nouveau">＋ Ajouter ce débouché</button></section>';
-  h += recoltesHtml(liste);
   var retires = [];
   liste.forEach(function(d){
     if(d.archive) retires.push({d:d, txt:d.nom});
@@ -1352,7 +1445,7 @@ function renderDebouches(){
   debAttente = false;
   var nouveau = $('#debNom') ? {nom:$('#debNom').value, colis:$('#debColis').value} : null;
   $('#debView').innerHTML = debouchesHtml();
-  if(nouveau){ $('#debNom').value = nouveau.nom; $('#debColis').value = nouveau.colis; }
+  if(nouveau && $('#debNom')){ $('#debNom').value = nouveau.nom; $('#debColis').value = nouveau.colis; }
   if(garde){
     var sel = garde.id ? '#' + garde.id : (garde.d ? '#debView [data-d="' + garde.d + '"]' : '#debView .db-new') + (garde.l ? ' [data-l="' + garde.l + '"]' : '') + ' [data-f="' + garde.f + '"]' + (garde.j ? '[data-j="' + garde.j + '"]' : '');
     var el = null; try{ el = document.querySelector(sel); }catch(x){}
@@ -1374,7 +1467,6 @@ function debModifier(dId, lId, fn, cleErr){
 $('#debView').addEventListener('click', function(e){
   var b = e.target.closest('[data-a]'); if(!b) return;
   var a = b.dataset.a, boite = b.closest('[data-d]'), dId = boite && boite.dataset.d, lb = b.closest('[data-l]'), lId = lb && lb.dataset.l;
-  if(a === 'retour'){ ui.debouches = false; saveUi(); render(); scrollTo(0, 0); return; }
   if(a === 'ajouterR'){
     recModifier(function(rec){
       var pris = rec.map(function(r){ return r.jour; }), j = JOURS.filter(function(x){ return pris.indexOf(x) < 0; })[0] || 'lundi';
@@ -1659,22 +1751,34 @@ function renderSemaine(){
     garde = {cell:actif.dataset.cell, v:actif.value, sale:actif.value !== actif.defaultValue, s:actif.selectionStart, e:actif.selectionEnd};
   }
   semAttente = false;
-  var d = deIso(id), now = lundiDe(new Date());
-  $('#semTitre').textContent = 'Semaine du ' + d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  var d = deIso(id), now = lundiDe(new Date()), dim = deIso(id); dim.setDate(dim.getDate() + 6);
+  $('#semTitre').textContent = 'Semaine du ' + d.toLocaleDateString('fr-FR', d.getFullYear() === new Date().getFullYear() ? {day:'numeric', month:'long'} : {day:'numeric', month:'long', year:'numeric'});
+  $('#semJusque').textContent = 'jusqu\'au dimanche ' + dim.toLocaleDateString('fr-FR', {day:'numeric', month:'long'});
   $('#semQuand').textContent = id === now ? 'Cette semaine' : id === decaler(now, 1) ? 'Semaine prochaine' : id === decaler(now, -1) ? 'Semaine dernière' : '';
+  $('#semNav').classList.toggle('pas-cette', id !== now);
   var prods = produitsSem(), cr = creneaux();
   var compte = {place:0, aplacer:0, manque:0, sansdispo:0, vide:0};
   var calc = {};
   prods.forEach(function(p){ calc[p.id] = calcul(p.id, p.f); compte[calc[p.id].etat]++; });
-  $('#semSum').textContent = prods.length ? prods.length + ' produit' + (prods.length > 1 ? 's' : '') + ' : ' + compte.place + ' placé' + (compte.place > 1 ? 's' : '') + ', ' +
-    compte.aplacer + ' à placer, ' + compte.manque + ' en manque' + (compte.sansdispo ? ', ' + compte.sansdispo + ' sans disponible' : '') + (compte.vide ? ', ' + compte.vide + ' à remplir' : '') + '.' : '';
+  // Sommaire en pastilles, aux couleurs du reste : vert placé, orange à placer, rouge manque.
+  var pastille = function(cls, txt){ return '<span class="reste ' + cls + '">' + txt + '</span>'; };
+  $('#semSum').innerHTML = prods.length ? '<span class="n">' + prods.length + ' produit' + (prods.length > 1 ? 's' : '') + '</span>' +
+    pastille('place', compte.place + ' placé' + (compte.place > 1 ? 's' : '')) + pastille('aplacer', compte.aplacer + ' à placer') + pastille('manque', compte.manque + ' en manque') +
+    (compte.sansdispo ? pastille('sansdispo', compte.sansdispo + ' sans disponible') : '') + (compte.vide ? pastille('vide', compte.vide + ' à remplir') : '') : '';
+  // Trois pages : Répartir (fiches ou grille), Tableau (téléphone seulement : sur ordinateur, la grille est le tableau), À récolter.
+  var page = ui.semPage === 'tableau' && !pc ? 'tableau' : ui.semPage === 'recolter' ? 'recolter' : 'repartir';
+  document.querySelectorAll('#semSub button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.sem === page)); });
+  $('#semSub button[data-sem="tableau"]').hidden = pc;
+  $('#semRep').hidden = page !== 'repartir';
   $('#semVide').hidden = !!prods.length;
   $('#semVide').innerHTML = prods.length ? '' : '<p class="empty">Aucun produit pour cette semaine.</p>' +
     '<button type="button" class="sem-act" data-a="reprendre" style="width:100%">Reprendre les produits de la semaine précédente</button>' +
     (semErr.reprendre ? '<p class="sr-err" role="alert">' + esc(semErr.reprendre) + '</p>' : '');
-  $('#semList').hidden = pc; $('#semTab').hidden = pc; $('#semPc').hidden = !pc || !prods.length;
-  $('#semRec').hidden = !prods.length; $('#semRec').open = ui.semRec !== false;
-  $('#semRecList').innerHTML = prods.length ? aRecolterHtml(prods, calc, cr) : '';
+  $('#semList').hidden = pc; $('#semTab').hidden = pc || page !== 'tableau'; $('#semPc').hidden = !pc || !prods.length;
+  $('#semLegende').hidden = !prods.length;
+  $('#semRec').hidden = page !== 'recolter';
+  $('#semRecList').innerHTML = page !== 'recolter' ? '' : prods.length ? aRecolterHtml(prods, calc, cr) :
+    '<p class="card empty rc-vide">Aucun produit cette semaine : rien à récolter.</p>';
   if(pc){
     $('#semList').innerHTML = ''; $('#semTable').innerHTML = '';
     $('#semGrid').innerHTML = prods.length ? grilleHtml(prods, calc, cr) : '';
@@ -1689,7 +1793,6 @@ function renderSemaine(){
     return;
   }
   $('#semList').innerHTML = prods.map(function(p){ return carteHtml(p.id, p.f, calc[p.id], cr); }).join('');
-  $('#semTab').open = !!ui.semTab;
   $('#semTable').innerHTML = prods.length ? tableHtml(prods, calc, cr) : '<tr><td>Aucun produit.</td></tr>';
 }
 
@@ -1721,10 +1824,11 @@ function aRecolterHtml(prods, calc, cr){
       var d = new Date(lundi); d.setDate(d.getDate() + JOURS.indexOf(g.r.jour));
       titre = d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}); titre = titre.charAt(0).toUpperCase() + titre.slice(1);
     }
-    h += '<section class="rc-jour" data-r="' + esc(g.r ? g.r.id : '') + '"><h3>' + esc(titre) + '<small>' + esc(g.cs.length ? g.cs.map(nomLivraison).join(', ') : 'aucune livraison') + '</small></h3>' +
+    h += '<section class="card rc-jour" data-r="' + esc(g.r ? g.r.id : '') + '"><h3>' + esc(titre) + '<small>' + esc(g.cs.length ? g.cs.map(nomLivraison).join(', ') : 'aucune livraison') + '</small></h3>' +
       (lignes.length ? '<ul>' + lignes.join('') + '</ul>' : '<p class="sr-eq">Rien à récolter.</p>') + '</section>';
   });
-  return h + '</div><p class="hint" style="margin:0;padding:8px 12px">Les jours de récolte se règlent dans « Débouchés et livraisons ».</p>';
+  return h + '</div><div class="rc-pied"><p class="hint">Chaque jour de récolte regroupe les livraisons qu\'on récolte ce jour-là.</p>' +
+    '<button type="button" class="sem-act" data-a="debouches" data-reg="recoltes">Régler les jours de récolte</button></div>';
 }
 
 /* Grille de l'ordinateur : une ligne par produit, une case à taper par créneau. */
@@ -1807,7 +1911,7 @@ function carteHtml(pid, f, r, cr){
     var q = semLire('q/' + pid + '/' + c.id);
     if(q) resume.push((c.court || c.nom) + ' ' + qCourt(q, f));
   });
-  var h = '<section class="card sp" data-pid="' + esc(pid) + '">' +
+  var h = '<section class="card sp e-' + r.etat + '" data-pid="' + esc(pid) + '">' +
     '<button type="button" class="sp-head" aria-expanded="' + ouvert + '"><span><span class="sp-nom">' + esc(f.nom) + '</span><span class="sp-colis">' + esc(colisTxt(f)) + '</span></span>' + ARROW_SEM +
     '<span class="reste ' + r.etat + '">' + esc(etiquette(r, f)) + '</span>' +
     '<span class="sp-resume">' + esc(resume.join(' · ')) + '</span></button>';
@@ -1890,6 +1994,11 @@ function poser(pid, k, val){
 }
 function produitDe(pid){ return semLire('produits/' + pid); }
 
+// Choix de la semaine, au-dessus des trois pages de l'onglet.
+$('#semNav').addEventListener('click', function(e){
+  var b = e.target.closest('[data-a]'); if(!b) return;
+  ui.semaine = decaler(semCourante(), b.dataset.a === 'semPrec' ? -1 : 1); semErr = {}; saveUi(); render();
+});
 $('#semView').addEventListener('click', function(e){
   e.stopPropagation(); // les gestes de la liste de récolte (cocher, glisser) ne concernent pas cet onglet
   var b = e.target.closest('[data-a]');
@@ -1900,9 +2009,8 @@ $('#semView').addEventListener('click', function(e){
     return;
   }
   var a = b.dataset.a, ligne = b.closest('.sr'), k = (ligne && ligne.dataset.k) || b.dataset.k;
-  if(a === 'semPrec' || a === 'semSuiv'){ ui.semaine = decaler(semCourante(), a === 'semPrec' ? -1 : 1); semErr = {}; saveUi(); render(); return; }
   if(a === 'ajouter'){ ouvrirAjout(); return; }
-  if(a === 'debouches'){ ui.debouches = true; saveUi(); render(); scrollTo(0, 0); return; }
+  if(a === 'debouches'){ ui.view = 'reglages'; if(b.dataset.reg) ui.regPage = b.dataset.reg; saveUi(); render(); scrollTo(0, 0); return; }
   if(a === 'reprendre'){ avecNom(reprendre); return; }
   if(a === 'propose' || !f) return;
   var cle = pid + '|' + k;
@@ -1997,8 +2105,6 @@ $('#semView').addEventListener('keydown', function(e){
 });
 $('#semView').addEventListener('focusin', function(e){ if(e.target.tagName === 'INPUT' && e.target.dataset.cell) e.target.select(); });
 $('#semView').addEventListener('focusout', function(){ setTimeout(function(){ if(semAttente) render(); }, 0); });
-$('#semTab').addEventListener('toggle', function(){ ui.semTab = this.open; saveUi(); });
-$('#semRec').addEventListener('toggle', function(){ ui.semRec = this.open; saveUi(); });
 
 function retirer(pid){
   var ch = {}, d = sem.data;
