@@ -73,13 +73,13 @@ Lecture de la roadmap : 13D = **Opus 5.5 · Élevé (proposé)**, « à reparler
 ## Les questions à trancher (une par une, avec recommandation)
 
 1. **(Tranché par François le 8/11 : en direct.)** **Liste calculée en direct, ou fichier créé ?** Recommandation : en direct (pas de fichier, pas de PR, rien de la base réécrit), le fichier restant possible pour les anciennes listes.
-2. **Si la semaine change après les premières coches ?** Recommandation : figer la liste au premier clic, signaler tout changement ultérieur sur la ligne.
-3. **Peut-on corriger une quantité sur la liste elle-même ?** Recommandation : non au début (on corrige dans Semaine) ; une note libre par ligne pourra venir après.
-4. **Auvabio 03 et 63, Panier La Magic, Ferme Deschamps dans la liste.** Recommandation : Auvabio 03 et 63 réunis en un seul circuit « Auvabio » (une même récolte, le mercredi) ; Panier La Magic rattaché au lundi comme aujourd'hui ; Ferme Deschamps seulement si François l'ajoute dans « Débouchés et livraisons ».
-5. **Quelle liste s'ouvre sur le téléphone ?** Recommandation : celle du prochain jour de récolte, avec un sélecteur de jour ; `actuelle.json` ne servirait plus qu'aux anciennes listes.
+2. **(Tranché le 8/11 : recommandation retenue, François ayant demandé de suivre les recommandations.)** **Si la semaine change après les premières coches ?** Recommandation : figer la liste au premier clic, signaler tout changement ultérieur sur la ligne.
+3. **(Tranché le 8/11 : recommandation retenue, François ayant demandé de suivre les recommandations.)** **Peut-on corriger une quantité sur la liste elle-même ?** Recommandation : non au début (on corrige dans Semaine) ; une note libre par ligne pourra venir après.
+4. **(Tranché le 8/11 : recommandation retenue, François ayant demandé de suivre les recommandations.)** **Auvabio 03 et 63, Panier La Magic, Ferme Deschamps dans la liste.** Recommandation : Auvabio 03 et 63 réunis en un seul circuit « Auvabio » (une même récolte, le mercredi) ; Panier La Magic rattaché au lundi comme aujourd'hui ; Ferme Deschamps seulement si François l'ajoute dans « Débouchés et livraisons ».
+5. **(Tranché le 8/11 : recommandation retenue, François ayant demandé de suivre les recommandations.)** **Quelle liste s'ouvre sur le téléphone ?** Recommandation : celle du prochain jour de récolte, avec un sélecteur de jour ; `actuelle.json` ne servirait plus qu'aux anciennes listes.
 
-6. **Jours de récolte : créés chaque semaine, ou réglés une fois pour toutes ?** Recommandation (d'après votre message du 8/11) : on ajoute le jour semaine par semaine et l'on coche les livraisons ; les jours habituels (lundi = mardi ; mercredi = mercredi, jeudi, vendredi) sont proposés déjà cochés, modifiables. Aujourd'hui l'appli ne connaît que des jours réglés une fois pour toutes (PR #33) : 13D-1 ajoute la version « par semaine ».
+6. **(Tranché le 8/11 : recommandation retenue, François ayant demandé de suivre les recommandations.)** **Jours de récolte : créés chaque semaine, ou réglés une fois pour toutes ?** Recommandation (d'après votre message du 8/11) : on ajoute le jour semaine par semaine et l'on coche les livraisons ; les jours habituels (lundi = mardi ; mercredi = mercredi, jeudi, vendredi) sont proposés déjà cochés, modifiables. Aujourd'hui l'appli ne connaît que des jours réglés une fois pour toutes (PR #33) : 13D-1 ajoute la version « par semaine ».
 
 *Le total des questions passe de 5 à 6 (ajout du 8/11).*
 
-*Avancement des questions : voir le fil de la conversation.*
+*Les six questions sont tranchées (la 1 par François, les autres par sa consigne du 8/11 de suivre les recommandations). Restent à lui demander : tout « vas-y » sur les vraies données, l'hébergeur, l'ouverture d'accès, le réglage modèle si plus haut que la roadmap.*
