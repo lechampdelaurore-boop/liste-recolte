@@ -1,10 +1,19 @@
 # Plan : le magasin saisit le stock lui-même (étapes 5 et 13C)
 
-*Rédigé le 8/11/2026. Document de proposition, sans code. Rien n'est décidé tant que François n'a pas répondu et donné son « vas-y » exprès (ouverture d'un accès à d'autres personnes).*
+*Rédigé le 8/11/2026, précisé le même jour après la réponse de François (un seul compte, prénom demandé d'abord, suivi de qui a saisi). Document de proposition, sans code. Rien n'est décidé tant que François n'a pas répondu et donné son « vas-y » exprès (ouverture d'un accès à d'autres personnes).*
 
 ## En deux phrases
 
 Aujourd'hui, la base Firebase est ouverte à toute personne qui connaît son adresse (elle est dans un dépôt public). On ne peut pas donner un accès au magasin sans d'abord la fermer. On la ferme avec des comptes, puis on donne au magasin un compte qui ne voit que sa propre page de stock.
+
+## Décidé par François le 8/11 : un seul compte, mais on sait qui saisit
+
+- **Un seul compte pour le magasin.** Choix de François (8/11), à la place d'un compte par personne.
+- **Le prénom d'abord.** Quand une personne ouvre la page, la première chose demandée est son prénom (souvent Igor, mais d'autres personnes peuvent saisir). Elle peut le changer à tout moment, d'un appui sur son nom en haut de l'écran, par exemple quand un collègue prend le téléphone.
+- **Les prénoms s'enregistrent au fur et à mesure.** Un prénom tapé une fois est proposé ensuite en un appui (liste de prénoms du magasin dans la base, `magasin/personnes`). Pour éviter « igor », « Igor » et « Igor. », la page rapproche les prénoms qui ne diffèrent que par la casse ou les espaces.
+- **François voit qui a rempli quoi.** Chaque case porte le prénom et l'heure de la dernière saisie, affichés dans l'onglet Semaine. En plus, un **journal** garde chaque saisie (prénom, produit, ancienne et nouvelle valeur, heure) sans jamais l'effacer : même si quelqu'un d'autre corrige ensuite la case, la saisie d'origine reste. Un écran « Qui a saisi » regroupe par personne, pour vérifier d'un coup d'œil le travail de chacune.
+- **Limite à connaître.** Le prénom est déclaré par la personne, il n'est pas prouvé : avec un seul mot de passe, quelqu'un peut saisir sous le prénom d'un autre. Le journal et l'heure rendent cela visible, mais ne l'empêchent pas. Si cela devient un problème, on passera à un compte par personne.
+- **Règles de la base** : le profil magasin peut ajouter une ligne au journal mais jamais en modifier ni en effacer une.
 
 ## Ce que le magasin verra, et ne verra pas
 
@@ -22,7 +31,7 @@ Aujourd'hui, la base Firebase est ouverte à toute personne qui connaît son adr
 | Départ d'un salarié | Changer le mot de passe | Supprimer son compte | Changer le lien |
 | Travail pour François | 1 compte à créer | 1 compte par salarié | Peu, mais la base resterait ouverte |
 
-**Recommandation : le compte du magasin.** C'est le plus simple pour le personnel et la sécurité est réelle. On pourra passer à un compte par personne plus tard sans refaire la page. Le lien secret est écarté : il ne protège rien tant que la base ne vérifie pas qui écrit.
+**Recommandation, choisie par François le 8/11 : le compte du magasin.** C'est le plus simple pour le personnel et la sécurité est réelle. On pourra passer à un compte par personne plus tard sans refaire la page. Le lien secret est écarté : il ne protège rien tant que la base ne vérifie pas qui écrit.
 
 ## Comment on sécurise (étape 5)
 
