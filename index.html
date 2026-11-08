@@ -205,6 +205,10 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 .stk-list{display:grid;gap:10px}
 @media (min-width:1000px){.stk-list{grid-template-columns:repeat(auto-fill,minmax(360px,1fr))}}
 .stk-l{overflow:hidden}
+.mag-j{display:grid;gap:8px;justify-items:start}
+.mag-qui{margin:6px 0 0;font-size:1rem;font-weight:900}
+.mag-l{margin:0;padding-left:20px;display:grid;gap:3px;font-size:.9rem}
+.mag-hors{border:2px dashed var(--line);border-radius:10px;padding:8px 10px}
 .stk-l .sr{border-top:0}
 .sr.stock .sr-ctl input{background:#fff}
 #semTable th.stk,#semTable td.stk{background:var(--surface2)}
@@ -1374,6 +1378,124 @@ function colonnes(cr, st){
   return out;
 }
 function nomStock(did){ var x = stocks().filter(function(s){ return s.id === did; })[0]; return 'stock chez ' + (x ? x.nom : did); }
+
+/* ---------- Stock saisi par le magasin lui-même (étape 13C) ---------- */
+// Le magasin a sa page (magasin.html) et son compte (profil « magasin:<débouché> » dans la base). Il écrit sous
+// magasins/<débouché>/semaines/<lundi>/<pid> {n, u, by, at} (by = prénom déclaré) et ajoute une ligne au journal
+// magasins/<débouché>/journal/<lundi>/<id> à chaque saisie ; la ferme lit seulement. Dans la semaine, la case
+// « Stock chez … » montre la saisie la plus récente, de la ferme ou du magasin : la dernière saisie l'emporte.
+// Une case vidée par la ferme alors que le magasin a saisi garde la trace {vide:true, by, at}.
+// Lecture discrète : un refus de la base (règles pas encore publiées) ne change ni la pastille ni le reste.
+var mag = {w:null, d:{}, prec:{}, es:{}, coupe:{}, journal:{}};
+function adresseMagasin(){ return location.href.replace(/[?#].*$/, '').replace(/[^\/]*$/, '') + 'magasin'; }
+function magCle(did, w){ return 'recolte.magasin.' + did + '.' + w; }
+function magLire(chemin){
+  return jetonFrais().then(function(neuf){
+    if(neuf) setTimeout(function(){ relancerTout(true); }, 0);
+    return fetch(dbUrl(chemin), {cache:'no-store'});
+  }).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); });
+}
+function magFermer(){ Object.keys(mag.es).forEach(function(did){ mag.es[did].close(); }); mag.es = {}; }
+// Appelé à chaque affichage de l'onglet Semaine : suit le stock du magasin de chaque débouché qui suit son stock.
+function magSuivre(){
+  if(!sem.id) return;
+  if(mag.w !== sem.id){ magFermer(); mag.w = sem.id; mag.d = {}; mag.prec = {}; mag.coupe = {}; mag.journal = {}; }
+  stocks().forEach(function(x){
+    var did = x.id;
+    if(!mag.d[did]) mag.d[did] = ls(magCle(did, mag.w)) || {};
+    if(!mag.prec[did]) mag.prec[did] = ls(magCle(did, decaler(mag.w, -1))) || {};
+    magConnecter(did);
+  });
+}
+function magConnecter(did){
+  if(!dbPret() || !window.EventSource || mag.es[did]) return;
+  // Flux fermé (réseau coupé ou accès refusé) : on réessaie au plus une fois par minute.
+  if(mag.coupe[did] && Date.now() - mag.coupe[did] < 60000) return;
+  var w = mag.w, flux = mag.es[did] = new EventSource(dbUrl('/magasins/' + did + '/semaines/' + w));
+  function appliquer(ev, patch){
+    if(mag.w !== w || mag.es[did] !== flux) return;
+    var m = JSON.parse(ev.data); if(!m) return;
+    var o = {d:mag.d[did] || {}};
+    var base = m.path.replace(/\/$/, '');
+    if(patch) Object.keys(m.data || {}).forEach(function(k){ semSetIn(o, 'd' + base + '/' + k, m.data[k]); });
+    else semSetIn(o, 'd' + base, m.data);
+    mag.d[did] = o.d || {}; ls(magCle(did, w), mag.d[did]); crCache = null;
+    if(!drag && ui.view === 'semaine') render();
+  }
+  flux.addEventListener('put', function(ev){ appliquer(ev, false); });
+  flux.addEventListener('patch', function(ev){ appliquer(ev, true); });
+  function couper(){ flux.close(); if(mag.es[did] === flux){ delete mag.es[did]; mag.coupe[did] = Date.now(); } }
+  flux.addEventListener('error', function(){ if(flux.readyState === 2) couper(); });
+  flux.addEventListener('cancel', couper);
+  flux.addEventListener('auth_revoked', function(){ couper(); delete mag.coupe[did]; jetonRevoque(); });
+  // La semaine d'avant, une fois : ce que le magasin avait compté, montré en aide dans une case vide.
+  var avant = decaler(w, -1);
+  magLire('/magasins/' + did + '/semaines/' + avant).then(function(v){
+    if(mag.w !== w) return;
+    mag.prec[did] = v || {}; ls(magCle(did, avant), mag.prec[did]); if(ui.view === 'semaine') render();
+  }).catch(function(){});
+}
+function magRelancer(tous){
+  if(tous){ magFermer(); mag.coupe = {}; }
+  if(mag.w && mag.w === sem.id) magSuivre();
+}
+function semSetIn(o, chemin, v){
+  var parts = chemin.split('/').filter(Boolean), x = o;
+  for(var i = 0; i < parts.length - 1; i++){ if(!x[parts[i]] || typeof x[parts[i]] !== 'object') x[parts[i]] = {}; x = x[parts[i]]; }
+  if(v === null) delete x[parts[parts.length - 1]]; else x[parts[parts.length - 1]] = v;
+}
+function stockMag(pid, did){ var m = mag.w === sem.id && mag.d[did] ? mag.d[did][pid] : null; return m && typeof m.n === 'number' && m.at ? m : null; }
+// Valeur de la case « Stock chez … » : la saisie la plus récente, de la ferme (semaine) ou du magasin.
+function stockVu(pid, did){
+  var a = semLire('stock/' + pid + '/' + did), m = stockMag(pid, did);
+  if(m && (!a || !a.at || m.at > a.at)) return {n:m.n, u:m.u, by:(m.by || '?') + ' (magasin)', at:m.at, mag:true};
+  return a && !a.vide && typeof a.n === 'number' ? a : null;
+}
+// Ce que le magasin avait compté la semaine d'avant (aide dans une case vide).
+function stockAvant(pid, did){ var m = mag.w === sem.id && mag.prec[did] ? mag.prec[did][pid] : null; return m && typeof m.n === 'number' ? m : null; }
+function quiQuandDate(o){
+  var d = new Date(o.at);
+  return (o.by ? o.by + ', ' : '') + d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'numeric'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+}
+function avantTxt(pid, f, did){ var m = stockAvant(pid, did); return m ? 'Magasin, semaine d\'avant : ' + qTxt(m.n, m.u, f) + ' (' + quiQuandDate(m) + ')' : ''; }
+// Journal du magasin pour la semaine ouverte : chargé à la demande, regroupé par personne.
+function magJournal(did){
+  var w = sem.id;
+  mag.journal[did] = {etat:'charge'}; render();
+  magLire('/magasins/' + did + '/journal/' + w).then(function(v){ if(sem.id === w) { mag.journal[did] = {etat:'ok', v:v || {}}; render(); } },
+    function(){ if(sem.id === w){ mag.journal[did] = {etat:'err'}; render(); } });
+}
+function nomProduit(pid){
+  var p = semLire('produits/' + pid); if(p && p.nom) return p.nom;
+  var r = REF && (REF.produits || []).filter(function(x){ return pidDe(x.produit) === pid; })[0];
+  return r ? r.produit : pid;
+}
+function ficheDe(pid){
+  var p = semLire('produits/' + pid); if(p && p.nom) return p;
+  var r = REF && (REF.produits || []).filter(function(x){ return pidDe(x.produit) === pid; })[0];
+  return r ? fiche(r) : {nom:pid};
+}
+function journalHtml(x){
+  var j = mag.journal[x.id];
+  var h = '<div class="mag-j"><button type="button" class="sem-act" data-a="journal" data-d="' + esc(x.id) + '">' + (j ? 'Recharger « Qui a saisi au magasin »' : 'Qui a saisi au magasin cette semaine ?') + '</button>';
+  if(!j) return h + '</div>';
+  if(j.etat === 'charge') return h + '<p class="hint">Chargement…</p></div>';
+  if(j.etat === 'err') return h + '<p class="sr-err" role="alert">Journal du magasin pas lisible (pas de réseau, ou règles de la base pas encore publiées).</p></div>';
+  var parQui = {};
+  Object.keys(j.v).map(function(k){ return j.v[k]; }).filter(function(e){ return e && e.pid && e.at; })
+    .sort(function(a, b){ return a.at - b.at; })
+    .forEach(function(e){ var n = e.by || '?'; (parQui[n] = parQui[n] || []).push(e); });
+  var noms = Object.keys(parQui).sort(function(a, b){ return parQui[b].length - parQui[a].length || a.localeCompare(b, 'fr'); });
+  if(!noms.length) return h + '<p class="hint">Aucune saisie du magasin cette semaine.</p></div>';
+  noms.forEach(function(n){
+    var l = parQui[n];
+    h += '<h3 class="mag-qui">' + esc(n) + ' · ' + l.length + ' saisie' + (l.length > 1 ? 's' : '') + '</h3><ul class="mag-l">' + l.map(function(e){
+      var f = ficheDe(e.pid), apres = typeof e.n === 'number' ? qTxt(e.n, e.u, f) : 'case vidée';
+      return '<li>' + esc(quiQuand({at:e.at}) + ' · ' + nomProduit(e.pid) + ' : ' + apres + (typeof e.an === 'number' ? ' (avant : ' + qTxt(e.an, e.au, f) + ')' : '')) + '</li>';
+    }).join('') + '</ul>';
+  });
+  return h + '<p class="hint">Le prénom est celui que la personne a donné en ouvrant la page du magasin : il n\'est pas vérifié.</p></div>';
+}
 function rangJour(js){
   var r = 9;
   js.forEach(function(j){ var i = j === 'au choix' ? 7 : JOURS.indexOf(j); if(i >= 0 && i < r) r = i; });
@@ -1874,6 +1996,7 @@ function renderSemaine(){
     $('#semList').innerHTML = '<p class="empty">' + (refCharge ? 'Chargement…' : 'Impossible de charger les produits. Vérifie la connexion.') + '</p>';
     return;
   }
+  magSuivre();
   var pc = PC.matches;
   // Téléphone : ne pas redessiner pendant une saisie, on le fera en quittant la case.
   // Ordinateur (grille) : on redessine, puis on remet le curseur dans la même case, avec ce qui y était tapé.
@@ -1987,9 +2110,10 @@ function stockHtml(prods, calc, cr){
   var h = '';
   stocks().forEach(function(x){
     var livs = cr.filter(function(c){ return c.circuit === x.id; }), der = null, n = 0;
-    prods.forEach(function(p){ var q = semLire('stock/' + p.id + '/' + x.id); if(q){ n++; if(q.at && (!der || q.at > der.at)) der = q; } });
+    prods.forEach(function(p){ var q = stockVu(p.id, x.id); if(q){ n++; if(q.at && (!der || q.at > der.at)) der = q; } });
     h += '<section class="stk-bloc" data-d="' + esc(x.id) + '"><h2 class="db-h">Stock chez ' + esc(x.nom) + '</h2>' +
       '<p class="hint">Ce qui reste au magasin, produit par produit, dans l\'unité de son choix. C\'est une information : le stock n\'entre ni dans le disponible ni dans le reste. Il s\'affiche aussi dans la page « Répartir » et le tableau, juste avant les livraisons ' + esc(x.nom) + '.</p>' +
+      '<p class="hint">Le magasin peut aussi le remplir lui-même, avec son compte, sur sa page : <b>' + esc(adresseMagasin()) + '</b>. La dernière saisie l\'emporte, de la ferme ou du magasin ; « (magasin) » suit le prénom donné au magasin.</p>' +
       '<p class="sp-by">' + n + ' produit' + (n > 1 ? 's' : '') + ' sur ' + prods.length + ' renseigné' + (n > 1 ? 's' : '') + (der ? ' · dernière saisie : ' + esc(quiQuand(der)) : '') + '</p><div class="stk-list">';
     prods.forEach(function(p){
       var f = p.f, r = calc[p.id];
@@ -1998,10 +2122,14 @@ function stockHtml(prods, calc, cr){
         var q = semLire('q/' + p.id + '/' + c.id); return q ? (c.court || c.nom) + ' ' + qCourt(q, f) : '';
       }).filter(Boolean);
       h += '<div class="card stk-l" data-pid="' + esc(p.id) + '">' +
-        ligneHtml(p.id, f, 'stock/' + x.id, esc(f.nom) + ' <small>' + esc(colisTxt(f)) + '</small>', semLire('stock/' + p.id + '/' + x.id),
-          {cls:'stock', aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?', note: livs.length ? (prevu.length ? 'Prévu cette semaine : ' + prevu.join(', ') : 'Rien de prévu cette semaine') : ''}) + '</div>';
+        ligneHtml(p.id, f, 'stock/' + x.id, esc(f.nom) + ' <small>' + esc(colisTxt(f)) + '</small>', stockVu(p.id, x.id),
+          {cls:'stock', aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?', note:[livs.length ? (prevu.length ? 'Prévu cette semaine : ' + prevu.join(', ') : 'Rien de prévu cette semaine') : '', stockVu(p.id, x.id) ? '' : avantTxt(p.id, f, x.id)].filter(Boolean).join(' · ')}) + '</div>';
     });
-    h += '</div></section>';
+    h += '</div>';
+    // Produits comptés par le magasin mais absents de la semaine : montrés à part, pour ne rien perdre.
+    var ids = prods.map(function(p){ return p.id; }), hors = Object.keys(mag.w === sem.id && mag.d[x.id] || {}).filter(function(pid){ return ids.indexOf(pid) < 0 && stockMag(pid, x.id); });
+    if(hors.length) h += '<p class="hint mag-hors"><b>Compté par le magasin, pas dans la semaine :</b> ' + esc(hors.map(function(pid){ var m = stockMag(pid, x.id); return nomProduit(pid) + ' ' + qTxt(m.n, m.u, ficheDe(pid)) + ' (' + quiQuand(m) + ')'; }).join(' ; ')) + '</p>';
+    h += journalHtml(x) + '</section>';
   });
   return h;
 }
@@ -2015,7 +2143,7 @@ function caseHtml(pid, f, k, q, opts){
   var titre = opts.titre || (q ? [qTxt(q.n, u, f), equiv(q, f), quiQuand(q)].filter(Boolean).join(' · ') : '');
   var us = unitesDe(f);
   return '<input type="text" class="g-in' + (semErr[cle] ? ' err' : '') + (opts.auto ? ' auto' : '') + (opts.tout ? ' tout' : '') + '" data-cell="' + esc(cle) + '" data-pid="' + esc(pid) + '" data-k="' + esc(k) + '"' +
-    ' value="' + esc(val) + '" title="' + esc(titre) + '" aria-label="' + esc(opts.aria || '') + '" autocomplete="off" spellcheck="false">' +
+    ' value="' + esc(val) + '"' + (opts.ph ? ' placeholder="' + esc(opts.ph) + '"' : '') + ' title="' + esc(titre) + '" aria-label="' + esc(opts.aria || '') + '" autocomplete="off" spellcheck="false">' +
     (opts.tout ? '' : '<select class="g-u" data-a="unite-g" data-cell="' + esc(cle) + '" data-pid="' + esc(pid) + '" data-k="' + esc(k) + '" tabindex="-1"' + (us.length < 2 ? ' disabled' : '') +
       ' aria-label="' + esc('Unité, ' + (opts.aria || '')) + '">' + us.map(function(x){ return '<option value="' + x + '"' + (x === u ? ' selected' : '') + '>' + esc(nomUnite(x, f, 2)) + '</option>'; }).join('') + '</select>');
 }
@@ -2035,7 +2163,10 @@ function grilleHtml(prods, calc, cr){
       '<td class="g-dispo">' + caseHtml(pid, f, 'dispo', semLire('dispo/' + pid), {aria:'Disponible, ' + f.nom}) + '</td>';
     cols.forEach(function(o){
       var c = o.c, x = o.s;
-      if(x){ h += '<td class="g-stk">' + caseHtml(pid, f, 'stock/' + x.id, semLire('stock/' + pid + '/' + x.id), {aria:'Stock chez ' + x.nom + ', ' + f.nom}) + '</td>'; return; }
+      if(x){
+        var qs = stockVu(pid, x.id), av = qs ? null : stockAvant(pid, x.id);
+        h += '<td class="g-stk">' + caseHtml(pid, f, 'stock/' + x.id, qs, {aria:'Stock chez ' + x.nom + ', ' + f.nom, ph: av ? '(' + qCourt(av, f) + ')' : '', titre: av ? avantTxt(pid, f, x.id) : ''}) + '</td>'; return;
+      }
       var tout = r.toutC === c.id;
       h += '<td>' + caseHtml(pid, f, 'q/' + c.id, tout ? null : semLire('q/' + pid + '/' + c.id), {tout:tout, aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom,
         titre: tout ? 'Tout ce qui reste' + (r.toutV !== null ? ' : ' + deux(r.toutV, f) : '') : ''}) + '</td>';
@@ -2082,7 +2213,7 @@ function carteHtml(pid, f, r, cr){
   var d = semLire('dispo/' + pid);
   resume.push('Dispo ' + (d ? qCourt(d, f) : '—'));
   var st = stocks();
-  st.forEach(function(x){ var q = semLire('stock/' + pid + '/' + x.id); if(q) resume.push('Stock ' + x.nom + ' ' + qCourt(q, f)); });
+  st.forEach(function(x){ var q = stockVu(pid, x.id); if(q) resume.push('Stock ' + x.nom + ' ' + qCourt(q, f)); });
   cr.forEach(function(c){
     if(r.toutC === c.id){ resume.push((c.court || c.nom) + ' tout'); return; }
     var q = semLire('q/' + pid + '/' + c.id);
@@ -2098,7 +2229,7 @@ function carteHtml(pid, f, r, cr){
   colonnes(cr, st).forEach(function(o){
     var c = o.c, x = o.s;
     if(x){
-      h += ligneHtml(pid, f, 'stock/' + x.id, 'Stock chez ' + esc(x.nom) + ' <small>au magasin, hors du reste</small>', semLire('stock/' + pid + '/' + x.id), {cls:'stock', aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?'});
+      h += ligneHtml(pid, f, 'stock/' + x.id, 'Stock chez ' + esc(x.nom) + ' <small>au magasin, hors du reste</small>', stockVu(pid, x.id), {cls:'stock', aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?', note: stockVu(pid, x.id) ? '' : avantTxt(pid, f, x.id)});
       return;
     }
     var nom = esc(c.nom) + (c.jour ? ' <small>' + esc(c.jour) + '</small>' : '');
@@ -2146,7 +2277,7 @@ function tableHtml(prods, calc, cr){
     var r = calc[p.id], f = p.f, d = semLire('dispo/' + p.id);
     h += '<tr data-pid="' + esc(p.id) + '"><td>' + esc(f.nom) + '</td><td>' + (d ? esc(qCourt(d, f)) : '') + '</td>' + cols.map(function(o){
       var c = o.c;
-      if(o.s){ var qs = semLire('stock/' + p.id + '/' + o.s.id); return '<td class="stk">' + (qs ? esc(qCourt(qs, f)) : '') + '</td>'; }
+      if(o.s){ var qs = stockVu(p.id, o.s.id); return '<td class="stk">' + (qs ? esc(qCourt(qs, f)) : '') + '</td>'; }
       if(r.toutC === c.id) return '<td>tout</td>';
       var q = semLire('q/' + p.id + '/' + c.id); return '<td>' + (q ? esc(qCourt(q, f)) : '') + '</td>';
     }).join('') + '<td class="r-' + r.etat + '">' + (r.reste === null ? (r.etat === 'place' ? '0' : '') : esc(deux(r.reste, f))) + '</td>' + reports.map(function(c){
@@ -2161,6 +2292,7 @@ function tableHtml(prods, calc, cr){
 /* ---------- Gestes de l'onglet Semaine ---------- */
 function cible(pid, k){ return k === 'dispo' ? 'dispo/' + pid : k.split('/')[0] + '/' + pid + '/' + k.split('/')[1]; }
 function valeurCase(pid, f, k){
+  if(k.indexOf('stock/') === 0) return stockVu(pid, k.split('/')[1]);
   var q = semLire(cible(pid, k));
   if(q || k.indexOf('report/') !== 0) return q;
   var s = creneaux().filter(function(c){ return c.id === k.split('/')[1]; })[0];
@@ -2197,6 +2329,7 @@ $('#semView').addEventListener('click', function(e){
   if(a === 'retirer-jour'){ retirerJour(b.dataset.date); return; }
   if(a === 'debouches'){ ui.view = 'reglages'; if(b.dataset.reg) ui.regPage = b.dataset.reg; saveUi(); render(); scrollTo(0, 0); return; }
   if(a === 'reprendre'){ avecNom(reprendre); return; }
+  if(a === 'journal'){ magJournal(b.dataset.d); return; }
   if(a === 'propose' || !f) return;
   var cle = pid + '|' + k;
   delete semErr[cle];
@@ -2255,7 +2388,7 @@ $('#semView').addEventListener('change', function(e){
     return;
   }
   if(inp.tagName !== 'INPUT') return;
-  var k = inp.dataset.k || inp.closest('.sr').dataset.k, cle = pid + '|' + k, q = semLire(cible(pid, k));
+  var k = inp.dataset.k || inp.closest('.sr').dataset.k, cle = pid + '|' + k, q = k.indexOf('stock/') === 0 ? stockVu(pid, k.split('/')[1]) : semLire(cible(pid, k));
   // Un nombre seul est dans l'unité affichée à côté de la case (menu de la grille, bouton du téléphone).
   var u = q ? (q.u || 'colis') : (semUnite[cle] || uniteParDefaut(pid, f));
   var v = lireSaisie(inp.value, f, u), slot = k.indexOf('q/') === 0 ? k.split('/')[1] : null, t = semLire('tout/' + pid);
@@ -2271,7 +2404,8 @@ $('#semView').addEventListener('change', function(e){
     }
     if(v.vide){
       if(slot && t && t.c === slot) ch['tout/' + pid] = null;
-      if(q) ch[cible(pid, k)] = null;
+      // Stock : vider une case que le magasin a remplie laisse une trace datée, sinon sa saisie reviendrait.
+      if(q) ch[cible(pid, k)] = k.indexOf('stock/') === 0 && stockMag(pid, k.split('/')[1]) ? signe({vide:true}) : null;
       return Object.keys(ch).length ? semEcrire(ch) : render();
     }
     poser(pid, k, signe({n:v.n, u:v.u}));
@@ -2819,7 +2953,7 @@ function verifier(){
     if(compte && compte.jeton !== avant){ relancerTout(true); return; }
     if(!dbPret()) return;
     if(lid && es && es.readyState === 2) ouvrir();
-    flush(); semRelancer(); debRelancer();
+    flush(); semRelancer(); debRelancer(); magRelancer(false);
     if(!enLigne && navigator.onLine) sonder();
   }, function(){ enLigne = false; majStatut(); });
 }
@@ -2840,6 +2974,7 @@ function relancerTout(tous){
   if(lid) ouvrir();
   if(sem.id && (tous || !sem.es || sem.es.readyState === 2)){ if(sem.es) sem.es.close(); sem.es = null; semConnecter(); }
   if(refCharge && (tous || !deb.es || deb.es.readyState === 2)){ if(deb.es) deb.es.close(); deb.es = null; debConnecter(); }
+  magRelancer(tous);
   flush(); semFlush(); debFlush();
 }
 // Un flux de la base (liste, semaine ou débouchés) a répondu : la pastille passe à « Partagé ».
@@ -3004,6 +3139,7 @@ function perdreCompte(msg){
   if(es){ es.close(); es = null; }
   if(sem.es){ sem.es.close(); sem.es = null; }
   if(deb.es){ deb.es.close(); deb.es = null; }
+  magFermer();
   enLigne = false; refuse = false; lance = false;
   majStatut(); render();
   demanderCompte(apresConnexion);

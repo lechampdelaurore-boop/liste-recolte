@@ -4,6 +4,9 @@
 // Option { comptes: { cle } } (étape 5) : imite aussi Firebase Authentication (connexion par identifiant et mot de
 // passe, renouvellement du jeton) et les règles de docs/regles-base/fermees.json : sans jeton valable, ou sans
 // profil « ferme » sous profils/<uid>, la base répond 401 ; un jeton expiré ferme les flux par « auth_revoked ».
+// Étape 13C : chacun lit son propre profil ; la ferme lit magasins ; le profil « magasin:<débouché> » lit et écrit
+// magasins/<débouché>/semaines et personnes, et ajoute au journal sans rien y réécrire (une écriture PATCH est
+// vérifiée chemin par chemin, comme la vraie base). Les validations de forme ne sont essayées que par tests/regles.cjs.
 const http = require('http');
 const crypto = require('crypto');
 
@@ -20,16 +23,32 @@ module.exports = function fauxFirebase(port, options = {}) {
   const json = (r, code, v) => { r.writeHead(code, { 'Content-Type': 'application/json' }); r.end(JSON.stringify(v)); };
   const lireCorps = (q) => new Promise((ok) => { let c = ''; q.on('data', (d) => (c += d)); q.on('end', () => ok(c)); });
   // Authentification : renvoie null si l'accès est permis, sinon le message d'erreur de la base.
-  const refus = (url, p) => {
+  const permis = (uid, m, p) => {
+    const profil = root.profils && root.profils[uid];
+    if (p[0] === 'listes') return profil === 'ferme';
+    if (serveur.reglesAvant13C) return false; // règles de l'étape 5 seules (avant la publication des nouvelles)
+    if (p[0] === 'profils') return m === 'GET' && p.length === 2 && p[1] === uid;
+    if (p[0] !== 'magasins') return false;
+    if (m === 'GET' && profil === 'ferme') return true;
+    if (!p[1] || profil !== 'magasin:' + p[1]) return false;
+    if (p[2] === 'semaines') return m === 'GET' ? p.length >= 3 : p.length === 5;
+    if (p[2] === 'personnes') return m === 'GET' ? p.length >= 3 : p.length === 4 && m !== 'DELETE';
+    if (p[2] === 'journal') return m !== 'GET' && p.length === 5 && lire(p) === null;
+    return false;
+  };
+  const refus = (url, p, m, corps) => {
     if (!opt) return null;
     const j = url.searchParams.get('auth'), t = j && jetons[j];
     const etat = !j ? 'aucun' : !t ? 'faux' : t.fin <= Date.now() ? 'expire' : 'ok';
-    journal.push({ p: p.join('/'), auth: etat });
+    journal.push({ m, p: p.join('/'), auth: etat });
     if (etat === 'expire') return 'Auth token is expired';
     if (etat === 'faux') return 'Could not parse auth token.';
     if (etat === 'aucun') return 'Permission denied';
-    const profil = root.profils && root.profils[t.uid];
-    return p[0] === 'listes' && profil === 'ferme' ? null : 'Permission denied';
+    if (m === 'PATCH') {
+      const v = JSON.parse(corps || '{}');
+      return Object.keys(v).every((k) => permis(t.uid, v[k] === null ? 'DELETE' : 'PUT', p.concat(k.split('/').filter(Boolean)))) ? null : 'Permission denied';
+    }
+    return permis(t.uid, m, p) ? null : 'Permission denied';
   };
   const lire = (p) => { let o = root; for (const k of p) { if (o == null) return null; o = o[k]; } return o === undefined ? null : o; };
   const ecrire = (p, v) => {
@@ -62,8 +81,9 @@ module.exports = function fauxFirebase(port, options = {}) {
       return json(r, 404, { error: { message: 'NOT_FOUND' } });
     }
     const p = q.url.replace(/\.json.*$/, '').split('/').filter(Boolean);
-    const non = refus(url, p);
-    if (non) { if (q.method !== 'GET') await lireCorps(q); return json(r, 401, { error: non }); }
+    const corpsLu = q.method === 'GET' ? '' : await lireCorps(q);
+    const non = refus(url, p, q.method, corpsLu);
+    if (non) return json(r, 401, { error: non });
     if (q.method === 'GET' && !String(q.headers.accept || '').includes('text/event-stream')) {
       r.writeHead(200, { 'Content-Type': 'application/json' });
       return r.end(JSON.stringify(lire(p)));
@@ -75,15 +95,20 @@ module.exports = function fauxFirebase(port, options = {}) {
       q.on('close', () => abonnes.splice(abonnes.indexOf(a), 1));
       return;
     }
-    let corps = '';
-    q.on('data', (d) => (corps += d));
-    q.on('end', () => {
-      const v = q.method === 'DELETE' ? null : JSON.parse(corps);
+    {
+      const v = q.method === 'DELETE' ? null : JSON.parse(corpsLu);
       if (q.method === 'PATCH') {
         for (const [k, x] of Object.entries(v)) ecrire(p.concat(k.split('/').filter(Boolean)), x);
         for (const s of abonnes) {
           if (p.join('/').startsWith(s.p.join('/'))) {
             s.r.write('event: patch\ndata: ' + JSON.stringify({ path: '/' + p.slice(s.p.length).join('/'), data: v }) + '\n\n');
+          } else {
+            // Écriture plus haut que le flux (PATCH sur magasins/<débouché> qui touche semaines/<lundi>/…) : la vraie
+            // base prévient aussi le flux, pour chaque chemin qui tombe dedans.
+            for (const [k, x] of Object.entries(v)) {
+              const plein = p.concat(k.split('/').filter(Boolean));
+              if (plein.slice(0, s.p.length).join('/') === s.p.join('/')) s.r.write('event: put\ndata: ' + JSON.stringify({ path: '/' + plein.slice(s.p.length).join('/'), data: x }) + '\n\n');
+            }
           }
         }
         return r.end(JSON.stringify(v));
@@ -95,7 +120,7 @@ module.exports = function fauxFirebase(port, options = {}) {
         }
       }
       r.end(JSON.stringify(v));
-    });
+    }
   });
   serveur.couperFlux = () => { for (const a of abonnes.splice(0)) a.r.destroy(); };
   // Comptes (option comptes) : créer, donner un profil, faire expirer tous les jetons, supprimer.
