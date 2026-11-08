@@ -1,6 +1,6 @@
 {
  "source": "Débouchés et livraisons de départ de l'onglet « Semaine », d'après les débouchés et jours de livraison donnés par François le 06/11/2026 (docs/debouches.md). Ils se modifient dans l'appli (onglet Semaine, bouton « Débouchés et livraisons », étape 13B) ; dès la première modification, la base garde sa propre fiche (listes/reglages/debouches) et ce fichier ne sert plus. Une autre ferme met ici ses propres débouchés.",
- "aide": "id : identifiant fixe du débouché (lettres, chiffres, tirets), repris comme circuit de la liste de récolte. nom : affiché. colis : 'plastique' (caisses PB, PH, GB, GH), 'bois' (petit, moyen, grand colis bois) ou '' (non précisé). note : remarque libre. livraisons : une par créneau de la semaine (colonne de la grille), avec son id fixe, ses jours (un seul jour, plusieurs jours = « l'un ou l'autre selon la semaine », ou 'au choix'), un moment facultatif (soir…), un nom s'il diffère de celui du débouché, un nom court (en-tête du tableau), et reprend : seconde livraison du même débouché, le reste de la première lui est proposé.",
+ "aide": "id : identifiant fixe du débouché (lettres, chiffres, tirets), repris comme circuit de la liste de récolte. nom : affiché. colis : 'plastique' (caisses PB, PH, GB, GH), 'bois' (petit, moyen, grand colis bois) ou '' (non précisé). note : remarque libre. livraisons : une par créneau de la semaine (colonne de la grille), avec son id fixe, ses jours (un seul jour, plusieurs jours = « l'un ou l'autre selon la semaine », ou 'au choix'), un moment facultatif (soir…), un nom s'il diffère de celui du débouché, un nom court (en-tête du tableau), et reprend : seconde livraison du même débouché, le reste de la première lui est proposé. recoltes : jours de récolte ; pour chacun, les livraisons (id) qu'on récolte ce jour-là ; une livraison n'est récoltée qu'un jour.",
  "debouches": [
   {"id": "ta", "nom": "Très Allier", "colis": "plastique", "note": "Magasin, prioritaire.", "livraisons": [
    {"id": "ta-mar", "jours": ["mardi"], "court": "TA mar"},
@@ -25,5 +25,10 @@
   {"id": "el", "nom": "Élie", "colis": "", "note": "Client individuel.", "livraisons": [
    {"id": "el", "jours": ["au choix"], "court": "Élie"}
   ]}
+ ],
+ "recoltes_source": "Jours de récolte d'après l'exemple de François du 08/11/2026 : le lundi, Très Allier du mardi et Panier La Magic ; le mercredi, Panier adéquat, Locavore, Très Allier du jeudi, Auvabio 03 et 63, marché de Tronget. Élie n'a pas de jour de récolte (n'importe quel jour).",
+ "recoltes": [
+  {"id": "lun", "jour": "lundi", "livraisons": ["ta-mar", "lm"]},
+  {"id": "mer", "jour": "mercredi", "livraisons": ["ps", "lv", "ta-jeu", "av03", "av63", "mk"]}
  ]
 }

@@ -74,7 +74,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   const livr = (d, l) => `${fiche(d)} .dl[data-l="${l}"]`;
   const jour = (d, l, j) => `${livr(d, l)} input[data-j="${j}"]`;
   const jours = (p, d, l) => p.$$eval(`${livr(d, l)} input[data-j]:checked`, (e) => e.map((x) => x.dataset.j));
-  const noms = (p) => p.$$eval('#debView .db-list section.db', (e) => e.map((x) => x.querySelector('[data-f="nom"]').value));
+  const noms = (p) => p.$$eval('#debView .db-list section.db[data-d]', (e) => e.map((x) => x.querySelector('[data-f="nom"]').value));
   const enTete = (p) => p.$$eval('#semTable thead th', (e) => e.map((x) => x.textContent.trim()));
   const reglages = () => base.lire('listes/reglages/debouches');
   const debDe = (id) => (reglages().debouches || []).filter((d) => d.id === id)[0];
@@ -227,7 +227,42 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await A.waitForFunction(() => document.querySelector('#sync').textContent.includes('Partagé'), null, { timeout: 20000 });
   verifie(debDe('el').note === 'Client individuel, commande par téléphone.', 'au retour du réseau, la remarque arrive dans la base');
 
-  // 12. Rechargement, retour à la semaine, rien d'autre de touché
+  // 12. Jours de récolte (demande de François du 8/11) : quelles livraisons on récolte chaque jour
+  const rj = (r) => `#debView section.rj[data-r="${r}"]`;
+  const coches = (p, r) => p.$$eval(`${rj(r)} input[data-rf="liv"]:checked`, (e) => e.map((x) => x.dataset.c));
+  const rec = () => (reglages().recoltes || []).map((r) => r.jour + ':' + (r.livraisons || []).join(','));
+  verifie((await A.inputValue(`${rj('lun')} select[data-rf="jour"]`)) === 'lundi' && (await coches(A, 'lun')).join() === 'ta-mar,lm', 'jour de récolte du lundi repris de l\'exemple de François : Très Allier mardi et Panier La Magic');
+  verifie((await coches(A, 'mer')).sort().join() === 'av03,av63,lv,mk,ps,ta-jeu', 'mercredi : Panier adéquat, Locavore, Très Allier jeudi, Auvabio 03 et 63, marché de Tronget');
+  verifie((await A.textContent('#debView .rj-sans')).includes('Élie au choix') && (await A.textContent('#debView .rj-sans')).includes('Ferme Deschamps mercredi'), 'les livraisons sans jour de récolte sont signalées (Élie, Ferme Deschamps)');
+  await A.click(`${rj('lun')} input[data-c="ferme-deschamps"]`);
+  await attendre(A);
+  verifie(rec().join(' ; ') === 'lundi:ta-mar,lm,ferme-deschamps ; mercredi:ps,lv,ta-jeu,av03,av63,mk', 'Ferme Deschamps mercredi cochée au lundi : enregistré dans la base (obtenu ' + rec().join(' ; ') + ')');
+  verifie((await A.textContent(`${rj('mer')} input[data-c="ferme-deschamps"] + span`)).includes('(récoltée le lundi)'), 'au mercredi, elle est marquée « récoltée le lundi »');
+  await A.click(`${rj('mer')} input[data-c="ferme-deschamps"]`);
+  await attendre(A);
+  verifie(rec().join(' ; ') === 'lundi:ta-mar,lm ; mercredi:ps,lv,ta-jeu,av03,av63,mk,ferme-deschamps', 'la cocher au mercredi la retire du lundi : une livraison n\'est récoltée qu\'un jour');
+  await A.click('#debView [data-a="ajouterR"]');
+  await attendre(A);
+  verifie(rec().length === 3 && (await A.inputValue(`${rj('mar')} select[data-rf="jour"]`)) === 'mardi', '« Ajouter un jour de récolte » : un mardi, vide');
+  await A.selectOption(`${rj('mar')} select[data-rf="jour"]`, 'vendredi');
+  await attendre(A, 300);
+  await A.click(`${rj('mar')} input[data-c="ta-mar"]`);
+  await attendre(A);
+  verifie((await A.textContent(rj('mar'))).includes('Récoltée après sa livraison : Très Allier mardi'), 'Très Allier mardi récolté le vendredi : signalé « récoltée après sa livraison »');
+  await A.click(`${rj('mar')} [data-a="retirerR"]`);
+  await attendre(A);
+  verifie(rec().join(' ; ') === 'lundi:lm ; mercredi:ps,lv,ta-jeu,av03,av63,mk,ferme-deschamps' && (await A.textContent('#debView .rj-sans')).includes('Très Allier mardi'), 'jour de récolte retiré : Très Allier mardi n\'a plus de jour de récolte, c\'est signalé');
+  await A.click(`${rj('lun')} input[data-c="ta-mar"]`);
+  await attendre(A);
+  // Dans la semaine : ce qu'il y a à récolter chaque jour
+  await attendre(B);
+  const jourRec = (r) => `#semRecList .rc-jour[data-r="${r}"]`;
+  verifie(await B.isVisible('#semRec') && (await B.textContent(jourRec('mer') + ' h3')).startsWith('Mercredi'), 'l\'onglet Semaine montre « À récolter, jour par jour »');
+  const betteMer = await B.textContent(jourRec('mer') + ' li[data-pid="bette"]');
+  verifie(betteMer.includes('Bette') && betteMer.includes('3 GH (15 kg)') && betteMer.includes('Locavore 2') && betteMer.includes('Ferme Deschamps 1'), 'mercredi : bette 3 GH (15 kg), soit Locavore 2 et Ferme Deschamps 1 (obtenu « ' + betteMer + ' »)');
+  verifie((await B.textContent(jourRec('lun'))).includes('Rien à récolter.'), 'lundi : rien à récolter (aucune quantité pour Très Allier mardi ni La Magic)');
+
+  // 13. Rechargement, retour à la semaine, rien d'autre de touché
   await A.reload(); await A.waitForSelector('#debView section.db');
   verifie((await A.inputValue(`${fiche('el')} [data-f="note"]`)) === 'Client individuel, commande par téléphone.' && (await jours(A, 'lv', 'lv')).join() === 'jeudi', 'après rechargement : écran des débouchés et modifications gardés');
   await A.click('[data-a="retour"]');
