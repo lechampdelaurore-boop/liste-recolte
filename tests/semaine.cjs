@@ -50,7 +50,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
     const p = await ctx.newPage();
     p.on('pageerror', (e) => erreurs.push(nom + ' : ' + e.message));
     p.on('dialog', (d) => d.accept());
-    await p.goto(`http://localhost:${PORT_SITE}/`);
+    await p.goto(`http://localhost:${PORT_SITE}/?liste=2026-11-04`);
     await p.waitForSelector('li.item');
     return { p, ctx };
   };
@@ -171,9 +171,9 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   verifie(sommaire === '4 produits, 2 placés, 0 à placer, 1 en manque, 1 à remplir', 'le haut de l\'onglet compte les produits placés, à placer, en manque (obtenu « ' + sommaire + ' »)');
   await capture(B, '2-semaine-repartie');
 
-  // 9. Tableau de la semaine (page « Tableau » de l'onglet Semaine)
-  await B.click('[data-sem="tableau"]');
-  verifie(await B.isVisible('#semTable') && !(await B.isVisible('#semList')) && (await B.isVisible('#semNav')), 'page « Tableau » : le tableau à la place des fiches, le choix de la semaine reste en haut');
+  // 9. Cumul de la semaine (page « Cumul » de l'onglet Semaine, ex-« Tableau », renommée le 8/11)
+  await B.click('[data-sem="cumul"]');
+  verifie(await B.isVisible('#semTable') && !(await B.isVisible('#semList')) && (await B.isVisible('#semNav')) && (await B.textContent('[data-sem="cumul"]')) === 'Cumul', 'page « Cumul » : le tableau du cumul à la place des fiches, le choix de la semaine reste en haut, le bouton s\'appelle « Cumul »');
   const enTetes = await B.$$eval('#semTable th', (e) => e.map((x) => x.textContent));
   verifie(enTetes.join('|') === 'Produit|Dispo|Stock Très Allier|TA mar|La Magic|Panier adéq.|Locavore|TA jeu|Auvabio 03|Auvabio 63|Marché ven|Élie|Reste|Reste Auvabio 03 → Auvabio 63', 'le tableau a le stock chez Très Allier, une colonne par créneau, le reste, puis le reste 03 → 63 à part (obtenu ' + enTetes.join('|') + ')');
   const rangBette = await B.$$eval('#semTable tr[data-pid="bette"] td', (e) => e.map((x) => x.textContent));
@@ -231,7 +231,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await ctxC.addInitScript(() => localStorage.setItem('recolte.qui', JSON.stringify('Martin')));
   const C = await ctxC.newPage();
   C.on('pageerror', (e) => erreurs.push('Martin (PC) : ' + e.message));
-  await C.goto(`http://localhost:${PORT_SITE}/`);
+  await C.goto(`http://localhost:${PORT_SITE}/?liste=2026-11-04`);
   await C.waitForSelector('li.item');
   await C.click('[data-view="semaine"]');
   await C.waitForSelector('#semGrid tbody tr');
@@ -239,7 +239,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   const valeur = (p, pid, k) => p.inputValue(cellule(pid, k));
   const resteG = (p, pid) => p.textContent(`#semGrid tr[data-pid="${pid}"] .g-reste`);
   const focusG = (p) => p.evaluate(() => { const a = document.activeElement; return a && a.dataset.cell ? a.dataset.cell : ''; });
-  verifie(await C.isVisible('#semGrid') && !(await C.isVisible('#semList')) && !(await C.isVisible('#semTab')) && !(await C.isVisible('[data-sem="tableau"]')), 'sur ordinateur, l\'onglet Semaine montre la grille à la place des fiches et du tableau du téléphone (pas de page « Tableau »)');
+  verifie(await C.isVisible('#semGrid') && !(await C.isVisible('#semList')) && !(await C.isVisible('#semTab')) && !(await C.isVisible('[data-sem="cumul"]')), 'sur ordinateur, l\'onglet Semaine montre la grille à la place des fiches et du tableau du téléphone (pas de page « Cumul »)');
   const tC = await tailles(C);
   verifie(tC.every((x) => x === tC[0]), 'ordinateur : les onglets gardent leur place et leur taille d\'une page à l\'autre, grille large comprise (' + tC[0] + ')');
   verifie(await C.evaluate(() => document.querySelector('#tabs').getBoundingClientRect().top < 100), 'ordinateur : les onglets sont en haut');

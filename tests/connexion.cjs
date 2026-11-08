@@ -51,7 +51,7 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
     const p = await ctx.newPage();
     p.on('pageerror', (e) => erreurs.push(nom + ' : ' + e.message));
     p.on('dialog', (d) => d.accept());
-    await p.goto(`http://localhost:${PORT_SITE}/`);
+    await p.goto(`http://localhost:${PORT_SITE}/?liste=2026-11-04`);
     await p.waitForSelector('li.item');
     return { p, ctx };
   };

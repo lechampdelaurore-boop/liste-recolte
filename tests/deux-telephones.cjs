@@ -44,7 +44,7 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
     await ctx.addInitScript((n) => localStorage.setItem('recolte.qui', JSON.stringify(n)), nom);
     // Pour vérifier que le réglage MONTRER_DETAIL remet l'onglet Détail, on sert la page avec le réglage à true.
     if (montrerDetail) {
-      await ctx.route(`http://localhost:${PORT_SITE}/`, async (r) => {
+      await ctx.route(`http://localhost:${PORT_SITE}/?liste=2026-11-04`, async (r) => {
         const rep = await r.fetch();
         const html = (await rep.text()).replace('var MONTRER_DETAIL = false;', 'var MONTRER_DETAIL = true;');
         r.fulfill({ response: rep, body: html });
@@ -52,7 +52,7 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
     }
     const p = await ctx.newPage();
     p.on('pageerror', (e) => erreurs.push(nom + ' : ' + e.message));
-    await p.goto(`http://localhost:${PORT_SITE}/`);
+    await p.goto(`http://localhost:${PORT_SITE}/?liste=2026-11-04`);
     await p.waitForSelector('li.item');
     return { p, ctx };
   };
@@ -309,7 +309,7 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   await ctxD.addInitScript(() => localStorage.setItem('recolte.qui', JSON.stringify('Martin')));
   const D = await ctxD.newPage();
   D.on('pageerror', (e) => erreurs.push('Martin : ' + e.message));
-  await D.goto(`http://localhost:${PORT_SITE}/`);
+  await D.goto(`http://localhost:${PORT_SITE}/?liste=2026-11-04`);
   await D.waitForSelector('li.item');
   await D.evaluate(() => navigator.serviceWorker.ready);
   await D.evaluate(async () => {

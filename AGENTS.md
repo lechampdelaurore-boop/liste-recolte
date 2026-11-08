@@ -28,8 +28,9 @@ Appli web statique « Liste de récolte » du Champ de l'Aurore (GAEC, Tronget, 
 - Ne jamais réduire un outil au seul cas de cette ferme : elle sert d'exemple et d'essai, pas de limite.
 - Ne jamais donner l'adresse `*.github.io` de ce compte : elle ouvre l'appli d'un autre membre de la famille sur les téléphones. Seule adresse à donner : https://liste-recolte.pages.dev. Rien de la ferme dans un autre dépôt que celui-ci.
 
-## Ajouter la liste de la semaine
+## La liste de la semaine
 
+- **Depuis l'étape 13D (08/11/2026), plus de fichier de liste chaque semaine** : la liste de chaque jour de récolte est calculée par l'appli depuis l'onglet Semaine (cumul et jours de récolte), sans PR. Ne plus créer de `listes/AAAA-MM-JJ.json` sauf demande expresse de François : un fichier l'emporterait sur la liste calculée de sa date. Ce qui suit vaut pour les anciennes listes en fichier.
 - Suivre `docs/format-liste.md`. Créer `listes/AAAA-MM-JJ.json`, puis mettre à jour `listes/actuelle.json`, **dans une PR** (pas d'envoi direct sur `main`, décision du 3/11/2026). La PR se fusionne une fois le test vert.
 - Caisse et conditionnement : les prendre dans `referentiel/conditionnements.json`. Un produit absent : demander à François, puis l'ajouter au référentiel.
 - Ne jamais inventer une quantité, un conditionnement, un emplacement ou un regroupement : s'il manque, poser **une seule** question à François.
@@ -44,7 +45,7 @@ Appli web statique « Liste de récolte » du Champ de l'Aurore (GAEC, Tronget, 
 - Tout tient dans `index.html`, sans bibliothèque ni étape de construction. Garder ça.
 - Après toute modification de `index.html`, `config.js` ou des icônes : changer `CACHE` dans `sw.js`. (Pas besoin pour `cle-web.js` : le site le reprend par le réseau.)
 - Base fermée par des comptes (étape 5) : tout appel à la base passe par `dbFetch` ou `dbUrl` (jeton du compte) dans `index.html`, jamais par `fetch(DB + …)`. Règles dans `docs/regles-base/` ; seul François les colle dans la console.
-- Lancer `node tests/deux-telephones.cjs`, `node tests/semaine.cjs`, `node tests/debouches.cjs` et `node tests/connexion.cjs` avant d'ouvrir la PR (et `node tests/regles.cjs`, avec l'émulateur Firebase, si les règles ou la connexion changent) et coller la sortie réelle dans la PR. Mettre à jour le test et `README.md` si le comportement change. Un contrôle omis l'est avec sa raison.
+- Lancer `node tests/deux-telephones.cjs`, `node tests/semaine.cjs`, `node tests/debouches.cjs`, `node tests/connexion.cjs` et `node tests/listes-calculees.cjs` avant d'ouvrir la PR (et `node tests/regles.cjs`, avec l'émulateur Firebase, si les règles ou la connexion changent) et coller la sortie réelle dans la PR. Mettre à jour le test et `README.md` si le comportement change. Un contrôle omis l'est avec sa raison.
 - Textes de l'interface en français, phrases courtes, gros éléments tactiles (usage au champ, au soleil, avec des gants).
 - Charte « plein soleil » : fond blanc, texte noir, traits épais, pas de gris clair, aucun mode sombre. Glisser-déposer uniquement par appui long (0,45 s), sans poignée.
 - Zones : Tunnel, Plein champ, Stock, et seulement elles. Lieu des récoltes (zones et emplacements) masqué depuis le 04/11/2026 (`MONTRER_LIEU` dans `index.html`) : ne pas le réafficher sans l'accord de François.
