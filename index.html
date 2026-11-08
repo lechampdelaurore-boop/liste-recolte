@@ -201,6 +201,14 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 .sem-add{background:var(--accent);color:#fff;border-color:#000;box-shadow:var(--ombre)}
 .sem-add:active,.sem-act:active{transform:translateY(2px);box-shadow:none}
 .sem-list{display:grid;gap:12px}
+.stk-bloc{display:grid;gap:10px}
+.stk-list{display:grid;gap:10px}
+@media (min-width:1000px){.stk-list{grid-template-columns:repeat(auto-fill,minmax(360px,1fr))}}
+.stk-l{overflow:hidden}
+.stk-l .sr{border-top:0}
+.sr.stock .sr-ctl input{background:#fff}
+#semTable th.stk,#semTable td.stk{background:var(--surface2)}
+#semSub button{font-size:.9rem;padding:11px 2px}
 .legende{display:grid;gap:6px;padding:12px;border:var(--bw) dashed var(--line);border-radius:var(--radius);font-size:.88rem;font-weight:600}
 .legende .reste{display:inline-block;margin-right:6px;font-size:.85rem}
 .legende .hint{margin-top:4px}
@@ -374,6 +382,7 @@ dialog.big{max-width:min(460px,94vw);width:100%}
       <button type="button" data-sem="repartir" aria-pressed="true">Répartir</button>
       <button type="button" data-sem="tableau" aria-pressed="false">Tableau</button>
       <button type="button" data-sem="recolter" aria-pressed="false">À récolter</button>
+      <button type="button" data-sem="stock" aria-pressed="false" hidden>Stock</button>
     </div>
     <div class="seg" id="regSub" role="group" aria-label="Pages des réglages" hidden>
       <button type="button" data-reg="debouches" aria-pressed="true">Débouchés</button>
@@ -454,6 +463,9 @@ dialog.big{max-width:min(460px,94vw);width:100%}
     </div>
     <div class="sem-page" id="semRec" hidden>
       <div id="semRecList"></div>
+    </div>
+    <div class="sem-page" id="semStk" hidden>
+      <div id="semStkList"></div>
     </div>
   </div>
 
@@ -1246,6 +1258,19 @@ function stocks(){
   }); });
   return r;
 }
+// Ordre des colonnes de la semaine : le stock d'un débouché se place juste avant sa première livraison
+// (« Stock Très Allier » puis « Très Allier mardi »), pour le voir au moment de remplir ses livraisons.
+// Un débouché sans livraison cette semaine garde son stock en tête, après le disponible.
+function colonnes(cr, st){
+  var out = cr.map(function(c){ return {c:c}; });
+  st.slice().reverse().forEach(function(x){
+    var i = -1;
+    out.forEach(function(o, k){ if(i < 0 && o.c && o.c.circuit === x.id) i = k; });
+    out.splice(i < 0 ? 0 : i, 0, {s:x});
+  });
+  // Les stocks sans livraison restent dans l'ordre des débouchés, en tête.
+  return out;
+}
 function nomStock(did){ var x = stocks().filter(function(s){ return s.id === did; })[0]; return 'stock chez ' + (x ? x.nom : did); }
 function rangJour(js){
   var r = 9;
@@ -1753,7 +1778,7 @@ function renderSemaine(){
   semAttente = false;
   var d = deIso(id), now = lundiDe(new Date()), dim = deIso(id); dim.setDate(dim.getDate() + 6);
   $('#semTitre').textContent = 'Semaine du ' + d.toLocaleDateString('fr-FR', d.getFullYear() === new Date().getFullYear() ? {day:'numeric', month:'long'} : {day:'numeric', month:'long', year:'numeric'});
-  $('#semJusque').textContent = 'jusqu\'au dimanche ' + dim.toLocaleDateString('fr-FR', {day:'numeric', month:'long'});
+  $('#semJusque').textContent = 'jusqu\'au dimanche ' + dim.toLocaleDateString('fr-FR', d.getMonth() === dim.getMonth() ? {day:'numeric'} : {day:'numeric', month:'long'});
   $('#semQuand').textContent = id === now ? 'Cette semaine' : id === decaler(now, 1) ? 'Semaine prochaine' : id === decaler(now, -1) ? 'Semaine dernière' : '';
   $('#semNav').classList.toggle('pas-cette', id !== now);
   var prods = produitsSem(), cr = creneaux();
@@ -1766,9 +1791,15 @@ function renderSemaine(){
     pastille('place', compte.place + ' placé' + (compte.place > 1 ? 's' : '')) + pastille('aplacer', compte.aplacer + ' à placer') + pastille('manque', compte.manque + ' en manque') +
     (compte.sansdispo ? pastille('sansdispo', compte.sansdispo + ' sans disponible') : '') + (compte.vide ? pastille('vide', compte.vide + ' à remplir') : '') : '';
   // Trois pages : Répartir (fiches ou grille), Tableau (téléphone seulement : sur ordinateur, la grille est le tableau), À récolter.
-  var page = ui.semPage === 'tableau' && !pc ? 'tableau' : ui.semPage === 'recolter' ? 'recolter' : 'repartir';
+  // Quatrième page « Stock » quand un débouché suit son stock au magasin (Très Allier) : tout se remplit d'un coup.
+  var avecStock = stocks().length > 0;
+  var page = ui.semPage === 'tableau' && !pc ? 'tableau' : ui.semPage === 'recolter' ? 'recolter' : ui.semPage === 'stock' && avecStock ? 'stock' : 'repartir';
   document.querySelectorAll('#semSub button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.sem === page)); });
   $('#semSub button[data-sem="tableau"]').hidden = pc;
+  $('#semSub button[data-sem="stock"]').hidden = !avecStock;
+  $('#semStk').hidden = page !== 'stock';
+  $('#semStkList').innerHTML = page !== 'stock' ? '' : prods.length ? stockHtml(prods, calc, cr) :
+    '<p class="card empty rc-vide">Aucun produit cette semaine. Ajouter d\'abord les produits dans la page « Répartir ».</p>';
   $('#semRep').hidden = page !== 'repartir';
   $('#semVide').hidden = !!prods.length;
   $('#semVide').innerHTML = prods.length ? '' : '<p class="empty">Aucun produit pour cette semaine.</p>' +
@@ -1831,6 +1862,31 @@ function aRecolterHtml(prods, calc, cr){
     '<button type="button" class="sem-act" data-a="debouches" data-reg="recoltes">Régler les jours de récolte</button></div>';
 }
 
+/* Page « Stock » : le stock au magasin de chaque produit, à remplir d'un coup (au magasin, au téléphone).
+   À côté de chaque produit, ce qui est prévu pour ce débouché cette semaine. Information seulement. */
+function stockHtml(prods, calc, cr){
+  var h = '';
+  stocks().forEach(function(x){
+    var livs = cr.filter(function(c){ return c.circuit === x.id; }), der = null, n = 0;
+    prods.forEach(function(p){ var q = semLire('stock/' + p.id + '/' + x.id); if(q){ n++; if(q.at && (!der || q.at > der.at)) der = q; } });
+    h += '<section class="stk-bloc" data-d="' + esc(x.id) + '"><h2 class="db-h">Stock chez ' + esc(x.nom) + '</h2>' +
+      '<p class="hint">Ce qui reste au magasin, produit par produit, dans l\'unité de son choix. C\'est une information : le stock n\'entre ni dans le disponible ni dans le reste. Il s\'affiche aussi dans la page « Répartir » et le tableau, juste avant les livraisons ' + esc(x.nom) + '.</p>' +
+      '<p class="sp-by">' + n + ' produit' + (n > 1 ? 's' : '') + ' sur ' + prods.length + ' renseigné' + (n > 1 ? 's' : '') + (der ? ' · dernière saisie : ' + esc(quiQuand(der)) : '') + '</p><div class="stk-list">';
+    prods.forEach(function(p){
+      var f = p.f, r = calc[p.id];
+      var prevu = livs.map(function(c){
+        if(r.toutC === c.id) return (c.court || c.nom) + ' tout';
+        var q = semLire('q/' + p.id + '/' + c.id); return q ? (c.court || c.nom) + ' ' + qCourt(q, f) : '';
+      }).filter(Boolean);
+      h += '<div class="card stk-l" data-pid="' + esc(p.id) + '">' +
+        ligneHtml(p.id, f, 'stock/' + x.id, esc(f.nom) + ' <small>' + esc(colisTxt(f)) + '</small>', semLire('stock/' + p.id + '/' + x.id),
+          {cls:'stock', aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?', note: livs.length ? (prevu.length ? 'Prévu cette semaine : ' + prevu.join(', ') : 'Rien de prévu cette semaine') : ''}) + '</div>';
+    });
+    h += '</div></section>';
+  });
+  return h;
+}
+
 /* Grille de l'ordinateur : une ligne par produit, une case à taper par créneau. */
 // Chaque case a son menu d'unité (la caisse du produit, ou kg, ou bottes…) ; le nombre tapé est dans cette unité.
 function caseHtml(pid, f, k, q, opts){
@@ -1847,18 +1903,20 @@ function caseHtml(pid, f, k, q, opts){
 function grilleHtml(prods, calc, cr){
   var reports = cr.filter(function(c){ return c.reprend; });
   var st = stocks();
+  var cols = colonnes(cr, st);
   var h = '<thead><tr><th class="g-prod">Produit</th><th>Disponible</th>' +
-    st.map(function(x){ return '<th class="stk">Stock ' + esc(x.nom) + '<small>au magasin, hors du reste</small></th>'; }).join('') +
-    cr.map(function(c){ return '<th>' + esc(c.nom) + (c.jour ? '<small>' + esc(c.jour) + '</small>' : '') + '</th>'; }).join('') + '<th>Reste</th>' +
+    cols.map(function(o){ var c = o.c, x = o.s;
+      return x ? '<th class="stk">Stock ' + esc(x.nom) + '<small>au magasin, hors du reste</small></th>' : '<th>' + esc(c.nom) + (c.jour ? '<small>' + esc(c.jour) + '</small>' : '') + '</th>'; }).join('') + '<th>Reste</th>' +
     reports.map(function(c){ var a = cr.filter(function(x){ return x.id === c.reprend; })[0];
       return '<th class="rep">Reste ' + esc(a ? a.nom : c.reprend) + ' → ' + esc(c.nom) + '<small>proposé, hors du reste</small></th>'; }).join('') +
     '<th><span class="visually-hidden">Retirer</span></th></tr></thead><tbody>';
   prods.forEach(function(p){
     var pid = p.id, f = p.f, r = calc[pid];
     h += '<tr data-pid="' + esc(pid) + '"><td class="g-prod">' + esc(f.nom) + '<small>' + esc(colisTxt(f)) + '</small></td>' +
-      '<td class="g-dispo">' + caseHtml(pid, f, 'dispo', semLire('dispo/' + pid), {aria:'Disponible, ' + f.nom}) + '</td>' +
-      st.map(function(x){ return '<td class="g-stk">' + caseHtml(pid, f, 'stock/' + x.id, semLire('stock/' + pid + '/' + x.id), {aria:'Stock chez ' + x.nom + ', ' + f.nom}) + '</td>'; }).join('');
-    cr.forEach(function(c){
+      '<td class="g-dispo">' + caseHtml(pid, f, 'dispo', semLire('dispo/' + pid), {aria:'Disponible, ' + f.nom}) + '</td>';
+    cols.forEach(function(o){
+      var c = o.c, x = o.s;
+      if(x){ h += '<td class="g-stk">' + caseHtml(pid, f, 'stock/' + x.id, semLire('stock/' + pid + '/' + x.id), {aria:'Stock chez ' + x.nom + ', ' + f.nom}) + '</td>'; return; }
       var tout = r.toutC === c.id;
       h += '<td>' + caseHtml(pid, f, 'q/' + c.id, tout ? null : semLire('q/' + pid + '/' + c.id), {tout:tout, aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom,
         titre: tout ? 'Tout ce qui reste' + (r.toutV !== null ? ' : ' + deux(r.toutV, f) : '') : ''}) + '</td>';
@@ -1918,10 +1976,12 @@ function carteHtml(pid, f, r, cr){
   if(!ouvert) return h + '</section>';
   h += '<div class="sp-body">';
   h += ligneHtml(pid, f, 'dispo', 'Disponible', d, {cls:'dispo', aria:'Disponible de ' + f.nom, ph:'?'});
-  st.forEach(function(x){
-    h += ligneHtml(pid, f, 'stock/' + x.id, 'Stock chez ' + esc(x.nom) + ' <small>au magasin, hors du reste</small>', semLire('stock/' + pid + '/' + x.id), {cls:'stock', aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?'});
-  });
-  cr.forEach(function(c){
+  colonnes(cr, st).forEach(function(o){
+    var c = o.c, x = o.s;
+    if(x){
+      h += ligneHtml(pid, f, 'stock/' + x.id, 'Stock chez ' + esc(x.nom) + ' <small>au magasin, hors du reste</small>', semLire('stock/' + pid + '/' + x.id), {cls:'stock', aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?'});
+      return;
+    }
     var nom = esc(c.nom) + (c.jour ? ' <small>' + esc(c.jour) + '</small>' : '');
     if(c.reprend){
       var avant = cr.filter(function(x){ return x.id === c.reprend; })[0], prop = propose(pid, c);
@@ -1960,11 +2020,14 @@ function derniere(pid){
 function tableHtml(prods, calc, cr){
   var reports = cr.filter(function(c){ return c.reprend; });
   var st = stocks();
-  var h = '<thead><tr><th>Produit</th><th>Dispo</th>' + st.map(function(x){ return '<th>' + esc('Stock ' + x.nom) + '</th>'; }).join('') + cr.map(function(c){ return '<th>' + esc(c.court || c.nom) + '</th>'; }).join('') + '<th>Reste</th>' +
+  var cols = colonnes(cr, st);
+  var h = '<thead><tr><th>Produit</th><th>Dispo</th>' + cols.map(function(o){ return o.s ? '<th class="stk">' + esc('Stock ' + o.s.nom) + '</th>' : '<th>' + esc(o.c.court || o.c.nom) + '</th>'; }).join('') + '<th>Reste</th>' +
     reports.map(function(c){ var a = cr.filter(function(x){ return x.id === c.reprend; })[0]; return '<th class="rep">' + esc('Reste ' + (a ? a.court || a.nom : '') + ' → ' + (c.court || c.nom)) + '</th>'; }).join('') + '</tr></thead><tbody>';
   prods.forEach(function(p){
     var r = calc[p.id], f = p.f, d = semLire('dispo/' + p.id);
-    h += '<tr data-pid="' + esc(p.id) + '"><td>' + esc(f.nom) + '</td><td>' + (d ? esc(qCourt(d, f)) : '') + '</td>' + st.map(function(x){ var q = semLire('stock/' + p.id + '/' + x.id); return '<td>' + (q ? esc(qCourt(q, f)) : '') + '</td>'; }).join('') + cr.map(function(c){
+    h += '<tr data-pid="' + esc(p.id) + '"><td>' + esc(f.nom) + '</td><td>' + (d ? esc(qCourt(d, f)) : '') + '</td>' + cols.map(function(o){
+      var c = o.c;
+      if(o.s){ var qs = semLire('stock/' + p.id + '/' + o.s.id); return '<td class="stk">' + (qs ? esc(qCourt(qs, f)) : '') + '</td>'; }
       if(r.toutC === c.id) return '<td>tout</td>';
       var q = semLire('q/' + p.id + '/' + c.id); return '<td>' + (q ? esc(qCourt(q, f)) : '') + '</td>';
     }).join('') + '<td class="r-' + r.etat + '">' + (r.reste === null ? (r.etat === 'place' ? '0' : '') : esc(deux(r.reste, f))) + '</td>' + reports.map(function(c){

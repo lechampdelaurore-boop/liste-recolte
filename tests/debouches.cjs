@@ -305,6 +305,37 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await attendre(A);
   verifie(debDe('ta').stock === true, 'stock recoché');
 
+  // 13 bis. Page « Stock » de la Semaine (demande de François du 8/11 : le stock qu'on remplit nous-mêmes, à un endroit intelligent)
+  await fetch(`${BASE}/listes/semaines/${SEM}.json`, { method: 'PATCH', body: JSON.stringify({ 'q/bette/ta-mar': { n: 3, u: 'colis', by: 'François', at: Date.now() } }) });
+  await attendre(B);
+  await B.click('[data-sem="stock"]');
+  const stk = (pid) => `#semStkList .stk-l[data-pid="${pid}"]`;
+  await B.waitForSelector(stk('bette'));
+  verifie(!(await B.isVisible('#semList')) && (await B.inputValue(stk('bette') + ' input')) === '2' && (await B.textContent('#semStkList h2')) === 'Stock chez Très Allier', 'page « Stock » de la Semaine : un champ par produit, avec le stock déjà saisi (bette : 2)');
+  const prevuBette = await B.textContent(stk('bette') + ' .sr-eq');
+  verifie(prevuBette.includes('Prévu cette semaine : TA mar 3'), 'à côté du stock, ce qui est prévu pour Très Allier cette semaine (obtenu « ' + prevuBette + ' »)');
+  await B.fill(stk('bette') + ' input', '1'); await B.press(stk('bette') + ' input', 'Enter');
+  await attendre(B);
+  const sm = base.lire('listes/semaines/' + SEM + '/stock/bette/ta');
+  verifie(sm && sm.n === 1 && sm.by === 'Aurore' && (await B.textContent('#semStkList .sp-by')).startsWith('1 produit sur 1 renseigné · dernière saisie : Aurore'), 'stock de la bette changé dans la page Stock : enregistré (Aurore), « 1 produit sur 1 renseigné · dernière saisie : Aurore »');
+  await B.click(stk('bette') + ' [data-a="plus"]');
+  await attendre(B);
+  verifie(base.lire('listes/semaines/' + SEM + '/stock/bette/ta').n === 1.5, 'le bouton + ajoute un demi-colis au stock');
+  await B.fill(stk('bette') + ' input', '2'); await B.press(stk('bette') + ' input', 'Enter');
+  await attendre(B);
+  // Le stock se place juste avant les livraisons de son débouché : on suit aussi celui de Locavore (jeudi soir)
+  await A.click(`${fiche('lv')} input[data-f="stock"]`);
+  await attendre(B);
+  await B.click('[data-sem="tableau"]');
+  const t5 = await enTete(B);
+  verifie(t5.indexOf('Stock Locavore') === t5.indexOf('Locavore') - 1 && t5.indexOf('Stock Très Allier') === t5.indexOf('TA mar') - 1, 'chaque stock est juste avant la première livraison de son débouché (obtenu ' + t5.join('|') + ')');
+  await B.click('[data-sem="stock"]');
+  verifie((await B.$$('#semStkList .stk-bloc')).length === 2, 'page Stock : un bloc par débouché suivi');
+  await A.click(`${fiche('lv')} input[data-f="stock"]`);
+  await attendre(B);
+  verifie((await B.$$('#semStkList .stk-bloc')).length === 1 && !debDe('lv').stock, 'stock de Locavore décoché : son bloc disparaît');
+  await B.click('[data-sem="repartir"]');
+
   // 14. Rechargement, retour à la semaine, rien d'autre de touché
   await A.reload(); await A.waitForSelector('#debView section.db');
   verifie((await A.inputValue(`${fiche('el')} [data-f="note"]`)) === 'Client individuel, commande par téléphone.' && (await jours(A, 'lv', 'lv')).join() === 'jeudi', 'après rechargement : écran des débouchés et modifications gardés');
