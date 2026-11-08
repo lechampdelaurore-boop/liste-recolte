@@ -4,6 +4,8 @@
 
 *Au 8 novembre 2026, soir. Source : lecture du dépôt et demandes de François du 4/11 au 8/11.*
 
+- **Étape 5, code fait (8/11 au soir)** : l'appli sait se connecter par compte (Firebase Authentication par son API web, sans bibliothèque) ; règles fermées prêtes (`docs/regles-base/fermees.json`, seuls les comptes au profil « ferme »), pas-à-pas pour François (`docs/PAS_A_PAS_SECURITE.md`). **Rien n'a changé pour la ferme** : la clé web (`cle-web.js`) est vide, donc pas de compte, et la base reste ouverte tant que François n'a pas fait les huit actions (sauvegarde, comptes, profils, clé web, connexion des téléphones, règles, vérification). Vérifié : `tests/connexion.cjs` (faux Firebase) et `tests/regles.cjs` (émulateur officiel de Firebase, règles et appli). **Non vérifié** : la vraie console Firebase et les vrais téléphones. 13C (compte du magasin) attend la fin de l'étape 5 et un « vas-y » séparé.
+
 - **Refonte de l'interface (8/11 au soir)**, demande de François : quatre onglets fixes de même taille (en bas sur téléphone, en haut sur ordinateur) dans l'ordre Semaine, Récolte, Préparation, Réglages ; onglet Semaine en trois pages (Répartir, Tableau, À récolter) ; débouchés et jours de récolte dans l'onglet Réglages ; bandeau vert, couleurs selon le reste. Aucune donnée ni aucun calcul changé. L'ordre des onglets est la recommandation de Claude, adoptée sur délégation de François. Puis, même soir : page « Stock » de la Semaine pour remplir le stock chez Très Allier d'un coup, et case de stock placée juste avant les livraisons de son débouché. **Non vérifié en réel** : l'essai sur les vrais téléphones et l'ordinateur.
 - **Plan du 8/11 : saisie du stock par le magasin** (étapes 5 et 13C), rédigé sans code dans `docs/PLAN_STOCK_MAGASIN.md` : fermer la base par des comptes d'abord, puis un compte « magasin » qui ne voit que sa page de stock. Recommandation à valider par François ; aucun « vas-y » donné, aucun code, Firebase et Cloudflare non touchés.
 
@@ -24,7 +26,7 @@
   - le partage par Firebase entre les deux vrais téléphones (la pastille affiche-t-elle « Partagé » en vert, et une coche passe-t-elle bien de l'un à l'autre ?) ;
   - le glisser-déposer à la souris sur ordinateur ;
   - le déploiement actuel sur Cloudflare Pages (non relu à la source).
-- **Limite connue** : le dépôt et la base sont publics, sans mot de passe.
+- **Limite connue** : le dépôt et la base sont publics, sans mot de passe, jusqu'à ce que François colle les règles fermées (étape 5).
 - **Vision du 4/11** : l'appli est une preuve de concept, appelée à devenir un logiciel durable pour plusieurs fermes. Onze chantiers sont inscrits dans la feuille de route (étapes 10 à 20) ; le premier (étape 10, préparation de commandes) est fait ; ordre et découpage sont à confirmer avec François.
 - **Onglet Détail** : caché « pour l'instant » le 4/11 au soir (étape 20), remplacé par la flèche de répartition. Le retirer pour de bon ou le remettre reste à décider plus tard.
 - **Prévu** : base de données des produits et de leurs colisages, modifiable par l'utilisateur sans code (étape 19).
@@ -43,9 +45,9 @@
 - Appli en un seul fichier `index.html`, sans bibliothèque ni étape de construction.
 - Listes dans `listes/AAAA-MM-JJ.json` ; `listes/actuelle.json` désigne celle qui s'ouvre.
 - Référentiel `referentiel/conditionnements.json` : 74 produits, type de caisse et contenu d'un colis ; colisages par circuit (colis bois).
-- Base partagée Firebase Realtime Database (europe-west1), appelée par l'API REST sans SDK ; adresse dans `config.js`. Règles : lecture et écriture ouvertes sous `listes`. Détails : `docs/base-partagee.md`.
+- Base partagée Firebase Realtime Database (europe-west1), appelée par l'API REST sans SDK ; adresse dans `config.js`. Règles : lecture et écriture ouvertes sous `listes` (règles fermées prêtes dans `docs/regles-base/`, à coller par François). Connexion par compte prête (clé web à coller dans `cle-web.js`). Détails : `docs/base-partagee.md`.
 - Barre de progression : lit le champ `kg` des lignes (kilos d'un côté, bottes, bouquets, pièces de l'autre).
-- Hors ligne : `sw.js` (page, référentiel et débouchés en cache), `CACHE` à `recolte-v25` ; liste, coches et actions en attente gardées dans le téléphone (`localStorage`).
+- Hors ligne : `sw.js` (page, référentiel et débouchés en cache), `CACHE` à `recolte-v26` ; liste, coches et actions en attente gardées dans le téléphone (`localStorage`).
 - Préparation de commandes : onglet « Préparation » ; coches dans la base sous `prep/<circuit>/<produit>` et `prepClient/<circuit>`.
 - Répartition de la semaine : onglet « Semaine » ; débouchés de départ dans `referentiel/debouches.json`, puis réglés dans l'appli, onglet « Réglages » (base : `listes/reglages/debouches`) ; données dans la base sous `listes/semaines/<lundi>` (voir `docs/base-partagee.md`).
 - Hébergement : Cloudflare Pages, relié à `main`.

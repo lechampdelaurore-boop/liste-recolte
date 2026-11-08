@@ -18,6 +18,8 @@ function serveurSite() {
       let f = decodeURIComponent(new URL(q.url, 'http://x').pathname);
       if (f.endsWith('/')) f += 'index.html';
       // L'appli utilise le faux Firebase au lieu de l'adresse de config.js (servi ici pour que le service worker l'ait aussi).
+      // Sans clé web : pas de compte (le fichier du dépôt, une fois rempli par François, n'est pas lu par les tests).
+      if (f === '/cle-web.js') { r.writeHead(200, { 'Content-Type': 'text/javascript' }); return r.end("window.RECOLTE_CLE_WEB='';"); }
       if (f === '/config.js') { r.writeHead(200, { 'Content-Type': 'text/javascript' }); return r.end(`window.RECOLTE_DB_URL='http://localhost:${PORT_BASE}';`); }
       const chemin = path.join(RACINE, f);
       if (!chemin.startsWith(RACINE) || !fs.existsSync(chemin)) { r.writeHead(404); return r.end(); }

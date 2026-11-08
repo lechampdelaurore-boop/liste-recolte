@@ -338,6 +338,10 @@ body.large .wrap{max-width:1600px}
 #semErrs{display:grid;gap:6px}
 .visually-hidden{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
 dialog.big{max-width:min(460px,94vw);width:100%}
+.auth-l{display:grid;gap:4px;font-weight:800}
+.cpt{display:grid;gap:10px;padding:14px}
+.cpt p{margin:0}
+.cpt code{font-size:.85rem;word-break:break-all}
 .add-list{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px;max-height:50vh;overflow-y:auto}
 .add-list button{width:100%;text-align:left;padding:11px 12px;display:grid;gap:2px}
 .add-list small{font-weight:600;color:var(--muted)}
@@ -387,6 +391,7 @@ dialog.big{max-width:min(460px,94vw);width:100%}
     <div class="seg" id="regSub" role="group" aria-label="Pages des réglages" hidden>
       <button type="button" data-reg="debouches" aria-pressed="true">Débouchés</button>
       <button type="button" data-reg="recoltes" aria-pressed="false">Jours de récolte</button>
+      <button type="button" data-reg="compte" aria-pressed="false" hidden>Compte</button>
     </div>
     <div class="chips" id="zones" aria-label="Zone"></div>
     <div class="chips" id="circs" aria-label="Circuit"></div>
@@ -488,6 +493,17 @@ dialog.big{max-width:min(460px,94vw);width:100%}
   </div>
 </dialog>
 
+<dialog id="authDlg">
+  <h2>Se connecter</h2>
+  <p class="sub">Une seule fois sur ce téléphone. Le compte est donné par la ferme.</p>
+  <form id="authForm" class="btns">
+    <label class="auth-l">Identifiant<input id="authId" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
+    <label class="auth-l">Mot de passe<input id="authMdp" type="password" autocomplete="current-password"></label>
+    <p class="sr-err" id="authErr" role="alert" hidden></p>
+    <button type="submit" id="authOk">Se connecter</button>
+  </form>
+</dialog>
+
 <dialog id="addDlg" class="big">
   <h2>Ajouter un produit</h2>
   <p class="sub">Toucher un produit pour l'ajouter à la semaine.</p>
@@ -496,11 +512,20 @@ dialog.big{max-width:min(460px,94vw);width:100%}
   <div class="btns"><button type="button" id="addClose">Fermer</button></div>
 </dialog>
 
+<script src="cle-web.js"></script>
 <script src="config.js"></script>
 <script>
 (function(){
 'use strict';
 var DB = (window.RECOLTE_DB_URL || '').replace(/\/+$/, '');
+/* Comptes (étape 5, depuis le 8/11/2026) : la « clé web » du projet Firebase est dans cle-web.js.
+   Vide : l'appli marche comme avant, sans compte (base ouverte). Remplie : chaque téléphone se connecte
+   une fois, et chaque appel à la base porte le jeton du compte (Firebase Authentication par son API web,
+   sans bibliothèque). Un identifiant sans « @ » est complété par DOMAINE_COMPTES : aucune vraie adresse. */
+var CLE = String(window.RECOLTE_CLE_WEB || '').trim();
+var AUTH_URL = window.RECOLTE_AUTH_URL || 'https://identitytoolkit.googleapis.com/v1';
+var JETON_URL = window.RECOLTE_JETON_URL || 'https://securetoken.googleapis.com/v1';
+var DOMAINE_COMPTES = 'ferme.invalid';
 /* Lieu des récoltes (emplacement « ou » et zone) : masqué pour l'instant, décision du 4/11/2026.
    Il était recopié à la main depuis l'assolement, pas relié à Ouvre ta ferme. Les données restent
    dans les listes ; passer à true pour le réafficher. */
@@ -765,7 +790,7 @@ function enTete(){
   var v = ui.view, t = list.titre, sous = list.pour || '';
   if(v === 'prep'){ t = 'Préparation des commandes'; sous = list.titre; }
   else if(v === 'semaine'){ t = 'Semaine'; sous = ''; }
-  else if(v === 'reglages'){ t = 'Réglages'; sous = 'Débouchés, livraisons et jours de récolte.'; }
+  else if(v === 'reglages'){ t = 'Réglages'; sous = CLE ? 'Débouchés, livraisons, jours de récolte et compte.' : 'Débouchés, livraisons et jours de récolte.'; }
   $('#titre').textContent = t; $('#pour').textContent = sous;
 }
 function render(){
@@ -805,8 +830,11 @@ function render(){
   renderProgress();
   if(autre) $('#prog').hidden = true;
   if(regV){
-    document.querySelectorAll('#regSub button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.reg === (ui.regPage === 'recoltes' ? 'recoltes' : 'debouches'))); });
-    if(!debVue()){ chargerRef(); $('#debView').innerHTML = '<p class="empty">Chargement…</p>'; } else { debConnecter(); renderDebouches(); }
+    var rp = ui.regPage === 'recoltes' || (ui.regPage === 'compte' && CLE) ? ui.regPage : 'debouches';
+    $('#regSub button[data-reg="compte"]').hidden = !CLE;
+    document.querySelectorAll('#regSub button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.reg === rp)); });
+    if(rp === 'compte') $('#debView').innerHTML = compteHtml();
+    else if(!debVue()){ chargerRef(); $('#debView').innerHTML = '<p class="empty">Chargement…</p>'; } else { debConnecter(); renderDebouches(); }
   } else if(semV) renderSemaine();
 }
 
@@ -1162,8 +1190,8 @@ function semOuvrir(id){
   semFlush();
 }
 function semConnecter(){
-  if(!DB || !window.EventSource || !sem.id) return;
-  var id = sem.id, flux = new EventSource(DB + '/listes/semaines/' + id + '.json');
+  if(!dbPret() || !window.EventSource || !sem.id) return;
+  var id = sem.id, flux = new EventSource(dbUrl('/listes/semaines/' + id));
   sem.es = flux;
   function appliquer(ev, patch){
     if(sem.id !== id) return;
@@ -1175,6 +1203,8 @@ function semConnecter(){
   }
   flux.addEventListener('put', function(ev){ appliquer(ev, false); semFlush(); });
   flux.addEventListener('patch', function(ev){ appliquer(ev, true); });
+  flux.addEventListener('auth_revoked', jetonRevoque);
+  flux.addEventListener('cancel', function(){ refusBase({}); });
 }
 function semRelancer(){ if(sem.id && sem.es && sem.es.readyState === 2) semConnecter(); semFlush(); }
 
@@ -1200,10 +1230,10 @@ function avecNom(fn){ if(me) fn(); else askName(fn); }
 function signe(o){ o.by = me; o.at = Date.now(); return o; }
 
 function semFlush(){
-  if(!DB || sem.flushing || !sem.pending.length) return;
+  if(!dbPret() || sem.flushing || !sem.pending.length) return;
   sem.flushing = true;
-  var w = sem.pending[0].w, lot = sem.pending.filter(function(p){ return p.w === w; }), base = DB + '/listes/semaines/' + w;
-  fetch(base + '.json', {cache:'no-store'})
+  var w = sem.pending[0].w, lot = sem.pending.filter(function(p){ return p.w === w; }), base = '/listes/semaines/' + w;
+  dbFetch(base, {cache:'no-store'})
     .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
     .then(function(srv){
       var corps = {}, perdus = [], n = 0;
@@ -1211,7 +1241,7 @@ function semFlush(){
         if(p.at && heureBase(srv, p.path) > p.at){ perdus.push(p); return; }
         corps[p.path] = p.val; corps['maj/' + p.path] = p.at || Date.now(); n++;
       });
-      var envoi = n ? fetch(base + '.json', {method:'PATCH', body:JSON.stringify(corps)}).then(function(r){ if(!r.ok) throw new Error(r.status); }) : Promise.resolve();
+      var envoi = n ? dbFetch(base, {method:'PATCH', body:JSON.stringify(corps)}).then(function(r){ if(!r.ok) throw new Error(r.status); }) : Promise.resolve();
       return envoi.then(function(){
         sem.pending = sem.pending.filter(function(x){ return lot.indexOf(x) < 0; });
         if(w === sem.id){ perdus.forEach(function(p){ semSetAt(p.path, lireA(srv, p.path)); }); semRecouvrir(); }
@@ -1300,8 +1330,8 @@ function creneauxDe(liste, tous){
 }
 
 function debConnecter(){
-  if(!DB || !window.EventSource || deb.es) return;
-  var flux = new EventSource(DB + '/listes/reglages/debouches.json');
+  if(!dbPret() || !window.EventSource || deb.es) return;
+  var flux = new EventSource(dbUrl('/listes/reglages/debouches'));
   deb.es = flux;
   function appliquer(ev){
     var m = JSON.parse(ev.data); if(!m) return;
@@ -1319,6 +1349,8 @@ function debConnecter(){
     var m = JSON.parse(ev.data); if(!m) return;
     Object.keys(m.data || {}).forEach(function(k){ appliquer({data:JSON.stringify({path:m.path.replace(/\/$/, '') + '/' + k, data:m.data[k]})}); });
   });
+  flux.addEventListener('auth_revoked', jetonRevoque);
+  flux.addEventListener('cancel', function(){ refusBase({}); });
 }
 function debRelancer(){ if(deb.es && deb.es.readyState === 2){ deb.es = null; debConnecter(); } debFlush(); }
 // Pendant une saisie dans la fiche, on attend d'avoir quitté la case pour redessiner.
@@ -1338,15 +1370,15 @@ function debEcrire(liste, recoltes){
   crCache = null; render(); majStatut(); debFlush();
 }
 function debFlush(){
-  if(!DB || deb.flushing || !deb.pending) return;
+  if(!dbPret() || deb.flushing || !deb.pending) return;
   deb.flushing = true;
-  var p = deb.pending, url = DB + '/listes/reglages/debouches.json';
-  fetch(url, {cache:'no-store'})
+  var p = deb.pending, url = '/listes/reglages/debouches';
+  dbFetch(url, {cache:'no-store'})
     .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
     .then(function(srv){
       // Une modification plus récente faite ailleurs l'emporte : la nôtre est abandonnée.
       var envoi = srv && srv.at > p.at ? Promise.resolve(srv) :
-        fetch(url, {method:'PUT', body:JSON.stringify(p)}).then(function(r){ if(!r.ok) throw new Error(r.status); return p; });
+        dbFetch(url, {method:'PUT', body:JSON.stringify(p)}).then(function(r){ if(!r.ok) throw new Error(r.status); return p; });
       return envoi.then(function(v){
         if(deb.pending === p){ deb.pending = null; ls('recolte.debouches.pending', null); }
         deb.data = v; ls('recolte.debouches', v);
@@ -2185,7 +2217,7 @@ function fiche(p){
 // Reprendre la liste des produits (sans les quantités) de la semaine précédente.
 function reprendre(){
   var prec = decaler(sem.id, -1), id = sem.id;
-  var p = DB ? fetch(DB + '/listes/semaines/' + prec + '/produits.json', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }) : Promise.reject();
+  var p = dbPret() ? dbFetch('/listes/semaines/' + prec + '/produits', {cache:'no-store'}).then(function(r){ return r.ok ? r.json() : null; }) : Promise.reject();
   p.catch(function(){ return lireA(ls('recolte.semaine.' + prec) || {}, 'produits'); }).then(function(prods){
     if(sem.id !== id) return;
     var ids = Object.keys(prods || {}).filter(function(k){ return prods[k] && prods[k].nom; });
@@ -2231,7 +2263,8 @@ function enAttente(){
 }
 function majStatut(){
   if(!DB) return;
-  if(refuse) return setStatus('err', 'Accès refusé par la base');
+  if(CLE && !compte) return setStatus('wait', 'Pas connecté');
+  if(refuse) return setStatus('err', compte ? 'Compte sans accès' : 'Accès refusé par la base');
   if(!enLigne){
     if(!connu && !pending.length && !sem.pending.length && !deb.pending && !depuisCopie) return setStatus('wait', 'Connexion…');
     return setStatus('wait', 'Hors ligne' + (pending.length || sem.pending.length || deb.pending ? ' · ' + enAttente() : ''));
@@ -2278,10 +2311,10 @@ function write(path, val){
 // c'est son action qui reste, et l'écran la reprend.
 var flushing = false;
 function flush(){
-  if(!DB || flushing || !pending.length) return;
+  if(!dbPret() || flushing || !pending.length) return;
   flushing = true;
-  var lot = pending.slice(), base = DB + '/listes/' + list.id;
-  fetch(base + '.json', {cache:'no-store'})
+  var lot = pending.slice(), base = '/listes/' + list.id;
+  dbFetch(base, {cache:'no-store'})
     .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
     .then(function(srv){
       var corps = {}, perdus = [], n = 0;
@@ -2289,7 +2322,7 @@ function flush(){
         if(p.at && heureBase(srv, p.path) > p.at){ perdus.push(p); return; }
         corps[p.path] = p.val; corps['maj/' + p.path] = p.at || Date.now(); n++;
       });
-      var envoi = n ? fetch(base + '.json', {method:'PATCH', body: JSON.stringify(corps)}).then(function(r){ if(!r.ok) throw new Error(r.status); }) : Promise.resolve();
+      var envoi = n ? dbFetch(base, {method:'PATCH', body: JSON.stringify(corps)}).then(function(r){ if(!r.ok) throw new Error(r.status); }) : Promise.resolve();
       return envoi.then(function(){
         pending = pending.filter(function(x){ return lot.indexOf(x) < 0; });
         perdus.forEach(function(p){ setAt(p.path, lireA(srv, p.path)); });
@@ -2303,19 +2336,44 @@ function flush(){
     .catch(function(){ flushing = false; enLigne = false; majStatut(); });
 }
 
-var es = null;
+var es = null, lance = false, ecoute = false;
 function connect(){
   if(!DB){ setStatus('', 'Sur ce téléphone seulement'); $('#noShare').hidden = false; return; }
   if(!window.EventSource){ setStatus('err', 'Navigateur trop ancien'); return; }
+  if(CLE && !compte){ majStatut(); demanderCompte(apresConnexion); return; }
   majStatut();
-  ouvrir();
-  addEventListener('online', function(){ if(es && es.readyState === 2) ouvrir(); flush(); semRelancer(); debRelancer(); });
+  // Jeton périmé (téléphone resté éteint) : on le renouvelle d'abord ; sans réseau, on ouvre quand même.
+  jetonFrais().then(function(){ relancerTout(false); }, function(){ relancerTout(false); });
+  if(ecoute) return;
+  ecoute = true;
+  addEventListener('online', verifier);
   addEventListener('offline', function(){ enLigne = false; majStatut(); });
-  setInterval(function(){ if(es && es.readyState === 2) ouvrir(); flush(); semRelancer(); debRelancer(); }, 15000);
+  setInterval(verifier, 15000);
+}
+// Au retour du réseau, et toutes les 15 s : jeton renouvelé s'il expire bientôt (et flux rouverts avec
+// le nouveau), flux fermés rouverts, et envoi de ce qui attend.
+function verifier(){
+  var avant = compte && compte.jeton;
+  jetonFrais().then(function(){
+    if(compte && compte.jeton !== avant){ relancerTout(true); return; }
+    if(!dbPret()) return;
+    if(es && es.readyState === 2) ouvrir();
+    flush(); semRelancer(); debRelancer();
+  }, function(){ enLigne = false; majStatut(); });
+}
+// Ouvre les flux temps réel (liste du jour, semaine, débouchés) puis envoie ce qui attend.
+// tous = true : nouveau jeton, on rouvre aussi les flux encore ouverts (ils portent l'ancien).
+function relancerTout(tous){
+  if(!dbPret() || !list) return;
+  lance = true;
+  ouvrir();
+  if(sem.id && (tous || !sem.es || sem.es.readyState === 2)){ if(sem.es) sem.es.close(); sem.es = null; semConnecter(); }
+  if(refCharge && (tous || !deb.es || deb.es.readyState === 2)){ if(deb.es) deb.es.close(); deb.es = null; debConnecter(); }
+  flush(); semFlush(); debFlush();
 }
 function ouvrir(){
   if(es) es.close();
-  es = new EventSource(DB + '/listes/' + list.id + '.json');
+  var flux = es = new EventSource(dbUrl('/listes/' + list.id));
   function apply(ev, patch){
     var m = JSON.parse(ev.data); if(!m) return;
     if(patch) Object.keys(m.data || {}).forEach(function(k){ setAt(m.path.replace(/\/$/, '') + '/' + k, m.data[k]); });
@@ -2324,11 +2382,161 @@ function ouvrir(){
     pending.forEach(function(p){ setAt(p.path, p.val); });
     persist(); if(!drag) render();
   }
-  es.addEventListener('put', function(ev){ apply(ev, false); enLigne = true; connu = true; majStatut(); flush(); verifierNouvelleListe(); });
-  es.addEventListener('patch', function(ev){ apply(ev, true); });
-  es.addEventListener('cancel', function(){ refuse = true; majStatut(); });
-  es.onerror = function(){ enLigne = false; connu = true; majStatut(); };
+  flux.addEventListener('put', function(ev){ apply(ev, false); enLigne = true; connu = true; renouvSansSucces = 0; if(refuse){ refuse = false; if(ui.view === 'reglages') render(); } majStatut(); flush(); verifierNouvelleListe(); });
+  flux.addEventListener('patch', function(ev){ apply(ev, true); });
+  flux.addEventListener('cancel', function(){ refusBase({}); });
+  flux.addEventListener('auth_revoked', jetonRevoque);
+  flux.onerror = function(){
+    enLigne = false; connu = true; majStatut();
+    // Flux refusé d'emblée (compte sans accès ou jeton périmé) : une lecture simple dit pourquoi.
+    if(CLE && compte && flux === es && flux.readyState === 2) diagnostiquer();
+  };
 }
+var dernierDiag = 0;
+function diagnostiquer(){
+  if(Date.now() - dernierDiag < 10000) return;
+  dernierDiag = Date.now();
+  dbFetch('/listes/' + list.id, {cache:'no-store'}, 'shallow=true').catch(function(){});
+}
+
+/* ---------- Compte (Firebase Authentication, par son API web, sans bibliothèque) ---------- */
+// Le compte est gardé sur le téléphone (clé recolte.compte) : identifiant, numéro du compte (uid),
+// jeton d'accès (valable une heure) et jeton de renouvellement. Le mot de passe n'est jamais gardé.
+// Sans réseau, l'appli marche comme avant ; le jeton se renouvelle au retour du réseau.
+var compte = CLE ? ls('recolte.compte') : null;
+var renouvEnCours = null, dernierRenouv = 0, renouvSansSucces = 0, authMsg = '';
+// Prêt à appeler la base : sans clé web, toujours ; avec, un compte dont le jeton n'a pas expiré (sinon on attend le renouvellement).
+function dbPret(){ return !!DB && (!CLE || !!(compte && compte.jeton && compte.fin > Date.now())); }
+function dbUrl(chemin, q){
+  var p = [];
+  if(q) p.push(q);
+  if(CLE && compte && compte.jeton) p.push('auth=' + encodeURIComponent(compte.jeton));
+  return DB + chemin + '.json' + (p.length ? '?' + p.join('&') : '');
+}
+function jsonOuVide(r){ return r.json().catch(function(){ return {}; }); }
+function garderCompte(){ ls('recolte.compte', compte); }
+// Un seul renouvellement à la fois. Sans réseau : échec, on réessaiera. Compte supprimé, désactivé
+// ou mot de passe changé : on oublie le compte et on redemande la connexion.
+function renouveler(){
+  if(!compte) return Promise.reject(new Error('compte'));
+  if(renouvEnCours) return renouvEnCours;
+  var c = compte;
+  dernierRenouv = Date.now();
+  renouvEnCours = fetch(JETON_URL + '/token?key=' + encodeURIComponent(CLE), {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'grant_type=refresh_token&refresh_token=' + encodeURIComponent(c.renouv)})
+    .then(function(r){ return jsonOuVide(r).then(function(j){ return {ok:r.ok, j:j}; }); })
+    .then(function(x){
+      renouvEnCours = null;
+      if(!x.ok){
+        var m = String((x.j && x.j.error && x.j.error.message) || '');
+        if(compte === c && /TOKEN_EXPIRED|USER_DISABLED|USER_NOT_FOUND|INVALID_REFRESH_TOKEN/.test(m)) perdreCompte('La connexion de ce téléphone a pris fin (compte changé). Se connecter à nouveau.');
+        throw new Error(m || 'jeton');
+      }
+      if(compte !== c) throw new Error('compte');
+      c.jeton = x.j.id_token; c.renouv = x.j.refresh_token || c.renouv;
+      c.fin = Date.now() + (Number(x.j.expires_in) || 3600) * 1000;
+      garderCompte();
+    }, function(e){ renouvEnCours = null; throw e; });
+  return renouvEnCours;
+}
+// Jeton encore bon pour au moins cinq minutes : rien à faire (false) ; sinon il est renouvelé (true).
+function jetonFrais(){
+  if(!CLE || !compte) return Promise.resolve(false);
+  if(compte.fin - Date.now() > 5 * 60 * 1000) return Promise.resolve(false);
+  return renouveler().then(function(){ return true; });
+}
+// Appel à la base avec le jeton du compte. Refus : jeton périmé (on le renouvelle et on rouvre tout),
+// ou compte sans accès (pas de profil « ferme » dans la base).
+function dbFetch(chemin, opts, q){
+  return jetonFrais().then(function(neuf){
+    if(neuf) setTimeout(function(){ relancerTout(true); }, 0);
+    return fetch(dbUrl(chemin, q), opts);
+  }).then(function(r){
+    if(r.ok){ renouvSansSucces = 0; if(refuse){ refuse = false; majStatut(); if(ui.view === 'reglages') render(); } return r; }
+    if(r.status === 401 || r.status === 403) return jsonOuVide(r.clone()).then(function(j){ refusBase(j); return r; });
+    return r;
+  });
+}
+// Jeton refusé : on en prend un neuf (sauf si c'est fait à l'instant : réponse à un envoi parti avec l'ancien).
+// Trois jetons neufs de suite refusés : on arrête et on affiche le refus.
+function refusBase(j){
+  var m = String((j && j.error) || '');
+  if(compte && /expired|token|credential/i.test(m)){
+    if(Date.now() - dernierRenouv < 2000) return;
+    if(renouvSansSucces < 3){
+      renouvSansSucces++; compte.fin = 0;
+      renouveler().then(function(){ relancerTout(true); }, function(){});
+      return;
+    }
+  }
+  if(!refuse){ refuse = true; majStatut(); if(ui.view === 'reglages') render(); }
+}
+// La base a retiré le jeton d'un flux (il a expiré) : nouveau jeton, puis flux rouverts.
+function jetonRevoque(){
+  if(!compte) return;
+  compte.fin = 0;
+  renouveler().then(function(){ relancerTout(true); }, function(){ enLigne = false; majStatut(); });
+}
+function identifiantComplet(id){ id = id.trim(); return id.indexOf('@') < 0 ? id.toLowerCase() + '@' + DOMAINE_COMPTES : id; }
+function msgConnexion(m){
+  if(/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND|INVALID_EMAIL|MISSING_PASSWORD/.test(m)) return 'Identifiant ou mot de passe faux.';
+  if(/USER_DISABLED/.test(m)) return 'Ce compte est désactivé.';
+  if(/TOO_MANY_ATTEMPTS/.test(m)) return 'Trop d\'essais. Réessaie dans quelques minutes.';
+  if(/API key|API_KEY/i.test(m)) return 'La clé web (fichier cle-web.js) n\'est pas bonne.';
+  if(/OPERATION_NOT_ALLOWED|PASSWORD_LOGIN_DISABLED/.test(m)) return 'La connexion par identifiant et mot de passe n\'est pas activée dans Firebase.';
+  return 'Connexion impossible' + (m ? ' (' + m + ')' : '') + '.';
+}
+function seConnecter(id, mdp){
+  return fetch(AUTH_URL + '/accounts:signInWithPassword?key=' + encodeURIComponent(CLE), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:identifiantComplet(id), password:mdp, returnSecureToken:true})})
+    .then(function(r){ return jsonOuVide(r).then(function(j){ return {ok:r.ok, j:j}; }); }, function(){ throw new Error('Pas de réseau. La première connexion demande du réseau.'); })
+    .then(function(x){
+      if(!x.ok) throw new Error(msgConnexion(String((x.j && x.j.error && x.j.error.message) || '')));
+      compte = {id:id.trim(), uid:x.j.localId || '', jeton:x.j.idToken, renouv:x.j.refreshToken, fin:Date.now() + (Number(x.j.expiresIn) || 3600) * 1000};
+      garderCompte();
+    });
+}
+// Fenêtre de connexion : elle ne se ferme qu'une fois connecté.
+function demanderCompte(cb){
+  var d = $('#authDlg'), err = $('#authErr'), b = $('#authOk');
+  err.textContent = authMsg; err.hidden = !authMsg;
+  $('#authForm').onsubmit = function(e){
+    e.preventDefault();
+    var id = $('#authId').value, mdp = $('#authMdp').value;
+    if(!id.trim() || !mdp){ err.textContent = 'Remplir l\'identifiant et le mot de passe.'; err.hidden = false; return; }
+    b.disabled = true; b.textContent = 'Connexion…';
+    seConnecter(id, mdp).then(function(){
+      $('#authMdp').value = ''; authMsg = ''; err.hidden = true; d.close(); cb();
+    }, function(e2){ err.textContent = e2.message; err.hidden = false; })
+      .then(function(){ b.disabled = false; b.textContent = 'Se connecter'; });
+  };
+  d.oncancel = function(e){ e.preventDefault(); };
+  if(!d.open){ if(d.showModal) d.showModal(); else d.setAttribute('open', ''); }
+}
+function apresConnexion(){ refuse = false; connu = false; connect(); render(); }
+function perdreCompte(msg){
+  compte = null; ls('recolte.compte', null);
+  authMsg = msg || '';
+  if(es){ es.close(); es = null; }
+  if(sem.es){ sem.es.close(); sem.es = null; }
+  if(deb.es){ deb.es.close(); deb.es = null; }
+  enLigne = false; refuse = false; lance = false;
+  majStatut(); render();
+  demanderCompte(apresConnexion);
+}
+function compteHtml(){
+  if(!compte) return '<p class="empty">Pas connecté.</p>';
+  var n = pending.length + sem.pending.length + (deb.pending ? 1 : 0);
+  return '<section class="card cpt"><h2 class="db-h">Compte de ce téléphone</h2>' +
+    '<p>Connecté avec l\'identifiant <b>' + esc(compte.id) + '</b>.</p>' +
+    (refuse ? '<p class="sr-err" role="alert">Ce compte n\'a pas encore accès à la base : dans la console Firebase, lui donner le profil « ferme » (voir le pas-à-pas).</p>' : '') +
+    '<p class="hint">Numéro du compte : <code>' + esc(compte.uid) + '</code></p>' +
+    '<p class="hint">La connexion reste ouverte sur ce téléphone, même sans réseau. Le mot de passe n\'est pas gardé.</p>' +
+    (n ? '<p class="hint">' + esc(enAttente()) + ' : ils partiront après la prochaine connexion.</p>' : '') +
+    '<button type="button" class="sem-act" data-a="deconnecter">Se déconnecter de ce téléphone</button></section>';
+}
+$('#debView').addEventListener('click', function(e){
+  if(!e.target.closest('[data-a="deconnecter"]')) return;
+  if(confirm('Se déconnecter de ce téléphone ? Il faudra l\'identifiant et le mot de passe pour revenir.')) perdreCompte('');
+});
 
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
 start();

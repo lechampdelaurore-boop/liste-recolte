@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "listes": {
+      ".read": true,
+      ".write": true
+    }
+  }
+}
