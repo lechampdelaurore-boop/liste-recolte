@@ -118,9 +118,9 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await attendre(B);
   await B.click('#semTab summary');
   const t1 = await enTete(B);
-  verifie(t1.slice(0, 11).join('|') === 'Produit|Dispo|TA mar|La Magic|Panier adéq.|TA jeu|Locavore|Auvabio 03|Auvabio 63|Marché ven|Élie', 'chez Aurore, la colonne Locavore passe au jeudi, après Très Allier jeudi (obtenu ' + t1.join('|') + ')');
+  verifie(t1.slice(0, 12).join('|') === 'Produit|Dispo|Stock Très Allier|TA mar|La Magic|Panier adéq.|TA jeu|Locavore|Auvabio 03|Auvabio 63|Marché ven|Élie', 'chez Aurore, la colonne Locavore passe au jeudi, après Très Allier jeudi (obtenu ' + t1.join('|') + ')');
   const ligneB = await B.$$eval('#semTable tr[data-pid="bette"] td', (e) => e.map((x) => x.textContent));
-  verifie(ligneB[6] === '2' && JSON.stringify(base.lire('listes/semaines/' + SEM + '/q/bette/lv')) === JSON.stringify(qLv), 'les 2 GH de bette déjà réparties pour Locavore restent, dans sa colonne');
+  verifie(ligneB[7] === '2' && JSON.stringify(base.lire('listes/semaines/' + SEM + '/q/bette/lv')) === JSON.stringify(qLv), 'les 2 GH de bette déjà réparties pour Locavore restent, dans sa colonne');
 
   // 5. Nouveau débouché
   await A.click('[data-a="nouveau"]');
@@ -201,6 +201,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await C.waitForSelector('#semGrid tbody tr');
   const thC = await C.$$eval('#semGrid thead th', (e) => e.map((x) => x.textContent.trim()));
   verifie(thC.includes('Locavorejeudi soir') && thC.includes('Ferme Deschampsmercredi'), 'sur ordinateur, la grille montre Locavore jeudi soir et Ferme Deschamps mercredi');
+  verifie(thC[2] === 'Stock Très Allierau magasin, hors du reste' && (await C.$$('#semGrid input[data-cell="bette|stock/ta"]')).length === 1, 'sur ordinateur, une colonne « Stock Très Allier » (au magasin, hors du reste) suit le disponible');
   const larg = await C.evaluate(() => ({ deborde: document.querySelector('#semGridWrap').scrollWidth > document.querySelector('#semGridWrap').clientWidth, page: document.documentElement.scrollWidth > innerWidth }));
   verifie(!larg.page, 'avec deux colonnes de plus, la page ne défile pas de côté (la grille ' + (larg.deborde ? 'défile dans son cadre' : 'tient en entier') + ')');
   await C.click('[data-a="semPrec"]');
@@ -262,7 +263,41 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   verifie(betteMer.includes('Bette') && betteMer.includes('3 GH (15 kg)') && betteMer.includes('Locavore 2') && betteMer.includes('Ferme Deschamps 1'), 'mercredi : bette 3 GH (15 kg), soit Locavore 2 et Ferme Deschamps 1 (obtenu « ' + betteMer + ' »)');
   verifie((await B.textContent(jourRec('lun'))).includes('Rien à récolter.'), 'lundi : rien à récolter (aucune quantité pour Très Allier mardi ni La Magic)');
 
-  // 13. Rechargement, retour à la semaine, rien d'autre de touché
+  // 13. Stock chez Très Allier (fin de 13B) : saisi par la ferme, information hors du reste
+  verifie(await A.isChecked(`${fiche('ta')} input[data-f="stock"]`) && !(await A.isChecked(`${fiche('lv')} input[data-f="stock"]`)), 'la fiche Très Allier suit son stock au magasin (pas celle de Locavore)');
+  const sp = (pid) => `section.sp[data-pid="${pid}"]`;
+  const caseStock = sp('bette') + ' .sr[data-k="stock/ta"]';
+  if ((await B.getAttribute(sp('bette') + ' .sp-head', 'aria-expanded')) !== 'true') await B.click(sp('bette') + ' .sp-head');
+  const resteAvant = await B.textContent(sp('bette') + ' .sp-head .reste');
+  verifie(await B.isVisible(caseStock) && (await B.textContent(caseStock + ' .sr-nom')).startsWith('Stock chez Très Allier'), 'chez Aurore, la bette a une case « Stock chez Très Allier »');
+  await B.fill(caseStock + ' input', '3'); await B.press(caseStock + ' input', 'Enter');
+  await attendre(B);
+  const s1 = base.lire('listes/semaines/' + SEM + '/stock/bette/ta');
+  verifie(s1 && s1.n === 3 && s1.u === 'colis' && s1.by === 'Aurore' && s1.at > 0, 'Aurore saisit 3 GH de bette en stock : enregistré avec son prénom et l\'heure');
+  verifie((await B.textContent(sp('bette') + ' .sp-head .reste')) === resteAvant, 'le stock n\'entre pas dans le reste (toujours « ' + resteAvant + ' »)');
+  await B.click('#semTab summary').catch(() => {});
+  verifie((await enTete(B)).includes('Stock Très Allier'), 'le tableau de la semaine a une colonne « Stock Très Allier »');
+  await A.click('[data-a="retour"]');
+  await A.waitForSelector(sp('bette'));
+  if ((await A.getAttribute(sp('bette') + ' .sp-head', 'aria-expanded')) !== 'true') await A.click(sp('bette') + ' .sp-head');
+  verifie((await A.inputValue(caseStock + ' input')) === '3', 'François voit le stock saisi par Aurore');
+  await A.fill(caseStock + ' input', '2'); await A.press(caseStock + ' input', 'Enter');
+  await attendre(B);
+  verifie((await B.inputValue(caseStock + ' input')) === '2' && (await B.textContent(caseStock + ' .sr-eq')).includes('François'), 'François le corrige à 2 : Aurore voit 2, modifié par François (la dernière modification l\'emporte)');
+  await A.fill(caseStock + ' input', 'tout'); await A.press(caseStock + ' input', 'Enter');
+  await attendre(A, 300);
+  verifie((await A.textContent(caseStock)).includes('« tout » se met seulement dans un créneau de vente') && base.lire('listes/semaines/' + SEM + '/stock/bette/ta').n === 2, '« tout » est refusé pour le stock');
+  await A.fill(caseStock + ' input', '2'); await A.press(caseStock + ' input', 'Enter');
+  await A.click('[data-a="debouches"]');
+  await A.waitForSelector('#debView section.db');
+  await A.click(`${fiche('ta')} input[data-f="stock"]`);
+  await attendre(B);
+  verifie(!debDe('ta').stock && (await B.isVisible(caseStock)), 'stock décoché pour Très Allier : la case reste dans cette semaine tant qu\'elle a un chiffre');
+  await A.click(`${fiche('ta')} input[data-f="stock"]`);
+  await attendre(A);
+  verifie(debDe('ta').stock === true, 'stock recoché');
+
+  // 14. Rechargement, retour à la semaine, rien d'autre de touché
   await A.reload(); await A.waitForSelector('#debView section.db');
   verifie((await A.inputValue(`${fiche('el')} [data-f="note"]`)) === 'Client individuel, commande par téléphone.' && (await jours(A, 'lv', 'lv')).join() === 'jeudi', 'après rechargement : écran des débouchés et modifications gardés');
   await A.click('[data-a="retour"]');

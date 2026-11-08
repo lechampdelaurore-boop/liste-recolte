@@ -163,9 +163,9 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   // 9. Tableau de la semaine
   await B.click('#semTab summary');
   const enTetes = await B.$$eval('#semTable th', (e) => e.map((x) => x.textContent));
-  verifie(enTetes.join('|') === 'Produit|Dispo|TA mar|La Magic|Panier adéq.|Locavore|TA jeu|Auvabio 03|Auvabio 63|Marché ven|Élie|Reste|Reste Auvabio 03 → Auvabio 63', 'le tableau a une colonne par créneau, le reste, puis le reste 03 → 63 à part (obtenu ' + enTetes.join('|') + ')');
+  verifie(enTetes.join('|') === 'Produit|Dispo|Stock Très Allier|TA mar|La Magic|Panier adéq.|Locavore|TA jeu|Auvabio 03|Auvabio 63|Marché ven|Élie|Reste|Reste Auvabio 03 → Auvabio 63', 'le tableau a le stock chez Très Allier, une colonne par créneau, le reste, puis le reste 03 → 63 à part (obtenu ' + enTetes.join('|') + ')');
   const rangBette = await B.$$eval('#semTable tr[data-pid="bette"] td', (e) => e.map((x) => x.textContent));
-  verifie(rangBette.join('|') === 'Bette|10|2||2||3|5||||−2 GH (−10 kg)|0', 'ligne bette du tableau (obtenu ' + rangBette.join('|') + ')');
+  verifie(rangBette.join('|') === 'Bette|10||2||2||3|5||||−2 GH (−10 kg)|0', 'ligne bette du tableau (obtenu ' + rangBette.join('|') + ')');
   verifie(await B.evaluate(() => innerWidth === 412 && document.documentElement.scrollWidth <= innerWidth), 'tableau ouvert : la page garde la largeur du téléphone, le tableau défile dans son cadre');
   await capture(B, '3-tableau');
 
@@ -229,7 +229,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   const larg = await C.evaluate(() => ({ wrap: document.querySelector('.wrap').getBoundingClientRect().width, deborde: document.querySelector('#semGridWrap').scrollWidth > document.querySelector('#semGridWrap').clientWidth, page: document.documentElement.scrollWidth > innerWidth }));
   verifie(larg.wrap > 1200 && !larg.deborde && !larg.page, 'écran de 1366 px : la grille prend la largeur et tient en entier, sans défilement de côté (largeur ' + Math.round(larg.wrap) + ' px)');
   const rangG = await C.$$eval('#semGrid tr[data-pid="bette"] input[data-cell]', (e) => e.map((x) => x.value));
-  verifie(rangG.join('|') === '10|2||2||3|5||||' + '0', 'ligne bette de la grille : 10 | 2 | | 2 | | 3 | 5 | | | | puis le reste 03 → 63 (obtenu ' + rangG.join('|') + ')');
+  verifie(rangG.join('|') === '10||2||2||3|5||||' + '0', 'ligne bette de la grille : 10 | (stock vide) | 2 | | 2 | | 3 | 5 | | | | puis le reste 03 → 63 (obtenu ' + rangG.join('|') + ')');
   verifie((await resteG(C, 'bette')) === 'Manque : 2 GH (10 kg)', 'reste bette dans la grille : Manque : 2 GH (10 kg)');
   // Taper dans une case, Tab : le reste se met à jour, le curseur est dans la case de droite
   await C.click(cellule('bette', 'q/ta-jeu'));
