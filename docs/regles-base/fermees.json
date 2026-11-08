@@ -1,0 +1,8 @@
+{
+  "rules": {
+    "listes": {
+      ".read": "auth != null && root.child('profils').child(auth.uid).val() === 'ferme'",
+      ".write": "auth != null && root.child('profils').child(auth.uid).val() === 'ferme'"
+    }
+  }
+}

@@ -24,7 +24,7 @@ Appli web statique « Liste de récolte » du Champ de l'Aurore (GAEC, Tronget, 
 - Toute modification passe par une PR, registres compris. Jamais d'écriture directe sur `main`. Une PR par sujet, rien de plus que ce que la tâche demande.
 - Mesurer avant d'écrire (lancer les contrôles, noter leur état), vérifier après. Ce qui n'a pas été vérifié est dit « non vérifié ».
 - Avant d'affirmer qu'une chose est fusionnée, déployée ou verte, la vérifier à la source.
-- Ne jamais voir, saisir, écrire ni consigner une clé, un jeton, un mot de passe ou l'adresse électronique de François. Le dépôt est public.
+- Ne jamais voir, saisir, écrire ni consigner une clé, un jeton, un mot de passe ou l'adresse électronique de François. Le dépôt est public. **Ne jamais ouvrir ni afficher `cle-web.js`** (clé web collée par François) ni le diff d'une PR qui le change : les tests servent leur propre version de ce fichier.
 - Ne jamais réduire un outil au seul cas de cette ferme : elle sert d'exemple et d'essai, pas de limite.
 - Ne jamais donner l'adresse `*.github.io` de ce compte : elle ouvre l'appli d'un autre membre de la famille sur les téléphones. Seule adresse à donner : https://liste-recolte.pages.dev. Rien de la ferme dans un autre dépôt que celui-ci.
 
@@ -42,8 +42,9 @@ Appli web statique « Liste de récolte » du Champ de l'Aurore (GAEC, Tronget, 
 ## Modifier l'appli
 
 - Tout tient dans `index.html`, sans bibliothèque ni étape de construction. Garder ça.
-- Après toute modification de `index.html`, `config.js` ou des icônes : changer `CACHE` dans `sw.js`.
-- Lancer `node tests/deux-telephones.cjs`, `node tests/semaine.cjs` et `node tests/debouches.cjs` avant d'ouvrir la PR et coller la sortie réelle dans la PR. Mettre à jour le test et `README.md` si le comportement change. Un contrôle omis l'est avec sa raison.
+- Après toute modification de `index.html`, `config.js` ou des icônes : changer `CACHE` dans `sw.js`. (Pas besoin pour `cle-web.js` : le site le reprend par le réseau.)
+- Base fermée par des comptes (étape 5) : tout appel à la base passe par `dbFetch` ou `dbUrl` (jeton du compte) dans `index.html`, jamais par `fetch(DB + …)`. Règles dans `docs/regles-base/` ; seul François les colle dans la console.
+- Lancer `node tests/deux-telephones.cjs`, `node tests/semaine.cjs`, `node tests/debouches.cjs` et `node tests/connexion.cjs` avant d'ouvrir la PR (et `node tests/regles.cjs`, avec l'émulateur Firebase, si les règles ou la connexion changent) et coller la sortie réelle dans la PR. Mettre à jour le test et `README.md` si le comportement change. Un contrôle omis l'est avec sa raison.
 - Textes de l'interface en français, phrases courtes, gros éléments tactiles (usage au champ, au soleil, avec des gants).
 - Charte « plein soleil » : fond blanc, texte noir, traits épais, pas de gris clair, aucun mode sombre. Glisser-déposer uniquement par appui long (0,45 s), sans poignée.
 - Zones : Tunnel, Plein champ, Stock, et seulement elles. Lieu des récoltes (zones et emplacements) masqué depuis le 04/11/2026 (`MONTRER_LIEU` dans `index.html`) : ne pas le réafficher sans l'accord de François.

@@ -40,6 +40,10 @@ La pastille sous le titre dit l'état du partage :
 - **Hors ligne · 3 coches en attente** (orange) : pas de réseau. Les coches sont affichées tout de suite, gardées sur le téléphone, et partent toutes seules au retour du réseau. Le chiffre dit combien attendent (« changement » s'il y a aussi un changement d'ordre).
 - **Envoi… 3 coches en attente** (orange) : le réseau est revenu, l'envoi est en cours.
 - **Sur ce téléphone seulement** : la base partagée n'est pas encore configurée (`config.js` vide).
+- **Pas connecté** (orange) : la base est fermée par des comptes et ce téléphone ne s'est pas encore connecté (fenêtre « Se connecter »).
+- **Compte sans accès** (rouge) : le compte est connecté, mais la base le refuse (pas de profil « ferme », voir [docs/PAS_A_PAS_SECURITE.md](docs/PAS_A_PAS_SECURITE.md)). Le téléphone repasse à « Partagé » tout seul dès que le profil est donné.
+
+**Compte** (depuis le 08/11/2026, étape 5) : quand la clé web est remplie dans `cle-web.js`, chaque téléphone se connecte **une seule fois** (identifiant court, par exemple `francois`, et mot de passe). La connexion est gardée sur le téléphone, même sans réseau ; le mot de passe ne l'est jamais. Le jeton d'accès (valable une heure) se renouvelle tout seul. **Réglages → Compte** montre l'identifiant, le numéro du compte et le bouton « Se déconnecter de ce téléphone ». Clé web vide : pas de compte, l'appli marche comme avant.
 
 **Mode hors ligne** : la dernière liste reçue est gardée sur le téléphone, avec ses coches, et s'ouvre sans réseau. Si deux personnes touchent la même ligne pendant qu'une d'elles est hors ligne, **la dernière action gagne** (d'après l'heure du téléphone où elle a été faite) : par exemple, si Aurore décoche le persil après que François l'a coché sans réseau, le persil reste décoché quand François retrouve le réseau. Une liste ouverte depuis la copie du téléphone est remplacée toute seule par la nouvelle liste de la semaine au retour du réseau, une fois les coches envoyées.
 
@@ -75,6 +79,10 @@ Dans `config.js`, mettre l'adresse entre les apostrophes :
 window.RECOLTE_DB_URL = 'https://liste-recolte-xxxxx-default-rtdb.europe-west1.firebasedatabase.app';
 ```
 Puis changer `CACHE` dans `sw.js` (par exemple `recolte-v1` → `recolte-v2`) pour que les téléphones prennent la nouvelle version. Détails du stockage : [docs/base-partagee.md](docs/base-partagee.md).
+
+### 4. Fermer la base par des comptes (étape 5)
+
+Comptes Firebase (identifiant et mot de passe, gratuit), profil « ferme » noté dans la base, clé web dans `cle-web.js`, puis nouvelles règles : le pas-à-pas complet, dans l'ordre et avec le retour arrière, est dans [docs/PAS_A_PAS_SECURITE.md](docs/PAS_A_PAS_SECURITE.md). Règles prêtes à coller : `docs/regles-base/fermees.json` (et `ouvertes.json` pour revenir en arrière).
 
 ## Mettre la liste de la semaine
 
@@ -150,13 +158,15 @@ Le code de ce dépôt est publié sous la licence **PolyForm Noncommercial 1.0.0
 |---|---|
 | `index.html` | Toute l'appli (HTML, CSS, JavaScript), sans bibliothèque ni dépendance. |
 | `config.js` | Adresse de la base Firebase. Vide = pas de partage. |
+| `cle-web.js` | Clé web du projet Firebase, collée par François lui-même (étape 5). Vide = pas de compte, base ouverte. Les agents IA ne l'ouvrent pas. |
+| `docs/regles-base/` | Règles de la base : `fermees.json` (comptes avec le profil « ferme » seulement) et `ouvertes.json` (anciennes, pour revenir en arrière). |
 | `listes/actuelle.json` | Liste ouverte par défaut. |
 | `listes/AAAA-MM-JJ.json` | Une liste par jour de récolte. Format : [docs/format-liste.md](docs/format-liste.md). |
 | `referentiel/conditionnements.json` | Pour chaque produit : type de caisse (PB, PH, GB, GH) et contenu d'un colis (kg, ou nombre de bottes, bouquets, pièces, sachets). Source : onglet « Liste produits » du cumul. Aussi : les colisages (colis bois) et les circuits qui les utilisent. |
 | `referentiel/debouches.json` | Débouchés de départ de l'onglet Semaine (avant toute modification dans l'appli) : nom, colis, remarque, et livraisons (jours, moment, nom court, seconde livraison `reprend` : Auvabio 63 reprend Auvabio 03), et jours de récolte (`recoltes`). L'identifiant du débouché est celui du circuit des listes de récolte. |
 | `sw.js` | Hors ligne : la page et la liste passent par le réseau, sinon la dernière copie. Changer `CACHE` à chaque modification de l'appli. Ne met jamais la base Firebase en cache. |
 | `manifest.webmanifest`, `icons/` | Installation sur l'écran d'accueil. |
-| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`), débouchés et livraisons (`debouches.cjs`). |
+| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`), débouchés et livraisons (`debouches.cjs`), connexion par compte (`connexion.cjs`) ; règles de la base sur l'émulateur officiel de Firebase (`regles.cjs`). |
 | `docs/` | Format des listes, fonctionnement de la base partagée. |
 | `LICENSE` | Licence PolyForm Noncommercial 1.0.0 : usage non commercial seulement. |
 | `AGENTS.md` | Consignes pour les agents IA qui modifient ce dépôt (`CLAUDE.md` y renvoie). |
@@ -170,17 +180,24 @@ npx playwright install chromium   # seulement la première fois
 node tests/deux-telephones.cjs
 node tests/semaine.cjs
 node tests/debouches.cjs
+node tests/connexion.cjs
 ```
+
+`tests/regles.cjs` demande en plus l'émulateur officiel de Firebase (`npm install --no-save firebase-tools`, Java), lancé à part : voir l'en-tête du fichier. Sans émulateur, il dit « NON LANCÉ ».
 
 Le test ouvre deux téléphones simulés (François et Aurore) reliés à un faux Firebase local (`tests/faux-firebase.cjs`) et vérifie : la coche passe d'un téléphone à l'autre avec le prénom, la ligne cochée quitte la liste principale, le glisser-déposer au doigt est partagé, le nombre de caisses et de colis bois (par circuit et regroupés), l'onglet Détail caché (et remis par le réglage), la flèche de répartition par client (colisage et poids, colis bois compris), les filtres Locavore et Ferme Deschamps, le décochage, la barre de progression (globale, unités, kilos, mise à jour d'un téléphone à l'autre), l'onglet Préparation (tri par client et par produit, indicateur de récolte, coches de lignes et de clients partagées et gardées après rechargement, sans toucher aux coches de récolte), et l'absence d'erreur JavaScript. Il sort en erreur si une vérification échoue.
 
 `tests/semaine.cjs` vérifie l'onglet Semaine avec deux téléphones et un ordinateur (grille : largeur, Tab et Entrée, « tout » tapé, unité refusée, menu d'unité de chaque case, reste 03 → 63 tapé puis vidé, saisie gardée pendant un changement venu d'un téléphone, retour aux fiches en fenêtre étroite) : ajout de produits partagé, reste en colis et en kilos ou bottes, couleurs, unités tapées ou converties (et refusées si le produit ne se compte pas ainsi), « tout » unique par produit, reste Auvabio 03 → 63 calculé, modifié puis remis au calcul, hors du reste, tableau, hors ligne, semaines séparées, reprise des produits de la semaine précédente, retrait d'un produit, rechargement, et que la liste de récolte de la base n'est pas touchée.
 
+`tests/connexion.cjs` vérifie la base fermée par des comptes (faux Firebase qui imite les règles et la connexion) : fenêtre « Se connecter » au premier lancement, qui ne se ferme pas sans connexion, aucun appel à la base avant ; mauvais mot de passe ; identifiant court ; mot de passe jamais gardé ; deux téléphones qui partagent leurs coches ; connexion gardée après rechargement ; Semaine et débouchés avec le jeton ; jeton expiré renouvelé tout seul ; coche faite hors ligne envoyée malgré un jeton expiré pendant la coupure ; compte sans profil refusé, puis accepté dès que le profil est donné ; déconnexion ; compte supprimé ; clé web fausse.
+
+`tests/regles.cjs` vérifie `docs/regles-base/fermees.json` sur l'émulateur officiel : syntaxe acceptée ; sans compte, tout refusé (lecture, écriture, flux, racine) ; compte sans profil refusé et incapable de se donner le profil ; compte « ferme » qui lit et écrit listes, semaines et débouchés mais ne touche pas aux profils ; puis l'appli branchée sur l'émulateur (connexion, coches, compte sans accès).
+
 `tests/debouches.cjs` vérifie l'écran « Débouchés et livraisons » avec deux téléphones et un ordinateur : les 7 débouchés de départ repris (jours, colis, Auvabio 63 qui reprend la 03), rien d'écrit dans la base avant une modification, jour obligatoire, changement de jour partagé et colonnes de la semaine rangées en conséquence, nouveau débouché (nom et jour obligatoires), seconde livraison avec reste reporté, retrait gardé puis remis, ordre, colonne gardée quand elle a des quantités, semaine passée inchangée, fiches sur deux colonnes à l'ordinateur, jours de récolte (départ, une livraison par jour, ajout, récolte après livraison signalée, retrait, cadre « À récolter » de la semaine), stock chez Très Allier (saisi, partagé, hors du reste, « tout » refusé, case gardée si le suivi est décoché ; page Stock avec ce qui est prévu, saisie et bouton +, chaque stock juste avant les livraisons de son débouché, un bloc par débouché suivi), hors ligne, rechargement, et que quantités et liste de récolte ne sont pas touchées.
 
 ## Limites connues
 
-- **Dépôt et base publics** : quelqu'un qui connaît l'adresse peut lire la liste (produits, quantités, noms des circuits) et cocher des cases. Il n'y a pas de mot de passe. Acceptable pour une liste de récolte ; à revoir si on y met des données sensibles.
+- **Dépôt et base publics** : tant que l'étape 5 n'est pas finie (règles fermées collées par François), quelqu'un qui connaît l'adresse peut lire la liste (produits, quantités, noms des circuits) et cocher des cases. Ensuite, la base n'est ouverte qu'aux comptes avec le profil « ferme » ; les listes du dépôt (`listes/*.json`) restent publiques, comme le site.
 - **Deux personnes qui glissent en même temps** : le dernier ordre envoyé gagne.
 - **Glisser-déposer à la souris** sur ordinateur : prévu pour le doigt, la souris n'a été testée qu'en simulation tactile.
 - **Lieu des récoltes masqué** (depuis le 04/11/2026) : l'emplacement et les zones (Tunnel, Plein champ, Stock) étaient recopiés à la main depuis l'assolement, sans lien avec Ouvre ta ferme. Ils restent dans les listes mais ne s'affichent plus. Pour les réafficher : `var MONTRER_LIEU = true;` dans `index.html` (et changer `CACHE` dans `sw.js`).
