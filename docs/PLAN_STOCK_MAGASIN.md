@@ -1,6 +1,6 @@
 # Plan : le magasin saisit le stock lui-même (étapes 5 et 13C)
 
-*Rédigé le 8/11/2026, précisé le même jour après la réponse de François (un seul compte, prénom demandé d'abord, suivi de qui a saisi). Document de proposition, sans code. Rien n'est décidé tant que François n'a pas répondu et donné son « vas-y » exprès (ouverture d'un accès à d'autres personnes).*
+*Rédigé le 8/11/2026, précisé le même jour après la réponse de François (un seul compte, prénom demandé d'abord, suivi de qui a saisi). Étape 5 faite le 8/11 (20 h 55) ; « vas-y » de François pour 13C le 8/11 à 21 h 02, code fait le même soir. Écarts du code avec ce plan (choix de Claude, dans `docs/DECISIONS.md`) : le stock est rangé par débouché et par semaine (`magasins/<débouché>/semaines/<lundi>/<produit>`, journal et prénoms à côté) au lieu de `magasin/stock` ; le profil s'écrit `magasin:<débouché>`. Mise en place : `docs/PAS_A_PAS_MAGASIN.md`.*
 
 ## En deux phrases
 

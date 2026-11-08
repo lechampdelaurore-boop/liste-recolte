@@ -80,7 +80,7 @@ La connexion reste sur le téléphone, même sans réseau. On ne la refait qu'ap
 2. Avant de changer : sélectionner tout le texte actuel et le copier dans un fichier sur l'ordinateur (c'est le retour arrière ; il doit ressembler aux « anciennes règles » plus bas).
 3. Effacer tout le texte et coller exactement les **nouvelles règles** ci-dessous, puis **Publier**. *Vu le 8/11* : si la console affiche « Parse error » en ligne 1, c'est que l'ancien texte est resté au-dessus du collage ; l'effacer pour qu'il ne reste que les nouvelles règles, puis publier.
 
-Nouvelles règles (`docs/regles-base/fermees.json`) :
+Nouvelles règles (`docs/regles-base/fermees.json` à l'époque ; depuis l'étape 13C, ce texte est dans `docs/regles-base/fermees-sans-magasin.json` et `fermees.json` ajoute le magasin, voir `docs/PAS_A_PAS_MAGASIN.md`) :
 
 ```json
 {

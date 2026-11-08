@@ -1,0 +1,548 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Stock du magasin</title>
+<meta name="description" content="Saisie du stock au magasin, pour la ferme.">
+<meta name="theme-color" content="#ffffff">
+<meta name="color-scheme" content="only light">
+<meta name="robots" content="noindex">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<style>
+/* Même charte « plein soleil » que la liste de récolte : fond blanc, texte noir, traits épais, aucun mode sombre. */
+:root{
+  --bg:#ffffff; --surface:#ffffff; --surface2:#e6e6e6; --fg:#000000; --muted:#1f1f1f; --line:#000000;
+  --accent:#0a5a1c; --brand:#0a4d19; --warn-bg:#ffe680;
+  --radius:14px; --bw:2px; --ombre:0 3px 0 #000;
+  color-scheme: only light;
+  font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--fg);font-size:19px;line-height:1.3;font-weight:500}
+button,select,input{font:inherit;color:inherit}
+.appbar{background:var(--brand);color:#fff;padding-top:env(safe-area-inset-top)}
+.appbar-in{max-width:760px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:8px 14px;min-height:56px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:900;font-size:1.1rem}
+.brand img{border-radius:9px;border:2px solid #fff;display:block}
+.appbar-r{display:flex;gap:6px;align-items:center;flex-wrap:wrap;justify-content:flex-end;margin-left:auto}
+.pill{display:inline-flex;align-items:center;gap:7px;border:var(--bw) solid #fff;background:var(--surface);color:var(--fg);border-radius:999px;padding:4px 11px;font-size:.85rem;font-weight:800;white-space:nowrap}
+.pill i{width:12px;height:12px;border-radius:50%;background:#3a3a3a;display:inline-block;border:1.5px solid #000}
+.pill.ok i{background:#00a83a} .pill.wait i{background:#ffb300} .pill.err i{background:#e00000}
+button.pill{cursor:pointer}
+.wrap{max-width:760px;margin:0 auto;padding:14px 14px 40px;display:grid;gap:14px;grid-template-columns:minmax(0,1fr)}
+h1{font-size:1.55rem;margin:0;line-height:1.15;font-weight:900}
+h2{font-size:1.15rem;margin:8px 0 0;font-weight:900}
+.sub{margin:0;font-size:.95rem;font-weight:700}
+.hint{margin:0;font-size:.88rem;color:var(--muted)}
+.card{background:var(--surface);border:var(--bw) solid var(--line);border-radius:var(--radius);box-shadow:var(--ombre)}
+.cherche{position:sticky;top:0;z-index:5;background:var(--bg);padding:8px 0;border-bottom:var(--bw) solid var(--line)}
+.cherche input{width:100%;min-height:48px;padding:8px 12px;border:var(--bw) solid var(--line);border-radius:12px;background:var(--bg)}
+.liste{display:grid;gap:10px}
+.p{display:grid;gap:6px;padding:10px 12px}
+.p-nom{font-weight:800}
+.p-nom small{font-weight:600;font-size:.85rem}
+.ctl{display:grid;grid-template-columns:52px minmax(0,1fr) auto 52px;gap:6px;align-items:center}
+.ctl button{min-height:52px;border:var(--bw) solid var(--line);border-radius:10px;background:var(--surface);font-weight:900;cursor:pointer;padding:0 12px}
+.ctl button[data-a="moins"],.ctl button[data-a="plus"]{font-size:1.6rem;padding:0}
+.ctl input{min-width:0;width:100%;min-height:52px;padding:6px 10px;border:var(--bw) solid var(--line);border-radius:10px;background:var(--bg);font-size:1.25rem;font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
+.p-qui{font-size:.88rem;font-weight:600}
+.p.fait{background:var(--surface2)}
+.p.fait input{background:#fff}
+.err{margin:0;background:var(--warn-bg);border:2px solid #000;border-radius:8px;padding:4px 8px;font-size:.9rem;font-weight:700}
+.vide{margin:0;font-weight:700}
+.act{min-height:48px;padding:8px 14px;border:var(--bw) solid var(--line);border-radius:12px;background:var(--surface);font-weight:800;cursor:pointer;box-shadow:var(--ombre)}
+dialog{border:var(--bw) solid var(--line);border-radius:14px;padding:20px;background:var(--surface);color:var(--fg);max-width:min(360px,92vw);width:100%}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+dialog h2{margin:0 0 6px;font-size:1.25rem}
+dialog .btns{display:grid;gap:8px;margin-top:14px}
+dialog button{padding:13px;border-radius:10px;border:var(--bw) solid var(--line);background:var(--surface);font-weight:800;cursor:pointer}
+dialog button.oui{background:var(--accent);color:#fff;border-color:var(--accent)}
+dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid var(--line);background:var(--bg)}
+dialog label{display:grid;gap:4px;font-weight:700}
+[hidden]{display:none !important}
+</style>
+</head>
+<body>
+<header class="appbar"><div class="appbar-in">
+  <div class="brand"><img src="icons/icon.svg" width="34" height="34" alt=""><span id="titre">Stock du magasin</span></div>
+  <div class="appbar-r">
+    <button type="button" class="pill" id="qui" hidden aria-label="Changer de prénom"><span id="quiNom"></span></button>
+    <span class="pill wait" id="sync"><i></i><span>Connexion…</span></span>
+  </div>
+</div></header>
+
+<main class="wrap">
+  <div>
+    <h1>Stock au magasin</h1>
+    <p class="sub" id="semaine"></p>
+  </div>
+  <p class="hint" id="aide">Notez ce qui reste au magasin, produit par produit. Chaque saisie part à la ferme avec votre prénom et l'heure.</p>
+  <div id="msg"></div>
+  <div class="cherche" id="chercheBloc" hidden><input id="cherche" type="search" placeholder="Chercher un produit" autocomplete="off" aria-label="Chercher un produit"></div>
+  <div id="liste" class="liste"></div>
+  <div id="pied" hidden>
+    <p class="hint" id="compteTxt"></p>
+    <p><button type="button" class="act" id="deconnecter">Se déconnecter de ce téléphone</button></p>
+  </div>
+</main>
+
+<dialog id="authDlg">
+  <h2>Se connecter</h2>
+  <p class="hint">Une seule fois sur ce téléphone. Le compte du magasin est donné par la ferme.</p>
+  <form id="authForm" class="btns">
+    <label>Identifiant<input id="authId" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false"></label>
+    <label>Mot de passe<input id="authMdp" type="password" autocomplete="current-password"></label>
+    <p class="err" id="authErr" role="alert" hidden></p>
+    <button type="submit" id="authOk" class="oui">Se connecter</button>
+  </form>
+</dialog>
+
+<dialog id="quiDlg">
+  <h2>Qui saisit ?</h2>
+  <p class="hint">Votre prénom s'affiche à côté de chaque saisie, pour que la ferme sache qui a compté.</p>
+  <div class="btns" id="quiConnus"></div>
+  <form id="quiForm" class="btns">
+    <label>Votre prénom<input id="quiAutre" autocomplete="given-name" autocapitalize="words" maxlength="40"></label>
+    <p class="err" id="quiErr" role="alert" hidden></p>
+    <button type="submit" class="oui">Valider</button>
+    <button type="button" id="quiAnnuler" hidden>Annuler</button>
+  </form>
+</dialog>
+
+<script src="cle-web.js"></script>
+<script src="config.js"></script>
+<script>
+(function(){
+'use strict';
+/* Page du magasin (étape 13C) : le personnel d'un magasin saisit lui-même son stock, produit par produit.
+   Un seul compte pour le magasin (profil « magasin:<débouché> » dans la base, posé par la ferme) ; le prénom
+   est demandé d'abord, puis gardé sur le téléphone et modifiable d'un appui. La page ne lit jamais les listes
+   de la ferme : les règles de la base le refusent. Données (voir docs/base-partagee.md) :
+     magasins/<débouché>/semaines/<lundi>/<produit>  {n, u, by, at}  stock saisi (u : 'colis', 'kg' ou 'u')
+     magasins/<débouché>/journal/<lundi>/<id>        {pid, n, u, an, au, by, at}  chaque saisie, jamais effacée
+     magasins/<débouché>/personnes/<clé>             {nom, at}  prénoms déjà utilisés, proposés en un appui
+   Connexion : Firebase Authentication par son API web, comme la liste de récolte (copie de son code). */
+var DB = (window.RECOLTE_DB_URL || '').replace(/\/+$/, '');
+var CLE = String(window.RECOLTE_CLE_WEB || '').trim();
+var AUTH_URL = window.RECOLTE_AUTH_URL || 'https://identitytoolkit.googleapis.com/v1';
+var JETON_URL = window.RECOLTE_JETON_URL || 'https://securetoken.googleapis.com/v1';
+var DOMAINE_COMPTES = 'ferme.invalid';
+var EPS = 1e-6;
+
+function $(s){ return document.querySelector(s); }
+function ls(k, v){ try{ if(v === undefined){ var x = localStorage.getItem(k); return x ? JSON.parse(x) : null; } localStorage.setItem(k, JSON.stringify(v)); }catch(e){ return null; } }
+function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+function sansAccent(s){ return s.normalize('NFD').replace(/[̀-ͯ]/g, ''); }
+function pidDe(nom){ return sansAccent(nom).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
+function jourIso(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+function lundiDe(d){ d = new Date(d.getFullYear(), d.getMonth(), d.getDate()); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return jourIso(d); }
+function deIso(s){ var p = s.split('-'); return new Date(+p[0], p[1] - 1, +p[2]); }
+function decaler(id, n){ var d = deIso(id); d.setDate(d.getDate() + 7 * n); return jourIso(d); }
+
+/* ---------- Produits et unités (mêmes règles que l'onglet Semaine de la liste de récolte) ---------- */
+var NOMS_CAISSES = {PB:'petite basse', PH:'petite haute', GB:'grande basse', GH:'grande haute'};
+function contenu(f){ return f.kg ? {u:'kg', n:+f.kg} : (f.par_colis ? {u:'u', n:+f.par_colis} : null); }
+function unitesDe(f){ var c = contenu(f); return c ? [c.u, 'colis'] : ['colis']; }
+function nomUnite(u, f, n){
+  if(u === 'colis') return f.caisse || 'colis';
+  if(u === 'kg') return 'kg';
+  var t = (f.type || 'unité');
+  return Math.abs(n) >= 2 ? t + 's' : t;
+}
+function nb(x){ var r = Math.round(x * 100) / 100; if(Math.abs(r) < EPS) r = 0; return String(r).replace('.', ','); }
+function qTxt(n, u, f){ return nb(n) + ' ' + nomUnite(u, f, n); }
+function colisTxt(f){ var c = contenu(f); return (f.caisse ? f.caisse + ' de ' : 'Colis de ') + (c ? qTxt(c.n, c.u, f) : (f.unite || '?')); }
+function aideUnites(f){ var c = contenu(f); return 'Ce produit se compte en ' + (c ? nomUnite(c.u, f, 2) + ' ou en ' : '') + (f.caisse ? f.caisse + ' (' + NOMS_CAISSES[f.caisse] + ')' : 'colis') + '.'; }
+function lireSaisie(txt, f, defU){
+  var t = sansAccent(String(txt).trim().toLowerCase()).replace(',', '.');
+  if(!t) return {vide:true};
+  var m = /^(\d+(?:\.\d+)?|\.\d+)\s*([a-z. ]*)$/.exec(t);
+  if(!m) return {err:'Écrire un nombre, par exemple 3 ou 12 kg.'};
+  var n = parseFloat(m[1]), w = m[2].trim().replace(/\.$/, ''), u, c = contenu(f);
+  var caisse = Object.keys(NOMS_CAISSES).filter(function(k){ return w === k.toLowerCase() || w.replace(/s(?= |$)/g, '') === NOMS_CAISSES[k]; })[0];
+  if(!w) u = defU;
+  else if(/^(c|colis|caisses?)$/.test(w)) u = 'colis';
+  else if(caisse){
+    if(f.caisse && caisse !== f.caisse) return {err:f.nom + ' se range en ' + f.caisse + ' (' + NOMS_CAISSES[f.caisse] + '), pas en ' + caisse + '.'};
+    u = 'colis';
+  }
+  else if(/^(kg|kgs|kilos?)$/.test(w)) u = 'kg';
+  else if(/^(g|gr|grammes?)$/.test(w)){ u = 'kg'; n = n / 1000; }
+  else if(/^(u|unites?)$/.test(w) || (f.type && w.length >= 3 && sansAccent(f.type).indexOf(w.replace(/s$/, '').slice(0, 5)) === 0)) u = 'u';
+  else return {err:'Unité inconnue : « ' + m[2] + ' ». ' + aideUnites(f)};
+  if(u !== 'colis' && (!c || c.u !== u)) return {err:aideUnites(f)};
+  if(n >= 100000) return {err:'Nombre trop grand.'};
+  return {n:Math.round(n * 1000) / 1000, u:u};
+}
+function pas(u){ return u === 'colis' ? 0.5 : 1; }
+function quand(at, avecDate){
+  var d = new Date(at), j = d.toLocaleDateString('fr-FR', avecDate ? {weekday:'long', day:'numeric', month:'numeric'} : {weekday:'long'});
+  return j + ' à ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+}
+
+/* ---------- État ---------- */
+var compte = CLE ? ls('magasin.compte') : null;
+var qui = ls('magasin.qui') || '';
+var unites = ls('magasin.unites') || {};
+var pending = ls('magasin.pending') || [];
+var REF = null, DEBS = null;
+var did = compte && compte.did || null, w = lundiDe(new Date());
+var data = {}, avant = {}, personnes = ls('magasin.personnes') || {};
+var es = null, enLigne = false, recu = false, refuse = '', flushing = false, erreurs = {}, msgEnvoi = '';
+var renouvEnCours = null, attente = false;
+
+/* ---------- Compte (Firebase Authentication, API web, sans bibliothèque) ---------- */
+function dbPret(){ return !!DB && !!CLE && !!(compte && compte.jeton && compte.fin > Date.now()); }
+function dbUrl(chemin, q){ return DB + chemin + '.json?' + (q ? q + '&' : '') + 'auth=' + encodeURIComponent(compte ? compte.jeton : ''); }
+function jsonOuVide(r){ return r.json().catch(function(){ return {}; }); }
+function garderCompte(){ ls('magasin.compte', compte); }
+function renouveler(){
+  if(!compte) return Promise.reject(new Error('compte'));
+  if(renouvEnCours) return renouvEnCours;
+  var c = compte;
+  renouvEnCours = fetch(JETON_URL + '/token?key=' + encodeURIComponent(CLE), {method:'POST', headers:{'Content-Type':'application/x-www-form-urlencoded'}, body:'grant_type=refresh_token&refresh_token=' + encodeURIComponent(c.renouv)})
+    .then(function(r){ return jsonOuVide(r).then(function(j){ return {ok:r.ok, j:j}; }); })
+    .then(function(x){
+      renouvEnCours = null;
+      if(!x.ok){
+        var m = String((x.j && x.j.error && x.j.error.message) || '');
+        if(compte === c && /TOKEN_EXPIRED|USER_DISABLED|USER_NOT_FOUND|INVALID_REFRESH_TOKEN/.test(m)) perdreCompte('La connexion de ce téléphone a pris fin (mot de passe changé ?). Se connecter à nouveau.');
+        throw new Error(m || 'jeton');
+      }
+      if(compte !== c) throw new Error('compte');
+      c.jeton = x.j.id_token; c.renouv = x.j.refresh_token || c.renouv;
+      c.fin = Date.now() + (Number(x.j.expires_in) || 3600) * 1000;
+      garderCompte();
+    }, function(e){ renouvEnCours = null; throw e; });
+  return renouvEnCours;
+}
+// Jeton encore bon pour au moins cinq minutes : rien à faire (false) ; sinon il est renouvelé (true).
+function jetonFrais(){
+  if(!compte) return Promise.reject(new Error('compte'));
+  if(compte.fin - Date.now() > 5 * 60 * 1000) return Promise.resolve(false);
+  return renouveler().then(function(){ return true; });
+}
+// Appel à la base avec le jeton du compte ; un jeton tout neuf rouvre aussi la lecture en direct.
+function dbFetch(chemin, opts, q){
+  return jetonFrais().then(function(neuf){
+    if(neuf) setTimeout(function(){ ouvrir(true); }, 0);
+    return fetch(dbUrl(chemin, q), opts || {cache:'no-store'});
+  });
+}
+function identifiantComplet(id){ id = id.trim(); return id.indexOf('@') < 0 ? id.toLowerCase() + '@' + DOMAINE_COMPTES : id; }
+function msgConnexion(m){
+  if(/INVALID_LOGIN_CREDENTIALS|INVALID_PASSWORD|EMAIL_NOT_FOUND|INVALID_EMAIL|MISSING_PASSWORD/.test(m)) return 'Identifiant ou mot de passe faux.';
+  if(/USER_DISABLED/.test(m)) return 'Ce compte est désactivé.';
+  if(/TOO_MANY_ATTEMPTS/.test(m)) return 'Trop d\'essais. Réessayez dans quelques minutes.';
+  return 'Connexion impossible' + (m ? ' (' + m + ')' : '') + '.';
+}
+function seConnecter(id, mdp){
+  return fetch(AUTH_URL + '/accounts:signInWithPassword?key=' + encodeURIComponent(CLE), {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({email:identifiantComplet(id), password:mdp, returnSecureToken:true})})
+    .then(function(r){ return jsonOuVide(r).then(function(j){ return {ok:r.ok, j:j}; }); }, function(){ throw new Error('Pas de réseau. La première connexion demande du réseau.'); })
+    .then(function(x){
+      if(!x.ok) throw new Error(msgConnexion(String((x.j && x.j.error && x.j.error.message) || '')));
+      compte = {id:id.trim(), uid:x.j.localId || '', jeton:x.j.idToken, renouv:x.j.refreshToken, fin:Date.now() + (Number(x.j.expiresIn) || 3600) * 1000};
+      garderCompte();
+    });
+}
+function demanderCompte(){
+  var d = $('#authDlg'), err = $('#authErr'), b = $('#authOk');
+  $('#authForm').onsubmit = function(e){
+    e.preventDefault();
+    var id = $('#authId').value, mdp = $('#authMdp').value;
+    if(!id.trim() || !mdp){ err.textContent = 'Remplir l\'identifiant et le mot de passe.'; err.hidden = false; return; }
+    b.disabled = true; b.textContent = 'Connexion…';
+    seConnecter(id, mdp).then(function(){
+      $('#authMdp').value = ''; err.hidden = true; d.close(); demarrer();
+    }, function(e2){ err.textContent = e2.message; err.hidden = false; })
+      .then(function(){ b.disabled = false; b.textContent = 'Se connecter'; });
+  };
+  d.oncancel = function(e){ e.preventDefault(); };
+  if(!d.open) d.showModal();
+}
+function perdreCompte(msg){
+  compte = null; ls('magasin.compte', null); did = null;
+  if(es){ es.close(); es = null; }
+  enLigne = false; refuse = ''; recu = false;
+  var err = $('#authErr'); err.textContent = msg || ''; err.hidden = !msg;
+  render(); demanderCompte();
+}
+$('#deconnecter').onclick = function(){
+  var n = pending.length;
+  if(confirm((n ? n + ' saisie' + (n > 1 ? 's' : '') + ' pas encore partie' + (n > 1 ? 's' : '') + ' : elle' + (n > 1 ? 's' : '') + ' partira' + (n > 1 ? 'nt' : '') + ' après la prochaine connexion. ' : '') + 'Se déconnecter de ce téléphone ? Il faudra l\'identifiant et le mot de passe pour revenir.')) perdreCompte('');
+};
+
+/* ---------- Démarrage : compte, puis magasin du compte, puis prénom ---------- */
+function chargerRef(){
+  function lire(url, key){
+    return fetch(url, {cache:'no-cache'}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(d){ ls(key, d); return d; }, function(){ return ls(key); });
+  }
+  return Promise.all([lire('referentiel/conditionnements.json', 'recolte.referentiel'), lire('referentiel/debouches.json', 'recolte.debouches0')])
+    .then(function(r){ REF = r[0]; DEBS = r[1]; render(); });
+}
+function nomMagasin(){
+  var d = DEBS && (DEBS.debouches || []).filter(function(x){ return x.id === did; })[0];
+  return d ? d.nom : 'le magasin';
+}
+function demarrer(){
+  if(!DB || !CLE){ refuse = 'Cette page n\'est pas encore ouverte : la ferme doit d\'abord fermer sa base par des comptes.'; render(); return; }
+  if(!compte){ render(); demanderCompte(); return; }
+  // Le profil du compte dit de quel magasin il s'agit (« magasin:ta » = Très Allier). Sans réseau, on garde le dernier connu.
+  dbFetch('/profils/' + compte.uid).then(function(r){ return r.ok ? r.json() : Promise.reject(r.status); }).then(function(p){
+    var m = /^magasin:([a-z0-9-]+)$/.exec(String(p || ''));
+    if(!m){
+      did = null; compte.did = null; garderCompte();
+      refuse = p === 'ferme' ? 'Ce compte est celui de la ferme. Cette page est pour le magasin : se connecter avec le compte du magasin. La ferme voit le stock dans l\'onglet Semaine de la liste de récolte.'
+        : 'Ce compte n\'a pas accès à la saisie du stock. La ferme doit lui donner le profil du magasin (voir le pas-à-pas).';
+      render(); return;
+    }
+    refuse = ''; did = m[1]; compte.did = did; garderCompte(); suite();
+  }, function(s){
+    if(s === 401 || s === 403){ refuse = 'La base refuse encore ce compte. La ferme doit publier les nouvelles règles de la base (voir le pas-à-pas).'; render(); return; }
+    if(did) suite(); else { refuse = ''; render(); setTimeout(demarrer, 15000); }
+  });
+}
+function suite(){
+  var copie = ls('magasin.copie.' + did + '.' + w); if(copie) data = copie;
+  avant = ls('magasin.copie.' + did + '.' + decaler(w, -1)) || {};
+  render();
+  if(!qui) demanderQui();
+  ouvrir(false); lirePersonnes(); flush();
+}
+
+/* ---------- Prénom : demandé d'abord, modifiable d'un appui ---------- */
+function clePrenom(n){ return pidDe(n.trim().replace(/\s+/g, ' ').replace(/[.\s]+$/, '')); }
+function joli(n){ n = n.trim().replace(/\s+/g, ' ').replace(/[.\s]+$/, ''); return n.replace(/(^|[\s-])(\S)/g, function(t, a, b){ return a + b.toUpperCase(); }); }
+function lirePersonnes(){
+  if(!dbPret() || !did) return;
+  dbFetch('/magasins/' + did + '/personnes').then(function(r){ return r.ok ? r.json() : null; }).then(function(p){
+    if(p){ personnes = p; ls('magasin.personnes', p); if($('#quiDlg').open) listePrenoms(); }
+  }).catch(function(){});
+}
+function listePrenoms(){
+  var l = Object.keys(personnes).map(function(k){ return personnes[k]; }).filter(function(p){ return p && p.nom; })
+    .sort(function(a, b){ return (b.at || 0) - (a.at || 0); }).slice(0, 8);
+  $('#quiConnus').innerHTML = l.map(function(p){ return '<button type="button" data-nom="' + esc(p.nom) + '">' + esc(p.nom) + '</button>'; }).join('');
+}
+function choisir(n){
+  var k = clePrenom(n);
+  if(!k){ $('#quiErr').textContent = 'Écrire votre prénom.'; $('#quiErr').hidden = false; return; }
+  // « igor », « Igor » et « Igor. » sont la même personne : on reprend le prénom déjà connu.
+  var connu = personnes[k] && personnes[k].nom, nom = (connu || joli(n)).slice(0, 40);
+  qui = nom; ls('magasin.qui', nom);
+  personnes[k] = {nom:nom, at:Date.now()}; ls('magasin.personnes', personnes);
+  if(dbPret() && did) dbFetch('/magasins/' + did + '/personnes/' + k, {method:'PUT', body:JSON.stringify(personnes[k])}).catch(function(){});
+  $('#quiErr').hidden = true; $('#quiAutre').value = '';
+  $('#quiDlg').close(); render();
+}
+function demanderQui(){
+  var d = $('#quiDlg');
+  listePrenoms();
+  $('#quiAnnuler').hidden = !qui;
+  d.oncancel = function(e){ if(!qui) e.preventDefault(); };
+  if(!d.open) d.showModal();
+}
+$('#quiConnus').addEventListener('click', function(e){ var b = e.target.closest('[data-nom]'); if(b) choisir(b.dataset.nom); });
+$('#quiForm').onsubmit = function(e){ e.preventDefault(); choisir($('#quiAutre').value); };
+$('#quiAnnuler').onclick = function(){ $('#quiDlg').close(); };
+$('#qui').onclick = demanderQui;
+
+/* ---------- Lecture en direct du stock de la semaine ---------- */
+function setAt(o, chemin, v){
+  var parts = chemin.split('/').filter(Boolean);
+  if(!parts.length) return (v && typeof v === 'object') ? v : {};
+  var x = o;
+  for(var i = 0; i < parts.length - 1; i++){ if(!x[parts[i]] || typeof x[parts[i]] !== 'object') x[parts[i]] = {}; x = x[parts[i]]; }
+  if(v === null) delete x[parts[parts.length - 1]]; else x[parts[parts.length - 1]] = v;
+  return o;
+}
+function garder(){ ls('magasin.copie.' + did + '.' + w, data); }
+function ouvrir(force){
+  if(!dbPret() || !did || !window.EventSource) return;
+  if(es && !force && es.readyState !== 2) return;
+  if(es) es.close();
+  var semaine = w, flux = es = new EventSource(dbUrl('/magasins/' + did + '/semaines/' + semaine));
+  function appliquer(ev, patch){
+    if(w !== semaine) return;
+    var m = JSON.parse(ev.data); if(!m) return;
+    if(patch) Object.keys(m.data || {}).forEach(function(k){ data = setAt(data, m.path.replace(/\/$/, '') + '/' + k, m.data[k]); });
+    else data = setAt(data, m.path, m.data);
+    pending.forEach(function(p){ if(p.w === w) data = setAt(data, p.pid, p.val); });
+    garder(); render();
+  }
+  flux.addEventListener('put', function(ev){ recu = true; enLigne = true; appliquer(ev, false); flush(); });
+  flux.addEventListener('patch', function(ev){ appliquer(ev, true); });
+  flux.addEventListener('auth_revoked', function(){ compte.fin = 0; renouveler().then(function(){ ouvrir(true); }, function(){}); });
+  flux.addEventListener('cancel', function(){ refuse = 'La base refuse ce compte.'; render(); });
+  flux.onerror = function(){ if(es === flux){ enLigne = false; majStatut(); } };
+  // La semaine d'avant, une fois : elle aide à savoir quels produits compter.
+  dbFetch('/magasins/' + did + '/semaines/' + decaler(semaine, -1)).then(function(r){ return r.ok ? r.json() : null; }).then(function(v){
+    if(w !== semaine || !v) return; avant = v; ls('magasin.copie.' + did + '.' + decaler(semaine, -1), v); render();
+  }).catch(function(){});
+}
+// Toutes les 15 s et au retour du réseau : nouvelle semaine le lundi, jeton renouvelé, lecture rouverte, envoi de ce qui attend.
+function verifier(){
+  if(!compte || !did) return;
+  var lundi = lundiDe(new Date());
+  if(lundi !== w){ w = lundi; data = ls('magasin.copie.' + did + '.' + w) || {}; avant = ls('magasin.copie.' + did + '.' + decaler(w, -1)) || {}; recu = false; ouvrir(true); render(); }
+  var avantJeton = compte.jeton;
+  jetonFrais().then(function(){
+    if(compte && compte.jeton !== avantJeton) ouvrir(true);
+    else if(!es || es.readyState === 2) ouvrir(false);
+    flush();
+  }, function(){ enLigne = false; majStatut(); });
+}
+setInterval(verifier, 15000);
+addEventListener('online', verifier);
+addEventListener('offline', function(){ enLigne = false; majStatut(); });
+
+/* ---------- Saisie : affichée tout de suite, gardée sur le téléphone, puis envoyée ---------- */
+// Chaque saisie part avec une ligne du journal (prénom, ancienne et nouvelle valeur, heure), que personne ne peut effacer.
+function saisir(pid, val){
+  var ancien = data[pid] || null, t = Date.now();
+  var j = {pid:pid, by:qui, at:t};
+  if(val){ j.n = val.n; j.u = val.u; }
+  if(ancien && typeof ancien.n === 'number'){ j.an = ancien.n; j.au = ancien.u; }
+  if(val){ val.by = qui; val.at = t; }
+  data = setAt(data, pid, val);
+  // Les saisies partent dans l'ordre, chacune avec sa ligne du journal : une saisie corrigée avant son envoi y figure aussi.
+  pending.push({w:w, pid:pid, val:val, j:j, jid:t + '-' + Math.random().toString(36).slice(2, 7), at:t});
+  ls('magasin.pending', pending); garder(); render(); flush();
+}
+function flush(){
+  if(!dbPret() || !did || flushing || !pending.length) return majStatut();
+  flushing = true; majStatut();
+  var p = pending[0], base = '/magasins/' + did;
+  dbFetch(base + '/semaines/' + p.w + '/' + p.pid).then(function(r){ if(!r.ok) throw r.status; return r.json(); })
+    .then(function(srv){
+      // Déjà parti (réponse perdue) : rien à renvoyer. Une saisie plus récente d'un autre téléphone : la dernière gagne,
+      // on n'envoie que la ligne du journal.
+      if(srv && srv.at === p.at && p.val) return true;
+      var corps = {}; corps['journal/' + p.w + '/' + p.jid] = p.j;
+      if(!(srv && srv.at > p.at)) corps['semaines/' + p.w + '/' + p.pid] = p.val;
+      else if(p.w === w && srv){ data = setAt(data, p.pid, srv); garder(); }
+      return dbFetch(base, {method:'PATCH', body:JSON.stringify(corps)}).then(function(r){ if(!r.ok) throw r.status; return true; });
+    })
+    .then(function(){
+      pending = pending.filter(function(x){ return x !== p; }); ls('magasin.pending', pending);
+      flushing = false; msgEnvoi = ''; enLigne = true; render(); flush();
+    }, function(s){
+      flushing = false;
+      if(s === 401 || s === 403){
+        // Refus avec un jeton neuf : la saisie est mise de côté (gardée dans ce téléphone) pour ne pas bloquer les autres.
+        if(!p.essai){ p.essai = 1; compte.fin = 0; ls('magasin.pending', pending); renouveler().then(flush, function(){ majStatut(); }); return; }
+        pending = pending.filter(function(x){ return x !== p; }); ls('magasin.pending', pending);
+        var cote = ls('magasin.refusees') || []; cote.push(p); ls('magasin.refusees', cote);
+        msgEnvoi = 'Une saisie a été refusée par la base. Prévenir la ferme.';
+        render(); return;
+      }
+      enLigne = false; majStatut();
+    });
+}
+
+/* ---------- Affichage ---------- */
+function setStatus(cls, txt){ var s = $('#sync'); s.className = 'pill ' + cls; s.lastElementChild.textContent = txt; }
+function majStatut(){
+  if(!compte) return setStatus('wait', 'Pas connecté');
+  if(refuse) return setStatus('err', 'Pas d\'accès');
+  var n = pending.length, t = n + ' saisie' + (n > 1 ? 's' : '') + ' en attente';
+  if(!enLigne) return setStatus('wait', recu || n ? 'Hors ligne' + (n ? ' · ' + t : '') : 'Connexion…');
+  if(n) return setStatus('wait', 'Envoi… ' + t);
+  setStatus('ok', 'Enregistré');
+}
+function produits(){
+  return ((REF && REF.produits) || []).map(function(p){
+    var f = {nom:p.produit}; ['caisse', 'unite', 'kg', 'par_colis', 'type'].forEach(function(k){ if(p[k] !== undefined) f[k] = p[k]; });
+    return {id:pidDe(p.produit), f:f};
+  }).sort(function(a, b){ return a.f.nom.localeCompare(b.f.nom, 'fr'); });
+}
+function uniteDe(pid, f){ var q = data[pid], us = unitesDe(f); return q && q.u ? q.u : (us.indexOf(unites[pid]) >= 0 ? unites[pid] : us[0]); }
+function ligneHtml(p){
+  var f = p.f, q = data[p.id], av = avant[p.id], u = uniteDe(p.id, f), us = unitesDe(f), err = erreurs[p.id];
+  var h = '<div class="card p' + (q ? ' fait' : '') + '" data-pid="' + esc(p.id) + '">' +
+    '<div class="p-nom">' + esc(f.nom) + ' <small>' + esc(colisTxt(f)) + '</small></div>' +
+    '<div class="ctl"><button type="button" data-a="moins" aria-label="' + esc('Moins, ' + f.nom) + '">−</button>' +
+    '<input type="text" inputmode="decimal" enterkeyhint="done" value="' + (q ? esc(nb(q.n)) : '') + '" placeholder="?" aria-label="' + esc('Stock de ' + f.nom) + '">' +
+    '<button type="button" data-a="unite"' + (us.length < 2 ? ' disabled' : '') + ' aria-label="' + esc('Changer d\'unité, ' + f.nom) + '">' + esc(nomUnite(u, f, q ? q.n : 2)) + '</button>' +
+    '<button type="button" data-a="plus" aria-label="' + esc('Plus, ' + f.nom) + '">+</button></div>';
+  if(q) h += '<div class="p-qui">' + esc(qTxt(q.n, q.u, f) + ' · ' + (q.by || '?') + ', ' + quand(q.at)) + '</div>';
+  else if(av && typeof av.n === 'number') h += '<div class="p-qui">Semaine d\'avant : ' + esc(qTxt(av.n, av.u, f) + ' (' + (av.by || '?') + ', ' + quand(av.at, true) + ')') + '</div>';
+  if(err) h += '<p class="err" role="alert">' + esc(err) + '</p>';
+  return h + '</div>';
+}
+function render(){
+  majStatut();
+  var d0 = deIso(w);
+  $('#semaine').textContent = 'Semaine du lundi ' + d0.toLocaleDateString('fr-FR', {day:'numeric', month:'long'}) + (did ? ' · ' + nomMagasin() : '');
+  $('#titre').textContent = did ? 'Stock · ' + nomMagasin() : 'Stock du magasin';
+  $('#qui').hidden = !did || !!refuse;
+  $('#quiNom').textContent = qui ? qui + ' · changer' : 'Votre prénom ?';
+  $('#pied').hidden = !compte;
+  $('#compteTxt').textContent = compte ? 'Connecté avec l\'identifiant ' + compte.id + '.' : '';
+  var msg = refuse ? '<p class="err" role="alert">' + esc(refuse) + '</p>' : (msgEnvoi ? '<p class="err" role="alert">' + esc(msgEnvoi) + '</p>' : '');
+  $('#msg').innerHTML = msg;
+  var pret = !!(compte && did && !refuse && REF);
+  $('#chercheBloc').hidden = !pret;
+  $('#aide').hidden = !!refuse;
+  if(!pret){ $('#liste').innerHTML = compte && !refuse ? '<p class="vide">Chargement…</p>' : ''; return; }
+  // Ne pas redessiner sous le doigt pendant une saisie : on redessine en quittant la case.
+  var a = document.activeElement;
+  if(a && a.closest && a.closest('#liste') && a.tagName === 'INPUT'){ attente = true; return; }
+  attente = false;
+  var t = sansAccent($('#cherche').value.trim().toLowerCase());
+  var ps = produits().filter(function(p){ return !t || sansAccent(p.f.nom.toLowerCase()).indexOf(t) >= 0; });
+  // D'abord les produits comptés cette semaine ou la semaine d'avant, puis tous les autres.
+  var deja = ps.filter(function(p){ return data[p.id] || avant[p.id]; }), autres = ps.filter(function(p){ return !data[p.id] && !avant[p.id]; });
+  var n = produits().filter(function(p){ return data[p.id]; }).length;
+  var h = '<p class="hint">' + (n ? n + ' produit' + (n > 1 ? 's' : '') + ' compté' + (n > 1 ? 's' : '') + ' cette semaine.' : 'Rien de compté cette semaine pour l\'instant.') + '</p>';
+  if(deja.length) h += '<h2>Produits déjà comptés</h2>' + deja.map(ligneHtml).join('');
+  if(autres.length) h += '<h2>' + (deja.length ? 'Autres produits' : 'Produits') + '</h2>' + autres.map(ligneHtml).join('');
+  if(!ps.length) h += '<p class="vide">Aucun produit ne s\'appelle comme ça.</p>';
+  $('#liste').innerHTML = h;
+}
+$('#cherche').addEventListener('input', render);
+function produitDe(pid){ return produits().filter(function(p){ return p.id === pid; })[0]; }
+function avecQui(fn){ if(qui) fn(); else demanderQui(); }
+$('#liste').addEventListener('click', function(e){
+  var b = e.target.closest('button[data-a]'); if(!b) return;
+  var c = b.closest('[data-pid]'), p = c && produitDe(c.dataset.pid); if(!p) return;
+  var pid = p.id, f = p.f, q = data[pid], u = uniteDe(pid, f), us = unitesDe(f);
+  delete erreurs[pid];
+  if(b.dataset.a === 'unite'){
+    var u2 = us[(us.indexOf(u) + 1) % us.length];
+    unites[pid] = u2; ls('magasin.unites', unites);
+    if(!q) return render();
+    // Une case remplie est convertie : même quantité, autre unité.
+    var cc = contenu(f), n2 = u2 === 'colis' ? q.n / cc.n : q.n * cc.n;
+    avecQui(function(){ saisir(pid, {n:Math.round(n2 * 100) / 100, u:u2}); });
+    return;
+  }
+  var st = pas(u), n = q ? q.n : 0;
+  n = b.dataset.a === 'plus' ? Math.floor(n / st + EPS) * st + st : Math.ceil(n / st - EPS) * st - st;
+  if(n < 0) return;
+  avecQui(function(){ saisir(pid, {n:Math.round(n * 1000) / 1000, u:u}); });
+  if(navigator.vibrate) navigator.vibrate(10);
+});
+$('#liste').addEventListener('change', function(e){
+  var inp = e.target; if(inp.tagName !== 'INPUT') return;
+  var c = inp.closest('[data-pid]'), p = c && produitDe(c.dataset.pid); if(!p) return;
+  var v = lireSaisie(inp.value, p.f, uniteDe(p.id, p.f));
+  if(v.err){ erreurs[p.id] = v.err; attente = true; return; }
+  delete erreurs[p.id];
+  if(v.vide){ if(data[p.id]) avecQui(function(){ saisir(p.id, null); }); return; }
+  avecQui(function(){ saisir(p.id, {n:v.n, u:v.u}); });
+});
+$('#liste').addEventListener('keydown', function(e){ if(e.target.tagName === 'INPUT' && e.key === 'Enter') e.target.blur(); });
+$('#liste').addEventListener('focusout', function(){ setTimeout(function(){ if(attente) render(); }, 0); });
+
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
+render();
+chargerRef();
+demarrer();
+})();
+</script>
+</body>
+</html>

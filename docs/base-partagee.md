@@ -40,7 +40,18 @@ listes/
     debouches: {"debouches":[ … ], "recoltes":[ … ], "rec":true, "by":"François", "at":…}   // débouchés, livraisons et jours de récolte habituels (recoltes[].chaque : « Chaque semaine », absent = oui)
 profils/                                      // étape 5 : écrit par François dans la console, jamais par l'appli
   <uid du compte>: "ferme"                    // ce compte lit et écrit tout « listes »
+  <uid du magasin>: "magasin:ta"              // étape 13C : ce compte n'a accès qu'à magasins/ta (Très Allier)
+magasins/                                     // étape 13C : écrit par le magasin (magasin.html), lu par la ferme
+  ta/                                         // identifiant du débouché
+    semaines/2026-11-09/                      // lundi de la semaine, sur l'horloge du téléphone du magasin
+      poireau: {"n":8,"u":"kg","by":"Igor","at":…}   // stock saisi : u = 'colis', 'kg' ou 'u' ; by = prénom déclaré
+    journal/2026-11-09/
+      1793730000000-ab12c: {"pid":"poireau","n":8,"u":"kg","an":10,"au":"kg","by":"Igor","at":…}   // chaque saisie ; an, au = valeur d'avant ; sans n = case vidée
+    personnes/
+      igor: {"nom":"Igor","at":…}             // prénoms déjà utilisés au magasin (clé sans accent ni majuscule)
 ```
+
+La ferme ne recopie jamais le stock du magasin dans sa semaine : l'onglet Semaine lit `magasins/<débouché>/semaines/<lundi>` (et la semaine d'avant, pour l'aide) et montre, dans la case « Stock chez … », la saisie la plus récente des deux. Si la ferme vide une case que le magasin a remplie, elle écrit `listes/semaines/<lundi>/stock/<pid>/<débouché>` = `{"vide":true,"by":…,"at":…}`. **Ne pas supprimer `magasins`** : c'est le stock et le journal du magasin.
 
 `listes/reglages/debouches` n'existe qu'après la première modification dans l'écran « Débouchés et livraisons » ; avant, l'appli prend `referentiel/debouches.json`. Chaque modification réécrit la fiche entière, avec le prénom et l'heure ; la dernière modification l'emporte. Un débouché ou une livraison retiré y reste, marqué `"archive": true`. **Ne pas supprimer `listes/reglages`** : ce sont les débouchés de la ferme. Aucune liste de récolte ne s'appelle `reglages`.
 
@@ -68,7 +79,9 @@ Jusqu'au 8/11/2026 à 20 h 55 (anciennes règles, gardées pour revenir en arri�
 
 Lecture et écriture libres sous `listes/`, rien ailleurs. Pas de mot de passe : l'adresse de la base est dans `config.js`, donc publique.
 
-**En place depuis le 8/11/2026 à 20 h 55** (étape 5) : `docs/regles-base/fermees.json`. Seul un compte connecté **avec le profil « ferme »** (`profils/<uid>` = `"ferme"`) lit et écrit `listes/` ; personne ne lit ni n'écrit `profils/` ni rien d'autre, sauf la console. Le profil est indispensable : avec la clé web (publique), n'importe qui pourrait se créer un compte, et `auth != null` seul le laisserait entrer. Les règles sont essayées sur l'émulateur officiel par `tests/regles.cjs`. Pas-à-pas pour les poser, avec le retour arrière : `docs/PAS_A_PAS_SECURITE.md`. Le compte du magasin (étape 13C) ajoutera un profil « magasin » qui n'ouvrira que son stock.
+**En place depuis le 8/11/2026 à 20 h 55** (étape 5) : `docs/regles-base/fermees-sans-magasin.json` (s'appelait `fermees.json` jusqu'à l'étape 13C). Seul un compte connecté **avec le profil « ferme »** (`profils/<uid>` = `"ferme"`) lit et écrit `listes/` ; personne ne lit ni n'écrit `profils/` ni rien d'autre, sauf la console. Le profil est indispensable : avec la clé web (publique), n'importe qui pourrait se créer un compte, et `auth != null` seul le laisserait entrer. Les règles sont essayées sur l'émulateur officiel par `tests/regles.cjs`. Pas-à-pas pour les poser, avec le retour arrière : `docs/PAS_A_PAS_SECURITE.md`. Celles-ci sont gardées dans `docs/regles-base/fermees-sans-magasin.json` pour revenir en arrière.
+
+**Étape 13C, à publier par François** (`docs/regles-base/fermees.json`, pas-à-pas `docs/PAS_A_PAS_MAGASIN.md`) : rien ne change pour `listes`. Chaque compte peut lire son propre profil (`profils/<uid>`), jamais celui d'un autre. La ferme lit tout `magasins` sans y écrire. Le profil `magasin:<débouché>` lit et écrit `magasins/<débouché>/semaines` (produit par produit, forme vérifiée : nombre de 0 à 99 999, unité `colis`, `kg` ou `u`, prénom de 1 à 40 lettres, heure, rien d'autre ; semaine en AAAA-MM-JJ) et `magasins/<débouché>/personnes` (sans effacer) ; il ajoute des lignes au journal sans pouvoir les lire, les réécrire ni les effacer. Tout le reste lui est refusé. Essayé sur l'émulateur officiel (`tests/regles.cjs`).
 
 ## Vider une semaine
 

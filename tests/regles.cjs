@@ -73,7 +73,65 @@ const compte = async (email, mdp) => {
   r = await appel('profils/' + e.localId, f.idToken, { method: 'PUT', body: '"ferme"' });
   verifie(r.s === 401, 'compte de la ferme : ne peut pas donner de profil (seule la console le peut)');
   r = await appel('magasin', f.idToken);
-  verifie(r.s === 401, 'rien d\'autre que « listes » n\'est ouvert, même à la ferme');
+  verifie(r.s === 401, 'rien d\'autre que « listes », « profils » et « magasins » n\'est ouvert, même à la ferme');
+
+  // Étape 13C : le compte du magasin (profil « magasin:ta »)
+  const m = await compte('tresallier@ferme.invalid', 'essai-magasin');
+  await fetch(`${DB}/profils/${m.localId}.json?ns=${NS}`, { method: 'PUT', headers: admin, body: '"magasin:ta"' });
+  const W = '2026-11-09', ecrit = (chemin, corps, jeton = m.idToken, methode = 'PATCH') => appel(chemin, jeton, { method: methode, body: JSON.stringify(corps) });
+  r = await appel('profils/' + m.localId, m.idToken);
+  verifie(r.s === 200 && r.j === 'magasin:ta', 'magasin : il lit son propre profil (« magasin:ta »)');
+  r = await appel('profils/' + f.localId, m.idToken);
+  verifie(r.s === 401, 'magasin : il ne lit pas le profil d\'un autre compte');
+  r = await appel('listes', m.idToken); const r2 = await appel('listes/semaines/2026-11-02', m.idToken); const r3 = await appel('listes/reglages/debouches', m.idToken);
+  verifie(r.s === 401 && r2.s === 401 && r3.s === 401, 'magasin : listes, semaines et débouchés refusés');
+  r = await ecrit('listes/2026-11-04', { 'done/radis': { by: 'Igor', at: 5 } });
+  verifie(r.s === 401, 'magasin : écriture dans les listes refusée');
+  r = await ecrit('magasins/ta', { ['semaines/' + W + '/carotte-lavee']: { n: 12, u: 'kg', by: 'Igor', at: 10 }, ['journal/' + W + '/10-abcde']: { pid: 'carotte-lavee', n: 12, u: 'kg', by: 'Igor', at: 10 } });
+  verifie(r.s === 200, 'magasin : une saisie et sa ligne du journal, d\'un seul envoi (PATCH), comme la page du magasin (' + r.s + ')');
+  r = await ecrit('magasins/ta', { ['semaines/' + W + '/carotte-lavee']: { n: 13, u: 'kg', by: 'Igor', at: 11 }, ['journal/' + W + '/11-fghij']: { pid: 'carotte-lavee', n: 13, u: 'kg', an: 12, au: 'kg', by: 'Igor', at: 11 } });
+  verifie(r.s === 200, 'magasin : il corrige sa saisie (13 kg, journal avec la valeur d\'avant)');
+  r = await appel('magasins/ta/semaines/' + W, m.idToken);
+  verifie(r.s === 200 && r.j['carotte-lavee'].n === 13, 'magasin : il relit le stock de sa semaine');
+  const refuses = [
+    ['nombre négatif', { n: -1, u: 'kg', by: 'Igor', at: 12 }],
+    ['unité inconnue', { n: 1, u: 'tonne', by: 'Igor', at: 12 }],
+    ['prénom vide', { n: 1, u: 'kg', by: '', at: 12 }],
+    ['prénom de plus de 40 lettres', { n: 1, u: 'kg', by: 'x'.repeat(41), at: 12 }],
+    ['champ en plus', { n: 1, u: 'kg', by: 'Igor', at: 12, prix: 3 }],
+    ['heure manquante', { n: 1, u: 'kg', by: 'Igor' }],
+  ];
+  for (const [nom, v] of refuses) { r = await ecrit('magasins/ta/semaines/' + W + '/ail-sec', v, m.idToken, 'PUT'); verifie(r.s !== 200, 'magasin : saisie refusée, ' + nom + ' (' + r.s + ')'); }
+  r = await ecrit('magasins/ta/semaines/pas-une-date/ail-sec', { n: 1, u: 'kg', by: 'Igor', at: 12 }, m.idToken, 'PUT');
+  verifie(r.s !== 200, 'magasin : une semaine qui n\'est pas une date est refusée');
+  r = await ecrit('magasins/ta/semaines/' + W, { 'ail-sec': { n: 1, u: 'kg', by: 'Igor', at: 12 }, 'poireau': { n: 2, u: 'kg', by: 'Igor', at: 12 } }, m.idToken, 'PUT');
+  verifie(r.s !== 200, 'magasin : il ne peut pas réécrire toute la semaine d\'un coup (seulement produit par produit)');
+  r = await ecrit('magasins/ta/journal/' + W + '/10-abcde', { pid: 'x', by: 'Igor', at: 1 }, m.idToken, 'PUT');
+  verifie(r.s === 401, 'magasin : une ligne du journal ne peut pas être réécrite');
+  r = await appel('magasins/ta/journal/' + W + '/10-abcde', m.idToken, { method: 'DELETE' });
+  verifie(r.s === 401, 'magasin : une ligne du journal ne peut pas être effacée');
+  r = await appel('magasins/ta/journal/' + W, m.idToken);
+  verifie(r.s === 401, 'magasin : il ne lit pas le journal');
+  r = await ecrit('magasins/ta/journal/' + W + '/12-x', { pid: 'ail-sec', by: 'Igor', at: 12, commentaire: 'x' }, m.idToken, 'PUT');
+  verifie(r.s !== 200, 'magasin : une ligne du journal avec un champ en plus est refusée');
+  r = await ecrit('magasins/ta/personnes/igor', { nom: 'Igor', at: 10 }, m.idToken, 'PUT');
+  verifie(r.s === 200, 'magasin : il ajoute un prénom à la liste des prénoms');
+  r = await appel('magasins/ta/personnes', m.idToken);
+  verifie(r.s === 200 && r.j.igor.nom === 'Igor', 'magasin : il relit les prénoms');
+  r = await appel('magasins/ta/personnes/igor', m.idToken, { method: 'DELETE' });
+  verifie(r.s === 401, 'magasin : il ne peut pas effacer un prénom');
+  r = await appel('magasins/lv/semaines/' + W, m.idToken); const r4 = await ecrit('magasins/lv/semaines/' + W + '/ail-sec', { n: 1, u: 'kg', by: 'Igor', at: 12 }, m.idToken, 'PUT');
+  verifie(r.s === 401 && r4.s === 401, 'magasin : il ne lit ni n\'écrit le stock d\'un autre magasin');
+  r = await appel('magasins/ta/semaines/' + W + '/carotte-lavee', m.idToken, { method: 'DELETE' });
+  verifie(r.s === 200, 'magasin : il peut vider une case de son stock (le journal en garde la trace)');
+  r = await appel('profils/' + m.localId, m.idToken, { method: 'PUT', body: '"ferme"' });
+  verifie(r.s === 401, 'magasin : il ne peut pas se donner le profil de la ferme');
+  r = await appel('magasins/ta', f.idToken);
+  verifie(r.s === 200 && r.j.journal[W]['11-fghij'].an === 12, 'ferme : elle lit le stock, le journal et les prénoms du magasin');
+  r = await ecrit('magasins/ta/semaines/' + W + '/ail-sec', { n: 1, u: 'kg', by: 'François', at: 12 }, f.idToken, 'PUT');
+  verifie(r.s === 401, 'ferme : elle ne peut pas écrire à la place du magasin (elle écrit dans sa propre semaine)');
+  r = await appel('magasins/ta', null); const r5 = await appel('magasins/ta/semaines/' + W, e.idToken);
+  verifie(r.s === 401 && r5.s === 401, 'sans compte ou sans profil : le stock du magasin est refusé');
   r = await appel('listes/2026-11-04', 'jeton-abime');
   // L'émulateur traite un jeton abîmé comme une absence de compte ; la vraie base dit « Could not parse auth token ».
   verifie(r.s === 401, 'jeton abîmé : refusé (message de l\'émulateur : « ' + r.j.error + ' »)');
@@ -134,6 +192,20 @@ const compte = async (email, mdp) => {
     await C.fill('#authId', 'inconnu'); await C.fill('#authMdp', 'essai-inconnu'); await C.click('#authOk');
     await C.waitForFunction(() => document.querySelector('#sync').textContent.includes('Compte sans accès'), null, { timeout: 15000 }).catch(() => {});
     verifie((await C.textContent('#sync')).includes('Compte sans accès'), 'appli + émulateurs : compte sans profil, « Compte sans accès » (obtenu « ' + (await C.textContent('#sync')).trim() + ' »)');
+    const ctxM = await nav.newContext({ viewport: { width: 412, height: 900 }, serviceWorkers: 'block' });
+    const M = await ctxM.newPage(); M.on('pageerror', (x) => erreurs.push(x.message));
+    await M.goto(`http://localhost:${PORT_SITE}/magasin.html`);
+    await M.fill('#authId', 'tresallier'); await M.fill('#authMdp', 'essai-magasin'); await M.click('#authOk');
+    await M.waitForSelector('#quiDlg[open]');
+    await M.fill('#quiAutre', 'Igor'); await M.click('#quiForm button[type="submit"]');
+    await M.waitForSelector('#liste .p[data-pid="poireau"]');
+    await M.fill('#liste .p[data-pid="poireau"] input', '7'); await M.press('#liste .p[data-pid="poireau"] input', 'Enter');
+    await M.waitForFunction(() => document.querySelector('#sync').textContent.includes('Enregistré'), null, { timeout: 15000 }).catch(() => {});
+    const lundiCourant = (() => { const d = new Date(); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })();
+    r = await appel('magasins/ta', f.idToken);
+    const jl = Object.values((r.j && r.j.journal && r.j.journal[lundiCourant]) || {});
+    verifie(r.j && r.j.semaines[lundiCourant].poireau.n === 7 && r.j.semaines[lundiCourant].poireau.by === 'Igor' && jl.some((x) => x.pid === 'poireau' && x.n === 7) && r.j.personnes.igor.nom === 'Igor',
+      'appli + émulateurs : la page du magasin écrit sa saisie, sa ligne de journal et le prénom, acceptés par les vraies règles');
     verifie(erreurs.length === 0, 'appli + émulateurs : aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));
     await nav.close(); site.close();
   } else console.log('NON LANCÉ : partie appli (Playwright absent)');
