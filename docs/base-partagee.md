@@ -31,7 +31,7 @@ listes/
       creneaux: [ … ]                                            // copie des créneaux : tenue à jour tant que la semaine n'est pas passée, puis gardée
       maj/…                                                      // heure de chaque action, comme pour les listes
   reglages/                                   // réglages partagés (depuis le 08/11/2026, étape 13B)
-    debouches: {"debouches":[ … ], "by":"François", "at":…}     // fiche entière des débouchés et de leurs livraisons
+    debouches: {"debouches":[ … ], "recoltes":[ … ], "rec":true, "by":"François", "at":…}   // débouchés, livraisons et jours de récolte
 ```
 
 `listes/reglages/debouches` n'existe qu'après la première modification dans l'écran « Débouchés et livraisons » ; avant, l'appli prend `referentiel/debouches.json`. Chaque modification réécrit la fiche entière, avec le prénom et l'heure ; la dernière modification l'emporte. Un débouché ou une livraison retiré y reste, marqué `"archive": true`. **Ne pas supprimer `listes/reglages`** : ce sont les débouchés de la ferme. Aucune liste de récolte ne s'appelle `reglages`.

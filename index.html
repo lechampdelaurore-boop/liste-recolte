@@ -188,6 +188,21 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 .dl-aide{margin:0;font-size:.82rem;font-weight:600;color:var(--muted)}
 .db-pied{display:flex;flex-wrap:wrap;gap:8px}
 .db-petit{min-height:40px;padding:6px 12px;justify-self:start}
+.rj-livs{display:flex;flex-wrap:wrap;gap:6px}
+.db label.dj small{font-weight:600}
+.rj-sans{margin:0;font-weight:800}
+.sem-rec{padding:0;overflow:hidden}
+.sem-rec>summary{display:flex;justify-content:space-between;align-items:center;padding:12px;font-weight:900;cursor:pointer;list-style:none}
+.sem-rec>summary::-webkit-details-marker{display:none}
+.sem-rec[open]>summary .chev{transform:rotate(90deg)}
+.rc-jour{border-top:var(--bw) solid var(--line);padding:10px 12px;display:grid;gap:6px}
+.rc-jour h3{margin:0;font-size:1.05rem;font-weight:900}
+.rc-jour h3 small{display:block;font-size:.85rem;font-weight:600;color:var(--muted)}
+.rc-jour ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
+.rc-jour li{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:2px 10px;font-weight:800}
+.rc-jour li small{grid-column:1 / 3;font-weight:600;color:var(--muted)}
+.rc-jour li b{text-align:right;font-variant-numeric:tabular-nums}
+@media (min-width:1000px){.sem-rec .rc-jours{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr))}.rc-jour{border-right:var(--bw) solid var(--line)}}
 .db-ret{padding:12px}
 .db-ret summary{font-weight:900;cursor:pointer}
 .db-ret ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
@@ -363,6 +378,10 @@ dialog.big{max-width:min(460px,94vw);width:100%}
       <div id="semErrs"></div>
       <div class="g-wrap" id="semGridWrap"><table id="semGrid"></table></div>
     </div>
+    <details class="card sem-rec" id="semRec">
+      <summary><span>À récolter, jour par jour</span><span class="chev">›</span></summary>
+      <div id="semRecList"></div>
+    </details>
     <details class="card sem-tab" id="semTab">
       <summary><span>Tableau de la semaine</span><span class="chev">›</span></summary>
       <div class="sem-scroll"><table id="semTable"></table></div>
@@ -1112,6 +1131,14 @@ function debListe(){
   var v = debVue();
   return tableau(v && v.debouches).map(function(d){ var o = Object.assign({}, d); o.livraisons = tableau(d.livraisons).map(function(l){ var x = Object.assign({}, l); x.jours = tableau(l.jours); return x; }); return o; });
 }
+// Jours de récolte (demande de François du 8/11) : chaque jour de récolte dit quelles livraisons on récolte
+// ce jour-là (le mercredi : Panier adéquat, Locavore, Très Allier jeudi, Auvabio, marché…). Une livraison
+// n'est récoltée qu'un seul jour. Gardés avec les débouchés ; départ : « recoltes » de referentiel/debouches.json.
+function recoltesListe(){
+  var v = debVue(), r = v && (v.rec || v.recoltes) ? v.recoltes : (DEB0 && DEB0.recoltes);
+  return tableau(r).map(function(x){ return {id:x.id, jour:x.jour, livraisons:tableau(x.livraisons)}; })
+    .sort(function(a, b){ return JOURS.indexOf(a.jour) - JOURS.indexOf(b.jour); });
+}
 function rangJour(js){
   var r = 9;
   js.forEach(function(j){ var i = j === 'au choix' ? 7 : JOURS.indexOf(j); if(i >= 0 && i < r) r = i; });
@@ -1168,10 +1195,12 @@ function debRender(){
   render();
 }
 // Chaque modification remplace la fiche entière (qui et quand), affichée tout de suite, puis envoyée.
-function debEcrire(liste){
+function debEcrire(liste, recoltes){
+  recoltes = recoltes || recoltesListe();
+  recoltes.forEach(function(r){ r.livraisons = (r.livraisons || []).slice(); });
   liste.forEach(function(d){ d.livraisons.forEach(function(l){ if(!l.moment) delete l.moment; if(!l.nom) delete l.nom; if(!l.reprend) delete l.reprend; if(!l.court) delete l.court; if(!l.archive) delete l.archive; }); if(!d.note) delete d.note; if(!d.archive) delete d.archive; });
   var src = debVue() || {};
-  deb.pending = {source:src.source || '', debouches:liste, by:me, at:Date.now()};
+  deb.pending = {source:src.source || '', debouches:liste, recoltes:recoltes, rec:true, by:me, at:Date.now()};
   ls('recolte.debouches.pending', deb.pending);
   crCache = null; render(); majStatut(); debFlush();
 }
@@ -1258,6 +1287,7 @@ function debouchesHtml(){
     '<label>Colis<select id="debColis">' + COLIS_TYPES.map(function(c){ return '<option value="' + c[0] + '">' + esc(c[1]) + '</option>'; }).join('') + '</select></label></div>' +
     joursHtml(ui.debJours || [], 'nouveau') +
     '<button type="button" class="sem-add" data-a="nouveau">＋ Ajouter ce débouché</button></section>';
+  h += recoltesHtml(liste);
   var retires = [];
   liste.forEach(function(d){
     if(d.archive) retires.push({d:d, txt:d.nom});
@@ -1267,6 +1297,35 @@ function debouchesHtml(){
     return '<li data-d="' + esc(r.d.id) + '"' + (r.l ? ' data-l="' + esc(r.l.id) + '"' : '') + '><span>' + esc(r.txt) + '</span><button type="button" class="sem-act db-petit" data-a="remettre">Remettre</button></li>';
   }).join('') + '</ul></details>';
   return h;
+}
+function nomLivraison(c){ return c.nom + ' ' + c.jour; }
+function recoltesHtml(liste){
+  var cr = creneauxDe(liste, false), rec = recoltesListe(), ou = {};
+  rec.forEach(function(r){ r.livraisons.forEach(function(id){ ou[id] = r.jour; }); });
+  var h = '<h2 class="db-h" id="debRecoltes">Jours de récolte</h2>' +
+    '<p class="hint">Pour chaque jour de récolte, cocher les livraisons qu\'on récolte ce jour-là. Une livraison n\'est récoltée qu\'un jour : la cocher ailleurs la déplace. L\'onglet Semaine en tire ce qu\'il y a à récolter chaque jour.</p><div class="db-list">';
+  rec.forEach(function(r){
+    var ji = JOURS.indexOf(r.jour), apres = [];
+    h += '<section class="card db rj" data-r="' + esc(r.id) + '"><div class="db-head"><label class="db-nom">Jour de récolte<select data-rf="jour">' +
+      JOURS.map(function(j){ return '<option value="' + j + '"' + (j === r.jour ? ' selected' : '') + '>' + j + '</option>'; }).join('') + '</select></label></div>' +
+      '<div class="rj-livs" role="group" aria-label="' + esc('Livraisons récoltées le ' + r.jour) + '">' + cr.map(function(c){
+        var coche = r.livraisons.indexOf(c.id) >= 0, autre = !coche && ou[c.id];
+        var l = null; liste.forEach(function(d){ d.livraisons.forEach(function(x){ if(x.id === c.id) l = x; }); });
+        var rang = l ? rangJour(l.jours) : 9;
+        if(coche && rang < 7 && rang < ji) apres.push(nomLivraison(c));
+        return '<label class="dj"><input type="checkbox" data-rf="liv" data-c="' + esc(c.id) + '"' + (coche ? ' checked' : '') + '><span>' + esc(nomLivraison(c)) + (autre ? ' <small>(récoltée le ' + esc(autre) + ')</small>' : '') + '</span></label>';
+      }).join('') + '</div>' +
+      (apres.length ? '<p class="sr-err">Récoltée après sa livraison : ' + esc(apres.join(', ')) + '. Vérifier le jour.</p>' : '') +
+      '<div class="db-pied"><button type="button" class="sem-act db-petit" data-a="retirerR">Retirer ce jour de récolte</button></div></section>';
+  });
+  h += '</div>';
+  var sans = cr.filter(function(c){ return !ou[c.id]; });
+  if(sans.length) h += '<p class="rj-sans">Livraisons sans jour de récolte : ' + esc(sans.map(nomLivraison).join(', ')) + '.</p>';
+  h += '<button type="button" class="sem-act" data-a="ajouterR">＋ Ajouter un jour de récolte</button>';
+  return h;
+}
+function recModifier(fn){
+  avecNom(function(){ var rec = recoltesListe(); if(fn(rec) === false) return; debEcrire(debListe(), rec); });
 }
 function renderDebouches(){
   var a = document.activeElement, garde = null;
@@ -1300,6 +1359,21 @@ $('#debView').addEventListener('click', function(e){
   var b = e.target.closest('[data-a]'); if(!b) return;
   var a = b.dataset.a, boite = b.closest('[data-d]'), dId = boite && boite.dataset.d, lb = b.closest('[data-l]'), lId = lb && lb.dataset.l;
   if(a === 'retour'){ ui.debouches = false; saveUi(); render(); scrollTo(0, 0); return; }
+  if(a === 'ajouterR'){
+    recModifier(function(rec){
+      var pris = rec.map(function(r){ return r.jour; }), j = JOURS.filter(function(x){ return pris.indexOf(x) < 0; })[0] || 'lundi';
+      var ids = rec.map(function(r){ return r.id; }), id = j.slice(0, 3), n = 2;
+      while(ids.indexOf(id) >= 0) id = j.slice(0, 3) + '-' + n++;
+      rec.push({id:id, jour:j, livraisons:[]});
+    });
+    return;
+  }
+  if(a === 'retirerR'){
+    var rId = b.closest('[data-r]').dataset.r, r0 = recoltesListe().filter(function(x){ return x.id === rId; })[0];
+    if(!r0 || !confirm('Retirer le jour de récolte du ' + r0.jour + ' ? Ses livraisons n\'auront plus de jour de récolte.')) return;
+    recModifier(function(rec){ rec.splice(rec.indexOf(rec.filter(function(x){ return x.id === rId; })[0]), 1); });
+    return;
+  }
   if(a === 'nouveau'){
     var nom = $('#debNom').value.trim(), js = ui.debJours || [];
     if(!nom){ debErr.nouveau = 'Donner un nom au débouché.'; render(); $('#debNom').focus(); return; }
@@ -1350,6 +1424,19 @@ $('#debView').addEventListener('click', function(e){
 });
 $('#debView').addEventListener('change', function(e){
   var inp = e.target, f = inp.dataset.f;
+  if(inp.dataset.rf){
+    var rId = inp.closest('[data-r]').dataset.r;
+    recModifier(function(rec){
+      var r = rec.filter(function(x){ return x.id === rId; })[0]; if(!r) return false;
+      if(inp.dataset.rf === 'jour') r.jour = inp.value;
+      else {
+        var c = inp.dataset.c;
+        rec.forEach(function(x){ x.livraisons = x.livraisons.filter(function(y){ return y !== c; }); });
+        if(inp.checked) r.livraisons.push(c);
+      }
+    });
+    return;
+  }
   var boite = inp.closest('[data-d]');
   if(boite && boite.classList.contains('db-new')) boite = null;
   if(f === 'jour' && !boite){
@@ -1569,6 +1656,8 @@ function renderSemaine(){
     '<button type="button" class="sem-act" data-a="reprendre" style="width:100%">Reprendre les produits de la semaine précédente</button>' +
     (semErr.reprendre ? '<p class="sr-err" role="alert">' + esc(semErr.reprendre) + '</p>' : '');
   $('#semList').hidden = pc; $('#semTab').hidden = pc; $('#semPc').hidden = !pc || !prods.length;
+  $('#semRec').hidden = !prods.length; $('#semRec').open = ui.semRec !== false;
+  $('#semRecList').innerHTML = prods.length ? aRecolterHtml(prods, calc, cr) : '';
   if(pc){
     $('#semList').innerHTML = ''; $('#semTable').innerHTML = '';
     $('#semGrid').innerHTML = prods.length ? grilleHtml(prods, calc, cr) : '';
@@ -1585,6 +1674,40 @@ function renderSemaine(){
   $('#semList').innerHTML = prods.map(function(p){ return carteHtml(p.id, p.f, calc[p.id], cr); }).join('');
   $('#semTab').open = !!ui.semTab;
   $('#semTable').innerHTML = prods.length ? tableHtml(prods, calc, cr) : '<tr><td>Aucun produit.</td></tr>';
+}
+
+/* À récolter, jour par jour : pour chaque jour de récolte, la somme des livraisons qu'on y récolte. */
+function aRecolterHtml(prods, calc, cr){
+  var rec = recoltesListe(), ou = {};
+  rec.forEach(function(r){ r.livraisons.forEach(function(c){ ou[c] = r.id; }); });
+  var groupes = rec.map(function(r){ return {r:r, cs:cr.filter(function(c){ return ou[c.id] === r.id; })}; });
+  groupes.push({r:null, cs:cr.filter(function(c){ return !ou[c.id]; })});
+  var lundi = deIso(sem.id), h = '<div class="rc-jours">';
+  groupes.forEach(function(g){
+    var lignes = [];
+    prods.forEach(function(p){
+      var r = calc[p.id], f = p.f, tot = 0, det = [], toutInconnu = false;
+      g.cs.forEach(function(c){
+        var nomC = c.court || c.nom;
+        if(r.toutC === c.id){
+          if(r.toutV !== null){ tot += r.toutV; det.push(nomC + ' tout (' + nb(r.toutV) + ')'); } else { toutInconnu = true; det.push(nomC + ' tout'); }
+          return;
+        }
+        var q = semLire('q/' + p.id + '/' + c.id), x = enColis(q, f);
+        if(q && !isNaN(x) && x > EPS){ tot += x; det.push(nomC + ' ' + qCourt(q, f)); }
+      });
+      if(tot > EPS || toutInconnu) lignes.push('<li data-pid="' + esc(p.id) + '"><span>' + esc(f.nom) + '</span><b>' + (tot > EPS ? esc(deux(tot, f)) : '') + (toutInconnu ? (tot > EPS ? ' + ' : '') + 'tout ce qui reste' : '') + '</b><small>' + esc(det.join(' · ')) + '</small></li>');
+    });
+    if(!g.r && !lignes.length) return;
+    var titre = 'Sans jour de récolte';
+    if(g.r){
+      var d = new Date(lundi); d.setDate(d.getDate() + JOURS.indexOf(g.r.jour));
+      titre = d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}); titre = titre.charAt(0).toUpperCase() + titre.slice(1);
+    }
+    h += '<section class="rc-jour" data-r="' + esc(g.r ? g.r.id : '') + '"><h3>' + esc(titre) + '<small>' + esc(g.cs.length ? g.cs.map(nomLivraison).join(', ') : 'aucune livraison') + '</small></h3>' +
+      (lignes.length ? '<ul>' + lignes.join('') + '</ul>' : '<p class="sr-eq">Rien à récolter.</p>') + '</section>';
+  });
+  return h + '</div><p class="hint" style="margin:0;padding:8px 12px">Les jours de récolte se règlent dans « Débouchés et livraisons ».</p>';
 }
 
 /* Grille de l'ordinateur : une ligne par produit, une case à taper par créneau. */
@@ -1849,6 +1972,7 @@ $('#semView').addEventListener('keydown', function(e){
 $('#semView').addEventListener('focusin', function(e){ if(e.target.tagName === 'INPUT' && e.target.dataset.cell) e.target.select(); });
 $('#semView').addEventListener('focusout', function(){ setTimeout(function(){ if(semAttente) render(); }, 0); });
 $('#semTab').addEventListener('toggle', function(){ ui.semTab = this.open; saveUi(); });
+$('#semRec').addEventListener('toggle', function(){ ui.semRec = this.open; saveUi(); });
 
 function retirer(pid){
   var ch = {}, d = sem.data;
