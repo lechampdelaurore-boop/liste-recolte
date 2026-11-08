@@ -16,9 +16,10 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 5. [Barre de progression](#barre-de-progression)
 6. [Préparation de commandes](#préparation-de-commandes)
 7. [Répartition de la semaine (onglet Semaine)](#répartition-de-la-semaine-onglet-semaine)
-8. [Fichiers du dépôt](#fichiers-du-dépôt)
-9. [Tests](#tests)
-10. [Limites connues](#limites-connues)
+8. [Licence](#licence)
+9. [Fichiers du dépôt](#fichiers-du-dépôt)
+10. [Tests](#tests)
+11. [Limites connues](#limites-connues)
 
 ## Utilisation au champ
 
@@ -134,6 +135,10 @@ Onglet **Semaine** (étape 13A, « vas-y » de François du 06/11/2026). Remplac
 - Chaque case garde le **prénom et l'heure** ; partagé entre les téléphones et utilisable **hors ligne**, comme les coches (« la dernière action gagne »).
 - Les créneaux de départ sont dans `referentiel/creneaux.json` (une autre ferme y met les siens) ; ils deviendront réglables dans l'appli à l'étape 13B. Chaque semaine en garde sa copie.
 
+## Licence
+
+Le code de ce dépôt est publié sous la licence **PolyForm Noncommercial 1.0.0** (fichier [`LICENSE`](LICENSE)), choisie par François le 08/11/2026. En clair : on peut l'utiliser, le copier et le modifier **à titre non commercial** (usage personnel, étude, association, recherche…) ; tout **usage commercial est interdit** sans accord écrit du Champ de l'Aurore. Ce n'est donc pas une licence « open source » au sens strict. Les copies faites avant cette date n'étaient couvertes par aucune licence. Ce résumé n'est pas un conseil juridique : seul le texte de `LICENSE` fait foi.
+
 ## Fichiers du dépôt
 
 | Fichier | Rôle |
@@ -148,6 +153,7 @@ Onglet **Semaine** (étape 13A, « vas-y » de François du 06/11/2026). Remplac
 | `manifest.webmanifest`, `icons/` | Installation sur l'écran d'accueil. |
 | `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`). |
 | `docs/` | Format des listes, fonctionnement de la base partagée. |
+| `LICENSE` | Licence PolyForm Noncommercial 1.0.0 : usage non commercial seulement. |
 | `AGENTS.md` | Consignes pour les agents IA qui modifient ce dépôt (`CLAUDE.md` y renvoie). |
 | `docs/ETAT_DU_PROJET.md`, `docs/ROADMAP.md`, `docs/DECISIONS.md`, `CHANGELOG.md` | Registres : où on en est, étapes, décisions, historique. |
 

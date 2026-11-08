@@ -1,5 +1,9 @@
 # Historique des changements
 
+## 2026-11-08
+
+- **Licence** : ajout de `LICENSE` (PolyForm Noncommercial 1.0.0, usage commercial interdit), section « Licence » dans le README, décision notée. Aucun changement de l'appli ni de `sw.js`.
+
 ## 2026-11-06
 
 - **Onglet Semaine sur ordinateur** (demande de François : la semaine se renseignera sans doute derrière un PC). Sur un écran d'au moins 1000 px, grille façon tableur sur toute la largeur : on tape dans les cases (« 3 », « 12 kg », « 36 bottes », « tout »), Tab et Entrée pour avancer, Échap pour annuler, reste recalculé à chaque case, saisie en cours gardée si un autre téléphone change quelque chose. Le téléphone garde ses fiches. « tout » peut aussi se taper sur le téléphone. `CACHE` → `recolte-v19`. `tests/semaine.cjs` : 68 vérifications (16 nouvelles).

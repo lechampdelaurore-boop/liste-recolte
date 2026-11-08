@@ -6,6 +6,8 @@
 
 - **Ajouté le 6/11 au soir** : onglet « Semaine » (étape 13A), la grille de répartition de la semaine entre les créneaux de vente : disponible, part de chaque créneau en colis, kilos ou unités, reste (placé, à placer, manque), case « tout », reste Auvabio 03 → 63 calculé et modifiable, tableau. Partagé et hors ligne. Sur ordinateur (au moins 1000 px de large), l'onglet est une grille façon tableur où l'on tape directement (demande de François du 6/11 au soir). Test `tests/semaine.cjs` : 68 sur 68 (deux téléphones et un ordinateur simulés). **Non vérifié en réel** : l'onglet sur les vrais téléphones et sur un vrai ordinateur (essai à faire par François). Prochain morceau : 13B (créneaux réglables, stock chez Très Allier).
 
+- **Licence (8/11)** : PolyForm Noncommercial 1.0.0 (fichier `LICENSE`), usage commercial interdit ; avant, aucune licence. Prend effet à la fusion de la PR. `outils-de-la-ferme` : pas encore de licence, à décider par François.
+
 - **En ligne** : la liste du mercredi 4 novembre 2026 (`listes/2026-11-04.json`, 21 produits), sur https://liste-recolte.pages.dev.
 - **Ajouté le 4/11** : colisage par débouché (colis bois pour Panier adéquat, Locavore, Ferme Deschamps) et la commande Ferme Deschamps (persil). Voir `CHANGELOG.md`.
 - **Ajouté le 4/11** : barre de progression en haut de la liste (globale, kilos et unités additionnés, choix de François du 4/11 ; puis unités et kilos sous une flèche).
