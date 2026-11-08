@@ -49,7 +49,7 @@ Aujourd'hui, une liste de récolte est un fichier écrit à la main et envoyé p
 | 13D-2 | La liste calculée s'ouvre dans l'onglet Récolte, avec coches et ordre (même base qu'aujourd'hui). Réglage pour l'activer ; sans lui, tout se passe comme avant. | **Oui : « vas-y » exprès** avant d'activer sur les vrais téléphones |
 | 13D-3 | Choix du jour dans l'appli (fin de `listes/actuelle.json` fait à la main), registres, mode d'emploi. | **Oui : « vas-y » exprès** (change ce que les téléphones ouvrent) |
 
-## Ce qui touche les vraies données et demandera votre « vas-y »
+## Ce qui touche les vraies données (« vas-y » donné par François le 8/11, voir `docs/DECISIONS.md`)
 
 - Lire `listes/semaines` et `listes/reglages` : aucune écriture, pas besoin de « vas-y » (13D-1).
 - Écrire des coches dans `listes/<nouvelle date>` : ce sont de nouvelles clés, aucune donnée existante n'est modifiée ni supprimée. Le « vas-y » est demandé avant le premier essai réel (13D-2).
