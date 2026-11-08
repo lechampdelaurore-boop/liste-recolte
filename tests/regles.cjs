@@ -118,7 +118,7 @@ const compte = async (email, mdp) => {
       const ctx = await nav.newContext({ viewport: { width: 412, height: 900 }, serviceWorkers: 'block' });
       await ctx.addInitScript((n) => localStorage.setItem('recolte.qui', JSON.stringify(n)), nom);
       const p = await ctx.newPage(); p.on('pageerror', (x) => erreurs.push(x.message));
-      await p.goto(`http://localhost:${PORT_SITE}/`); await p.waitForSelector('li.item');
+      await p.goto(`http://localhost:${PORT_SITE}/?liste=2026-11-04`); await p.waitForSelector('li.item');
       return p;
     };
     const partage = (p) => p.waitForFunction(() => document.querySelector('#sync').textContent.includes('Partagé'), null, { timeout: 20000 }).then(() => true, () => false);

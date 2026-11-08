@@ -64,7 +64,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
     const p = await ctx.newPage();
     p.on('pageerror', (e) => erreurs.push(nom + ' : ' + e.message));
     p.on('dialog', (d) => d.accept());
-    await p.goto(`http://localhost:${PORT_SITE}/`);
+    await p.goto(`http://localhost:${PORT_SITE}/?liste=2026-11-04`);
     await p.waitForSelector('li.item');
     return { p, ctx };
   };
@@ -118,7 +118,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
 
   // 4. La semaine suit : chez Aurore, Locavore passe après Très Allier jeudi
   await attendre(B);
-  await B.click('[data-sem="tableau"]');
+  await B.click('[data-sem="cumul"]');
   const t1 = await enTete(B);
   verifie(t1.slice(0, 12).join('|') === 'Produit|Dispo|Stock Très Allier|TA mar|La Magic|Panier adéq.|TA jeu|Locavore|Auvabio 03|Auvabio 63|Marché ven|Élie', 'chez Aurore, la colonne Locavore passe au jeudi, après Très Allier jeudi (obtenu ' + t1.join('|') + ')');
   const ligneB = await B.$$eval('#semTable tr[data-pid="bette"] td', (e) => e.map((x) => x.textContent));
@@ -197,7 +197,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await ctxC.addInitScript(() => localStorage.setItem('recolte.qui', JSON.stringify('Martin')));
   const C = await ctxC.newPage();
   C.on('pageerror', (e) => erreurs.push('Martin (PC) : ' + e.message));
-  await C.goto(`http://localhost:${PORT_SITE}/`);
+  await C.goto(`http://localhost:${PORT_SITE}/?liste=2026-11-04`);
   await C.waitForSelector('li.item');
   await C.click('[data-view="semaine"]');
   await C.waitForSelector('#semGrid tbody tr');
@@ -284,7 +284,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   const s1 = base.lire('listes/semaines/' + SEM + '/stock/bette/ta');
   verifie(s1 && s1.n === 3 && s1.u === 'colis' && s1.by === 'Aurore' && s1.at > 0, 'Aurore saisit 3 GH de bette en stock : enregistré avec son prénom et l\'heure');
   verifie((await B.textContent(sp('bette') + ' .sp-head .reste')) === resteAvant, 'le stock n\'entre pas dans le reste (toujours « ' + resteAvant + ' »)');
-  await B.click('[data-sem="tableau"]');
+  await B.click('[data-sem="cumul"]');
   verifie((await enTete(B)).includes('Stock Très Allier'), 'le tableau de la semaine a une colonne « Stock Très Allier »');
   await B.click('[data-sem="repartir"]');
   await A.click('[data-view="semaine"]');
@@ -328,7 +328,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   // Le stock se place juste avant les livraisons de son débouché : on suit aussi celui de Locavore (jeudi soir)
   await A.click(`${fiche('lv')} input[data-f="stock"]`);
   await attendre(B);
-  await B.click('[data-sem="tableau"]');
+  await B.click('[data-sem="cumul"]');
   const t5 = await enTete(B);
   verifie(t5.indexOf('Stock Locavore') === t5.indexOf('Locavore') - 1 && t5.indexOf('Stock Très Allier') === t5.indexOf('TA mar') - 1, 'chaque stock est juste avant la première livraison de son débouché (obtenu ' + t5.join('|') + ')');
   await B.click('[data-sem="stock"]');

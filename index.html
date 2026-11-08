@@ -345,6 +345,24 @@ dialog.big{max-width:min(460px,94vw);width:100%}
 .add-list{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:6px;max-height:50vh;overflow-y:auto}
 .add-list button{width:100%;text-align:left;padding:11px 12px;display:grid;gap:2px}
 .add-list small{font-weight:600;color:var(--muted)}
+/* Étape 13D : jours de récolte de la semaine, menu des jours, liste figée et ses écarts */
+#recNav{display:grid;gap:6px}
+#recNav[hidden],#videBox[hidden],#ecartsBox[hidden]{display:none}
+.rec-sem{margin:0;font-size:.9rem;font-weight:700}
+#recJours button{font-size:.95rem}
+@media (min-width:1000px){#recJours{max-width:620px}}
+.boite{display:grid;gap:10px;padding:14px;justify-items:start}
+.boite p{margin:0}
+.boite .grand{font-size:1.2rem;font-weight:900}
+.boite.jaune{background:var(--warn-bg)}
+.ecart{grid-column:2 / 4;background:var(--warn-bg);border:2px solid #000;border-radius:8px;padding:3px 8px;font-size:.88rem;font-weight:800}
+.rc-ctl{display:grid;gap:8px;padding:10px 12px;border-bottom:var(--bw) solid var(--line)}
+.rc-ctl label.dj{display:inline-flex;align-items:center;gap:6px;border:2px solid var(--line);border-radius:999px;padding:6px 12px;min-height:40px;cursor:pointer;font-weight:800}
+.rc-ctl label.dj small{font-weight:600}
+.rc-ctl .rc-chaque{justify-self:start;border-radius:12px}
+.rc-actions{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px;border-top:var(--bw) solid var(--line)}
+.rc-ajout{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.rc-ajout select{min-height:48px;border:var(--bw) solid var(--line);border-radius:12px;padding:8px 10px;font-weight:800;background:#fff}
 </style>
 </head>
 <body>
@@ -370,12 +388,20 @@ dialog.big{max-width:min(460px,94vw);width:100%}
     <h1 id="titre">Liste de récolte</h1>
     <p class="sub" id="pour"></p>
   </div>
-  <!-- Choix de la semaine : vaut pour les trois pages de l'onglet Semaine (Répartir, Tableau, À récolter). -->
+  <!-- Choix de la semaine : vaut pour les pages de l'onglet Semaine (Répartir, Cumul, À récolter, Stock), et pour Récolte et Préparation. -->
   <div class="sem-nav" id="semNav" hidden>
     <button type="button" class="sem-btn" data-a="semPrec" aria-label="Semaine précédente">‹</button>
     <div class="sem-titre"><b id="semTitre"></b><span><span id="semQuand"></span> <span id="semJusque"></span></span></div>
     <button type="button" class="sem-btn" data-a="semSuiv" aria-label="Semaine suivante">›</button>
   </div>
+
+  <!-- Récolte et Préparation : la semaine choisie dans l'onglet Semaine, et le menu de ses jours de récolte (étape 13D). -->
+  <div id="recNav" hidden>
+    <p class="rec-sem" id="recSem"></p>
+    <div class="seg" id="recJours" role="group" aria-label="Jour de récolte"></div>
+  </div>
+  <div id="videBox" hidden></div>
+  <div id="ecartsBox" hidden></div>
 
   <div class="controls">
     <div class="seg" id="prepSort" role="group" aria-label="Trier la préparation" hidden>
@@ -384,7 +410,7 @@ dialog.big{max-width:min(460px,94vw);width:100%}
     </div>
     <div class="seg" id="semSub" role="group" aria-label="Pages de la semaine" hidden>
       <button type="button" data-sem="repartir" aria-pressed="true">Répartir</button>
-      <button type="button" data-sem="tableau" aria-pressed="false">Tableau</button>
+      <button type="button" data-sem="cumul" aria-pressed="false">Cumul</button>
       <button type="button" data-sem="recolter" aria-pressed="false">À récolter</button>
       <button type="button" data-sem="stock" aria-pressed="false" hidden>Stock</button>
     </div>
@@ -540,10 +566,14 @@ function ls(k, v){ try{ if(v === undefined){ var x = localStorage.getItem(k); re
 function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function fr(n){ return String(n).replace('.', ','); }
 
-var list = null, byId = {}, mirror = {order:null, done:{}, prep:{}, prepClient:{}};
+// list : la liste affichée (fichier, liste calculée depuis la semaine, ou liste figée) ; lid : son identifiant
+// (la date du jour de récolte), qui range ses coches dans la base sous listes/<lid>.
+var list = null, lid = null, byId = {}, mirror = {order:null, done:{}, prep:{}, prepClient:{}, fige:null};
 var ui = Object.assign({view:'recolte', zone:'', circ:'', perCirc:true, cratesOpen:false, doneOpen:false, progOpen:false, prepSort:'client', prepDoneOpen:false, semPage:'repartir', regPage:'debouches'}, ls('recolte.ui') || {});
 // Avant la refonte du 8/11, les débouchés s'ouvraient depuis la Semaine : ils sont maintenant dans l'onglet Réglages.
 if(ui.debouches){ ui.view = 'reglages'; delete ui.debouches; }
+// La page « Tableau » de la Semaine s'appelle « Cumul » depuis le 8/11 (mot de la ferme).
+if(ui.semPage === 'tableau') ui.semPage = 'cumul';
 var VUES = ['semaine', 'recolte', 'detail', 'prep', 'reglages'];
 var me = ls('recolte.qui');
 var pending = [];
@@ -552,49 +582,56 @@ var MKEY;
 function saveUi(){ ls('recolte.ui', ui); }
 
 /* ---------- Chargement ---------- */
-// La liste du jour vient du site ; la dernière reçue est gardée sur le téléphone (clé recolte.copie)
-// pour s'ouvrir sans réseau, même si le cache de la page a été vidé.
+// Depuis l'étape 13D (8/11/2026), Récolte et Préparation montrent les jours de récolte de la semaine choisie
+// dans l'onglet Semaine : la liste est calculée en direct depuis la répartition (voir « Listes calculées »).
+// Une liste en fichier (listes/AAAA-MM-JJ.json, faite à la main avant 13D) l'emporte pour sa date.
+// « ?liste=AAAA-MM-JJ » ouvre directement un fichier, comme avant ; la dernière reçue est gardée sur le
+// téléphone (clé recolte.copie) pour s'ouvrir sans réseau.
 var depuisCopie = false, demande = null;
 function start(){
   demande = new URLSearchParams(location.search).get('liste');
-  var p = demande ? Promise.resolve({liste:demande}) : fetch('listes/actuelle.json', {cache:'no-cache'}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); });
-  p.then(function(a){ return fetch('listes/' + encodeURIComponent(a.liste) + '.json', {cache:'no-cache'}); })
+  brancher();
+  connect();
+  chargerRef();
+  if(!demande){ render(); return; }
+  fetch('listes/' + encodeURIComponent(demande) + '.json', {cache:'no-cache'})
    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
    .then(function(data){ ls('recolte.copie', data); return data; }, function(){
      var c = ls('recolte.copie');
-     if(c && c.id && (!demande || c.id === demande)){ depuisCopie = true; return c; }
+     if(c && c.id && c.id === demande){ depuisCopie = true; return c; }
      return null;
    })
    .then(function(data){
-     if(data) init(data);
+     if(data){ ouvrirListe(data.id); poserListe(data); render(); }
      else $('#todo').innerHTML = '<li class="empty">Impossible de charger la liste. Vérifie la connexion.</li>';
    });
 }
-// Liste ouverte depuis la copie du téléphone : au retour du réseau, si une autre liste est sortie
-// et que rien n'attend d'être envoyé, on recharge la page pour l'ouvrir.
-function verifierNouvelleListe(){
-  if(!depuisCopie || demande || pending.length) return;
-  fetch('listes/actuelle.json', {cache:'no-cache'}).then(function(r){ return r.ok ? r.json() : null; }).then(function(a){
-    if(!a || !a.liste) return;
-    depuisCopie = false;
-    if(a.liste !== list.id && !pending.length) location.reload();
-  }).catch(function(){});
-}
 
-function init(data){
+// Ouvre les coches d'une liste (listes/<id> dans la base) : copie du téléphone, actions en attente, flux.
+// Les actions en attente d'une autre liste restent gardées sous leur clé et partent quand même (envoyerAutres).
+function ouvrirListe(id){
+  if(lid === id) return;
+  lid = id; MKEY = 'recolte.liste.' + id;
+  var saved = ls(MKEY) || {};
+  mirror = {order: saved.order || null, done: saved.done || {}, prep: saved.prep || {}, prepClient: saved.prepClient || {}, fige: saved.fige || null};
+  pending = ls('recolte.pending.' + id) || [];
+  repOpen = {};
+  if(lance && dbPret()){ ouvrir(); flush(); }
+}
+function fermerListe(){
+  list = null; byId = {}; document.title = 'Liste de récolte';
+  if(lid === null) return;
+  lid = null; MKEY = null; mirror = {order:null, done:{}, prep:{}, prepClient:{}, fige:null}; pending = [];
+  if(es){ es.close(); es = null; }
+}
+// Contenu de la liste affichée (produits, circuits) ; les coches restent celles de ouvrirListe.
+function poserListe(data){
   list = data; byId = {};
   data.items.forEach(function(it){ byId[it.id] = it; });
   circById = {}; data.circuits.forEach(function(ci){ circById[ci.id] = ci; });
-  MKEY = 'recolte.liste.' + data.id;
-  var saved = ls(MKEY); if(saved) mirror = {order: saved.order || null, done: saved.done || {}, prep: saved.prep || {}, prepClient: saved.prepClient || {}};
-  pending = ls('recolte.pending.' + data.id) || [];
   document.title = data.titre;
-  $('#titre').textContent = data.titre;
-  $('#pour').textContent = data.pour || '';
   $('#source').textContent = 'Source : ' + (data.source || '');
   buildChips();
-  render();
-  connect();
 }
 
 /* ---------- Ordre et état ---------- */
@@ -627,6 +664,9 @@ function buildChips(){
   c.innerHTML = '<button class="chip" type="button" data-c="">Tous circuits</button>' +
     used.map(function(ci){ return '<button class="chip" type="button" data-c="' + ci.id + '">' + esc(ci.nom) + '</button>'; }).join('');
   c.onclick = function(e){ var b = e.target.closest('[data-c]'); if(!b) return; ui.circ = b.dataset.c; saveUi(); render(); };
+}
+// Gestes fixes de la page, branchés une seule fois au démarrage.
+function brancher(){
   document.querySelectorAll('#tabs button[data-view]').forEach(function(b){
     b.onclick = function(){ var neuf = ui.view !== b.dataset.view; ui.view = b.dataset.view; saveUi(); render(); if(neuf) scrollTo(0, 0); };
   });
@@ -649,6 +689,7 @@ function buildChips(){
   $('#prog').ontoggle = function(){ ui.progOpen = this.open; saveUi(); };
   $('#doneSec').open = ui.doneOpen;
   $('#doneSec').ontoggle = function(){ ui.doneOpen = this.open; saveUi(); };
+  brancherJours();
 }
 
 /* ---------- Colisage par circuit ---------- */
@@ -779,22 +820,24 @@ function itemHtml(it, done){
     var t = info && info.at ? new Date(info.at) : null;
     by = '<div class="by">Récolté' + (info && info.by ? ' par ' + esc(info.by) : '') + (t ? ' à ' + t.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) : '') + '</div>';
   }
+  // Liste figée : un changement fait depuis dans la semaine est signalé sur la ligne, jamais appliqué en silence.
+  var ec = ecarts && ecarts.lignes[it.id];
+  var ecart = ec ? '<div class="ecart">' + esc(ec.retire ? 'Retiré de la semaine depuis la première coche.' : 'Changé dans la semaine : maintenant ' + ec.maintenant + '.') + '</div>' : '';
   return '<li class="item' + (done ? ' done' : '') + '" data-id="' + it.id + '">' +
     '<button class="box" type="button" aria-label="' + (done ? 'Décocher ' : 'Cocher ') + esc(it.produit) + '">' + CHECK + '</button>' +
     '<div class="main"><div class="prod">' + esc(it.produit) + '</div>' + (MONTRER_LIEU && it.ou ? '<div class="ou">' + esc(it.ou) + '</div>' : '') + '</div>' +
-    '<div class="qty">' + qtyHtml(it) + '</div>' + d + by + more + '</li>';
+    '<div class="qty">' + qtyHtml(it) + '</div>' + d + ecart + by + more + '</li>';
 }
 
 // Titre de chaque page, sous le bandeau.
 function enTete(){
-  var v = ui.view, t = list.titre, sous = list.pour || '';
-  if(v === 'prep'){ t = 'Préparation des commandes'; sous = list.titre; }
+  var v = ui.view, t = list ? list.titre : 'Récolte', sous = list ? list.pour || '' : '';
+  if(v === 'prep'){ t = 'Préparation des commandes'; sous = list ? list.titre : ''; }
   else if(v === 'semaine'){ t = 'Semaine'; sous = ''; }
   else if(v === 'reglages'){ t = 'Réglages'; sous = CLE ? 'Débouchés, livraisons, jours de récolte et compte.' : 'Débouchés, livraisons et jours de récolte.'; }
   $('#titre').textContent = t; $('#pour').textContent = sous;
 }
 function render(){
-  if(!list) return;
   if(!MONTRER_DETAIL && ui.view === 'detail'){ ui.view = 'recolte'; saveUi(); }
   if(VUES.indexOf(ui.view) < 0) ui.view = 'recolte';
   $('#tabs button[data-view="detail"]').hidden = !MONTRER_DETAIL;
@@ -804,18 +847,28 @@ function render(){
     if(on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });
   var prep = ui.view === 'prep', semV = ui.view === 'semaine', regV = ui.view === 'reglages', autre = semV || regV;
+  // Récolte et Préparation : la liste du jour de récolte choisi dans la semaine (ou un message s'il n'y en a pas).
+  if(!autre) choisirListe();
+  var sans = !autre && (!list || !!vide);
   enTete();
-  ['#dragHint', '#todo', '#doneSec'].forEach(function(s){ $(s).hidden = prep || autre; });
-  $('#prepView').hidden = !prep; $('#prepSort').hidden = !prep;
+  renderRecNav(autre);
+  ['#dragHint', '#todo', '#doneSec'].forEach(function(s){ $(s).hidden = prep || autre || sans; });
+  $('#prepView').hidden = !prep || sans; $('#prepSort').hidden = !prep || sans;
   // Semaine et Réglages : ni filtres de circuit, ni caisses, ni barre de récolte (ils concernent la liste du jour).
-  ['#circs', '#crates', '#source'].forEach(function(s){ $(s).hidden = autre; });
-  $('#zones').hidden = !MONTRER_LIEU || autre;
+  ['#circs', '#crates', '#source'].forEach(function(s){ $(s).hidden = autre || sans; });
+  $('#zones').hidden = !MONTRER_LIEU || autre || sans;
   $('#semSub').hidden = !semV; $('#regSub').hidden = !regV;
   $('#semView').hidden = !semV; $('#semNav').hidden = !semV; $('#debView').hidden = !regV;
   $('.controls').hidden = !document.querySelector('.controls > :not([hidden])');
   document.body.classList.toggle('large', autre && PC.matches);
   document.querySelectorAll('#zones .chip').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.z === ui.zone)); });
   document.querySelectorAll('#circs .chip').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.c === ui.circ)); });
+  $('#who').textContent = me ? '👤 ' + me : '👤 Qui es-tu ?';
+  if(sans || !list){
+    $('#prog').hidden = true;
+    if(regV) renderReglages(); else if(semV) renderSemaine();
+    return;
+  }
   var o = order().map(function(id){ return byId[id]; }).filter(visible);
   var todo = o.filter(function(it){ return !isDone(it.id); });
   var done = o.filter(function(it){ return isDone(it.id); });
@@ -824,18 +877,19 @@ function render(){
     (o.length ? '' : '<li class="empty">Rien pour ce filtre.</li>');
   $('#done').innerHTML = done.map(function(it){ return itemHtml(it, true); }).join('');
   $('#doneCount').textContent = done.length;
-  $('#who').textContent = me ? '👤 ' + me : '👤 Qui es-tu ?';
   if(prep) renderPrep();
   renderCrates();
   renderProgress();
   if(autre) $('#prog').hidden = true;
-  if(regV){
-    var rp = ui.regPage === 'recoltes' || (ui.regPage === 'compte' && CLE) ? ui.regPage : 'debouches';
-    $('#regSub button[data-reg="compte"]').hidden = !CLE;
-    document.querySelectorAll('#regSub button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.reg === rp)); });
-    if(rp === 'compte') $('#debView').innerHTML = compteHtml();
-    else if(!debVue()){ chargerRef(); $('#debView').innerHTML = '<p class="empty">Chargement…</p>'; } else { debConnecter(); renderDebouches(); }
-  } else if(semV) renderSemaine();
+  if(regV) renderReglages();
+  else if(semV) renderSemaine();
+}
+function renderReglages(){
+  var rp = ui.regPage === 'recoltes' || (ui.regPage === 'compte' && CLE) ? ui.regPage : 'debouches';
+  $('#regSub button[data-reg="compte"]').hidden = !CLE;
+  document.querySelectorAll('#regSub button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.reg === rp)); });
+  if(rp === 'compte') $('#debView').innerHTML = compteHtml();
+  else if(!debVue()){ chargerRef(); $('#debView').innerHTML = '<p class="empty">Chargement…</p>'; } else { debConnecter(); renderDebouches(); }
 }
 
 /* ---------- Préparation de commandes ---------- */
@@ -1148,15 +1202,18 @@ var PC = window.matchMedia ? matchMedia('(min-width: 1000px)') : {matches:false}
 if(PC.addEventListener) PC.addEventListener('change', function(){ render(); });
 var ARROW_SEM = '<span class="arrow" aria-hidden="true">' + ARROW + '</span>';
 
+var refEchec = 0;
 function chargerRef(){
   if(refCharge) return refCharge;
+  // Échec (sans réseau et sans copie) : on réessaie au plus toutes les 15 s, pas à chaque affichage.
+  if(refEchec && Date.now() - refEchec < 15000) return null;
   function lire(url, key){
     return fetch(url, {cache:'no-cache'}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
       .then(function(d){ ls(key, d); return d; }, function(){ return ls(key); });
   }
   debConnecter();
   refCharge = Promise.all([lire('referentiel/conditionnements.json', 'recolte.referentiel'), lire('referentiel/debouches.json', 'recolte.debouches0')])
-    .then(function(r){ REF = r[0]; DEB0 = r[1]; crCache = null; if(!REF || !DEB0) refCharge = null; render(); });
+    .then(function(r){ REF = r[0]; DEB0 = r[1]; crCache = null; if(!REF || !DEB0){ refCharge = null; refEchec = Date.now(); } render(); });
   return refCharge;
 }
 
@@ -1165,7 +1222,13 @@ function jourIso(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).pad
 function deIso(s){ var p = s.split('-'); return new Date(+p[0], p[1] - 1, +p[2]); }
 function lundiDe(d){ d = new Date(d.getFullYear(), d.getMonth(), d.getDate()); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return jourIso(d); }
 function decaler(id, n){ var d = deIso(id); d.setDate(d.getDate() + 7 * n); return jourIso(d); }
-function semCourante(){ if(!/^\d{4}-\d{2}-\d{2}$/.test(ui.semaine || '')) ui.semaine = lundiDe(new Date()); return ui.semaine; }
+// La semaine choisie reste d'un jour à l'autre, sauf une semaine passée choisie un autre jour : on revient
+// alors à la semaine en cours (le lundi matin, Récolte ouvre la nouvelle semaine, étape 13D).
+function semCourante(){
+  var now = new Date(), cette = lundiDe(now);
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(ui.semaine || '') || (ui.semaine < cette && ui.semaineLe !== jourIso(now))){ ui.semaine = cette; ui.semaineLe = jourIso(now); saveUi(); }
+  return ui.semaine;
+}
 
 // Lecture et écriture locales des données de la semaine ouverte.
 function semLire(path){ return lireA(sem.data, path); }
@@ -1184,7 +1247,10 @@ function semRecouvrir(){ sem.pending.forEach(function(p){ if(p.w === sem.id) sem
 function semOuvrir(id){
   if(sem.id === id) return;
   if(sem.es){ sem.es.close(); sem.es = null; }
-  sem.id = id; sem.data = ls('recolte.semaine.' + id) || {}; crCache = null;
+  var copie = ls('recolte.semaine.' + id);
+  sem.id = id; sem.data = copie || {}; crCache = null;
+  // Données de la semaine connues (copie du téléphone ou première réponse de la base) : sinon « Chargement… ».
+  sem.recu = !!copie || !DB;
   semRecouvrir();
   semConnecter();
   semFlush();
@@ -1199,10 +1265,11 @@ function semConnecter(){
     var base = m.path.replace(/\/$/, '');
     if(patch) Object.keys(m.data || {}).forEach(function(k){ semSetAt(base + '/' + k, m.data[k]); });
     else semSetAt(m.path, m.data);
-    semRecouvrir(); semGarder(); render();
+    semRecouvrir(); semGarder(); if(!drag) render();
   }
-  flux.addEventListener('put', function(ev){ appliquer(ev, false); semFlush(); });
+  flux.addEventListener('put', function(ev){ if(sem.id === id) sem.recu = true; appliquer(ev, false); semFlush(); });
   flux.addEventListener('patch', function(ev){ appliquer(ev, true); });
+  flux.addEventListener('error', function(){ if(sem.id === id && !sem.recu){ sem.recu = true; render(); } });
   flux.addEventListener('auth_revoked', jetonRevoque);
   flux.addEventListener('cancel', function(){ refusBase({}); });
 }
@@ -1223,6 +1290,9 @@ function semEcrire(ch){
   if(!('creneaux' in ch) && debVue()){
     var copie = semLire('creneaux'), cr = creneaux();
     if(!copie || (!semPassee() && canon(tableau(copie)) !== canon(cr))) un('creneaux', cr);
+    // De même pour les jours de récolte habituels (étape 13D) : une semaine passée garde les siens.
+    var hc = semLire('habitudes'), hab = recoltesListe();
+    if(!hc || (!semPassee() && canon(tableau(hc)) !== canon(hab))) un('habitudes', hab);
   }
   semGarder(); render(); majStatut(); semFlush();
 }
@@ -1270,12 +1340,14 @@ function debListe(){
   var v = debVue();
   return tableau(v && v.debouches).map(function(d){ var o = Object.assign({}, d); o.livraisons = tableau(d.livraisons).map(function(l){ var x = Object.assign({}, l); x.jours = tableau(l.jours); return x; }); return o; });
 }
-// Jours de récolte (demande de François du 8/11) : chaque jour de récolte dit quelles livraisons on récolte
+// Jours de récolte habituels (demande de François du 8/11) : chaque jour dit quelles livraisons on récolte
 // ce jour-là (le mercredi : Panier adéquat, Locavore, Très Allier jeudi, Auvabio, marché…). Une livraison
 // n'est récoltée qu'un seul jour. Gardés avec les débouchés ; départ : « recoltes » de referentiel/debouches.json.
+// « chaque » (case « Chaque semaine », étape 13D) : le jour est créé tout seul chaque semaine ; absent = oui.
+// Décoché, il sert seulement de proposition quand on ajoute ce jour à une semaine.
 function recoltesListe(){
   var v = debVue(), r = v && (v.rec || v.recoltes) ? v.recoltes : (DEB0 && DEB0.recoltes);
-  return tableau(r).map(function(x){ return {id:x.id, jour:x.jour, livraisons:tableau(x.livraisons)}; })
+  return tableau(r).map(function(x){ return {id:x.id, jour:x.jour, livraisons:tableau(x.livraisons), chaque:x.chaque !== false}; })
     .sort(function(a, b){ return JOURS.indexOf(a.jour) - JOURS.indexOf(b.jour); });
 }
 // Stock au magasin (Très Allier) : une case par produit et par semaine, saisie par la ferme, pour chaque
@@ -1468,12 +1540,13 @@ function nomLivraison(c){ return c.nom + ' ' + c.jour; }
 function recoltesHtml(liste){
   var cr = creneauxDe(liste, false), rec = recoltesListe(), ou = {};
   rec.forEach(function(r){ r.livraisons.forEach(function(id){ ou[id] = r.jour; }); });
-  var h = '<h2 class="db-h" id="debRecoltes">Jours de récolte</h2>' +
-    '<p class="hint">Pour chaque jour de récolte, cocher les livraisons qu\'on récolte ce jour-là. Une livraison n\'est récoltée qu\'un jour : la cocher ailleurs la déplace. L\'onglet Semaine en tire ce qu\'il y a à récolter chaque jour.</p><div class="db-list">';
+  var h = '<h2 class="db-h" id="debRecoltes">Jours de récolte habituels</h2>' +
+    '<p class="hint">Pour chaque jour de récolte, cocher les livraisons qu\'on récolte ce jour-là. Une livraison n\'est récoltée qu\'un jour : la cocher ailleurs la déplace. Coché « Chaque semaine », le jour est créé tout seul dans chaque semaine, avec sa liste de récolte ; sinon, il sert de proposition quand on l\'ajoute à une semaine (onglet Semaine, page « À récolter »). Un changement ici vaut pour les semaines qui ne l\'ont pas changé elles-mêmes ; les semaines passées gardent leurs jours.</p><div class="db-list">';
   rec.forEach(function(r){
     var ji = JOURS.indexOf(r.jour), apres = [];
     h += '<section class="card db rj" data-r="' + esc(r.id) + '"><div class="db-head"><label class="db-nom">Jour de récolte<select data-rf="jour">' +
       JOURS.map(function(j){ return '<option value="' + j + '"' + (j === r.jour ? ' selected' : '') + '>' + j + '</option>'; }).join('') + '</select></label></div>' +
+      '<label class="dj db-stock"><input type="checkbox" data-rf="chaque"' + (r.chaque ? ' checked' : '') + '><span>Chaque semaine (créé tout seul dans chaque semaine)</span></label>' +
       '<div class="rj-livs" role="group" aria-label="' + esc('Livraisons récoltées le ' + r.jour) + '">' + cr.map(function(c){
         var coche = r.livraisons.indexOf(c.id) >= 0, autre = !coche && ou[c.id];
         var l = null; liste.forEach(function(d){ d.livraisons.forEach(function(x){ if(x.id === c.id) l = x; }); });
@@ -1594,6 +1667,7 @@ $('#debView').addEventListener('change', function(e){
     recModifier(function(rec){
       var r = rec.filter(function(x){ return x.id === rId; })[0]; if(!r) return false;
       if(inp.dataset.rf === 'jour') r.jour = inp.value;
+      else if(inp.dataset.rf === 'chaque') r.chaque = inp.checked;
       else {
         var c = inp.dataset.c;
         rec.forEach(function(x){ x.livraisons = x.livraisons.filter(function(y){ return y !== c; }); });
@@ -1822,12 +1896,12 @@ function renderSemaine(){
   $('#semSum').innerHTML = prods.length ? '<span class="n">' + prods.length + ' produit' + (prods.length > 1 ? 's' : '') + '</span>' +
     pastille('place', compte.place + ' placé' + (compte.place > 1 ? 's' : '')) + pastille('aplacer', compte.aplacer + ' à placer') + pastille('manque', compte.manque + ' en manque') +
     (compte.sansdispo ? pastille('sansdispo', compte.sansdispo + ' sans disponible') : '') + (compte.vide ? pastille('vide', compte.vide + ' à remplir') : '') : '';
-  // Trois pages : Répartir (fiches ou grille), Tableau (téléphone seulement : sur ordinateur, la grille est le tableau), À récolter.
+  // Trois pages : Répartir (fiches ou grille), Cumul (téléphone seulement : sur ordinateur, la grille est le cumul), À récolter.
   // Quatrième page « Stock » quand un débouché suit son stock au magasin (Très Allier) : tout se remplit d'un coup.
   var avecStock = stocks().length > 0;
-  var page = ui.semPage === 'tableau' && !pc ? 'tableau' : ui.semPage === 'recolter' ? 'recolter' : ui.semPage === 'stock' && avecStock ? 'stock' : 'repartir';
+  var page = ui.semPage === 'cumul' && !pc ? 'cumul' : ui.semPage === 'recolter' ? 'recolter' : ui.semPage === 'stock' && avecStock ? 'stock' : 'repartir';
   document.querySelectorAll('#semSub button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.sem === page)); });
-  $('#semSub button[data-sem="tableau"]').hidden = pc;
+  $('#semSub button[data-sem="cumul"]').hidden = pc;
   $('#semSub button[data-sem="stock"]').hidden = !avecStock;
   $('#semStk').hidden = page !== 'stock';
   $('#semStkList').innerHTML = page !== 'stock' ? '' : prods.length ? stockHtml(prods, calc, cr) :
@@ -1837,11 +1911,10 @@ function renderSemaine(){
   $('#semVide').innerHTML = prods.length ? '' : '<p class="empty">Aucun produit pour cette semaine.</p>' +
     '<button type="button" class="sem-act" data-a="reprendre" style="width:100%">Reprendre les produits de la semaine précédente</button>' +
     (semErr.reprendre ? '<p class="sr-err" role="alert">' + esc(semErr.reprendre) + '</p>' : '');
-  $('#semList').hidden = pc; $('#semTab').hidden = pc || page !== 'tableau'; $('#semPc').hidden = !pc || !prods.length;
+  $('#semList').hidden = pc; $('#semTab').hidden = pc || page !== 'cumul'; $('#semPc').hidden = !pc || !prods.length;
   $('#semLegende').hidden = !prods.length;
   $('#semRec').hidden = page !== 'recolter';
-  $('#semRecList').innerHTML = page !== 'recolter' ? '' : prods.length ? aRecolterHtml(prods, calc, cr) :
-    '<p class="card empty rc-vide">Aucun produit cette semaine : rien à récolter.</p>';
+  if(page === 'recolter') renderARecolter(prods, calc, cr); else $('#semRecList').innerHTML = '';
   if(pc){
     $('#semList').innerHTML = ''; $('#semTable').innerHTML = '';
     $('#semGrid').innerHTML = prods.length ? grilleHtml(prods, calc, cr) : '';
@@ -1859,13 +1932,15 @@ function renderSemaine(){
   $('#semTable').innerHTML = prods.length ? tableHtml(prods, calc, cr) : '<tr><td>Aucun produit.</td></tr>';
 }
 
-/* À récolter, jour par jour : pour chaque jour de récolte, la somme des livraisons qu'on y récolte. */
+/* À récolter, jour par jour (étape 13D) : les jours de récolte de cette semaine, avec les livraisons qu'on y
+   récolte (à cocher, pour cette semaine seulement), la case « Chaque semaine », ce qu'il y a à récolter et sa liste. */
+function renderARecolter(prods, calc, cr){ $('#semRecList').innerHTML = aRecolterHtml(prods, calc, cr); }
 function aRecolterHtml(prods, calc, cr){
-  var rec = recoltesListe(), ou = {};
-  rec.forEach(function(r){ r.livraisons.forEach(function(c){ ou[c] = r.id; }); });
-  var groupes = rec.map(function(r){ return {r:r, cs:cr.filter(function(c){ return ou[c.id] === r.id; })}; });
-  groupes.push({r:null, cs:cr.filter(function(c){ return !ou[c.id]; })});
-  var lundi = deIso(sem.id), h = '<div class="rc-jours">';
+  var js = joursSemaine(), ou = {};
+  js.forEach(function(j){ j.livraisons.forEach(function(c){ ou[c] = j.date; }); });
+  var groupes = js.map(function(j){ return {j:j, cs:cr.filter(function(c){ return j.livraisons.indexOf(c.id) >= 0; })}; });
+  groupes.push({j:null, cs:cr.filter(function(c){ return !ou[c.id]; })});
+  var h = '<div class="rc-jours">';
   groupes.forEach(function(g){
     var lignes = [];
     prods.forEach(function(p){
@@ -1881,18 +1956,29 @@ function aRecolterHtml(prods, calc, cr){
       });
       if(tot > EPS || toutInconnu) lignes.push('<li data-pid="' + esc(p.id) + '"><span>' + esc(f.nom) + '</span><b>' + (tot > EPS ? esc(deux(tot, f)) : '') + (toutInconnu ? (tot > EPS ? ' + ' : '') + 'tout ce qui reste' : '') + '</b><small>' + esc(det.join(' · ')) + '</small></li>');
     });
-    if(!g.r && !lignes.length) return;
-    var titre = 'Sans jour de récolte';
-    if(g.r){
-      var d = new Date(lundi); d.setDate(d.getDate() + JOURS.indexOf(g.r.jour));
-      titre = d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}); titre = titre.charAt(0).toUpperCase() + titre.slice(1);
-    }
-    h += '<section class="card rc-jour" data-r="' + esc(g.r ? g.r.id : '') + '"><h3>' + esc(titre) + '<small>' + esc(g.cs.length ? g.cs.map(nomLivraison).join(', ') : 'aucune livraison') + '</small></h3>' +
-      (lignes.length ? '<ul>' + lignes.join('') + '</ul>' : '<p class="sr-eq">Rien à récolter.</p>') + '</section>';
+    if(!g.j && !lignes.length) return;
+    var j = g.j, titre = j ? majuscule(titreJour(j.date)) : 'Sans jour de récolte';
+    h += '<section class="card rc-jour" data-r="' + esc(j ? j.hab || '' : '') + '" data-date="' + esc(j ? j.date : '') + '"><h3>' + esc(titre) +
+      '<small>' + esc((j ? (j.chaque ? 'Chaque semaine · ' : 'Cette semaine seulement · ') : '') + (g.cs.length ? g.cs.map(nomLivraison).join(', ') : 'aucune livraison')) + '</small></h3>';
+    if(j) h += '<div class="rc-ctl"><label class="dj rc-chaque"><input type="checkbox" data-a="chaque" data-date="' + j.date + '"' + (j.chaque ? ' checked' : '') + '><span>Chaque semaine</span></label>' +
+      '<div class="rj-livs" role="group" aria-label="' + esc('Livraisons récoltées le ' + titreJour(j.date)) + '">' + cr.filter(function(c){ return !c.retire || j.livraisons.indexOf(c.id) >= 0; }).map(function(c){
+        var coche = j.livraisons.indexOf(c.id) >= 0, autre = !coche && ou[c.id];
+        return '<label class="dj"><input type="checkbox" data-a="jliv" data-date="' + j.date + '" data-c="' + esc(c.id) + '"' + (coche ? ' checked' : '') + '><span>' + esc(nomLivraison(c)) + (autre ? ' <small>(récoltée le ' + esc(jourDe(autre)) + ')</small>' : '') + '</span></label>';
+      }).join('') + '</div></div>';
+    h += lignes.length ? '<ul>' + lignes.join('') + '</ul>' : '<p class="sr-eq">Rien à récolter.</p>';
+    if(j) h += '<div class="rc-actions"><button type="button" class="sem-add" data-a="voir-jour" data-date="' + j.date + '">Voir la liste de récolte</button>' +
+      '<button type="button" class="sem-act db-petit" data-a="retirer-jour" data-date="' + j.date + '">Retirer ce jour de cette semaine</button></div>';
+    h += '</section>';
   });
-  return h + '</div><div class="rc-pied"><p class="hint">Chaque jour de récolte regroupe les livraisons qu\'on récolte ce jour-là.</p>' +
-    '<button type="button" class="sem-act" data-a="debouches" data-reg="recoltes">Régler les jours de récolte</button></div>';
+  h += '</div>';
+  var pris = js.map(function(j){ return j.date; }), libres = JOURS.map(dateDu).filter(function(d){ return pris.indexOf(d) < 0; });
+  return h + '<div class="rc-pied">' +
+    (libres.length ? '<div class="rc-ajout"><select id="ajJour" aria-label="Jour de récolte à ajouter">' + libres.map(function(d){ return '<option value="' + d + '">' + esc(majuscule(titreJour(d))) + '</option>'; }).join('') + '</select>' +
+      '<button type="button" class="sem-act" data-a="ajouter-jour">＋ Ajouter un jour de récolte</button></div>' : '') +
+    '<p class="hint">Chaque jour de récolte regroupe les livraisons qu\'on récolte ce jour-là et donne sa liste dans l\'onglet Récolte. Une livraison n\'est récoltée qu\'un jour : la cocher ailleurs la déplace. Les cases cochées ici ne valent que pour cette semaine ; « Chaque semaine » crée le jour tout seul dans les semaines suivantes.</p>' +
+    '<button type="button" class="sem-act" data-a="debouches" data-reg="recoltes">Régler les jours habituels</button></div>';
 }
+function majuscule(t){ return t.charAt(0).toUpperCase() + t.slice(1); }
 
 /* Page « Stock » : le stock au magasin de chaque produit, à remplir d'un coup (au magasin, au téléphone).
    À côté de chaque produit, ce qui est prévu pour ce débouché cette semaine. Information seulement. */
@@ -2092,7 +2178,7 @@ function produitDe(pid){ return semLire('produits/' + pid); }
 // Choix de la semaine, au-dessus des trois pages de l'onglet.
 $('#semNav').addEventListener('click', function(e){
   var b = e.target.closest('[data-a]'); if(!b) return;
-  ui.semaine = decaler(semCourante(), b.dataset.a === 'semPrec' ? -1 : 1); semErr = {}; saveUi(); render();
+  ui.semaine = decaler(semCourante(), b.dataset.a === 'semPrec' ? -1 : 1); ui.semaineLe = jourIso(new Date()); semErr = {}; saveUi(); render();
 });
 $('#semView').addEventListener('click', function(e){
   e.stopPropagation(); // les gestes de la liste de récolte (cocher, glisser) ne concernent pas cet onglet
@@ -2105,6 +2191,9 @@ $('#semView').addEventListener('click', function(e){
   }
   var a = b.dataset.a, ligne = b.closest('.sr'), k = (ligne && ligne.dataset.k) || b.dataset.k;
   if(a === 'ajouter'){ ouvrirAjout(); return; }
+  if(a === 'voir-jour'){ ui.jour = b.dataset.date; ui.jourLe = jourIso(new Date()); ui.circ = ''; ui.view = 'recolte'; saveUi(); render(); scrollTo(0, 0); return; }
+  if(a === 'ajouter-jour'){ var aj = $('#ajJour'); if(aj && aj.value) ajouterJour(aj.value); return; }
+  if(a === 'retirer-jour'){ retirerJour(b.dataset.date); return; }
   if(a === 'debouches'){ ui.view = 'reglages'; if(b.dataset.reg) ui.regPage = b.dataset.reg; saveUi(); render(); scrollTo(0, 0); return; }
   if(a === 'reprendre'){ avecNom(reprendre); return; }
   if(a === 'propose' || !f) return;
@@ -2144,6 +2233,8 @@ $('#semView').addEventListener('click', function(e){
 });
 $('#semView').addEventListener('change', function(e){
   var inp = e.target;
+  if(inp.dataset.a === 'jliv'){ cocherLivraison(inp.dataset.date, inp.dataset.c, inp.checked); return; }
+  if(inp.dataset.a === 'chaque'){ chaqueSemaine(inp.dataset.date, inp.checked); return; }
   var carte = inp.closest('[data-pid]'); if(!carte) return;
   var pid = carte.dataset.pid, f = produitDe(pid); if(!f) return;
   // Grille de l'ordinateur : on enregistre juste après le changement de case, pour ne pas gêner Tab ou Entrée.
@@ -2251,13 +2342,332 @@ function ouvrirAjout(){
   if(dlg.showModal) dlg.showModal();
 }
 
+/* ---------- Listes de récolte calculées depuis la semaine (étape 13D) ---------- */
+// Un jour de récolte d'une semaine = une date et les livraisons qu'on y récolte. Deux sources :
+//  - les jours habituels (Réglages, « Jours de récolte habituels ») cochés « Chaque semaine » : présents
+//    dans chaque semaine, calculés à partir du réglage, jamais copiés à l'avance dans la base ;
+//  - les jours propres à la semaine, sous listes/semaines/<lundi>/recoltes/<date> : {livraisons:[…], by, at}
+//    (jour ajouté pour cette semaine, ou livraisons changées pour cette semaine), ou {retire:true, by, at}
+//    (jour habituel retiré pour cette semaine seulement).
+// La liste d'un jour est calculée en direct depuis la répartition ; sa première coche la fige (listes/<date>/fige) :
+// ensuite, un changement de la semaine est signalé sur la liste, jamais appliqué sans qu'on le voie.
+var vide = null, ecarts = null, joursSem = [], jourActif = null, sondes = {};
+var fichiers = ls('recolte.fichiers') || {};
+(function(){ var c = ls('recolte.copie'); if(c && c.id && c.items && !fichiers[c.id]) fichiers[c.id] = c; })();
+function habitudes(){
+  var copie = semLire('habitudes');
+  if(copie && (semPassee() || !debVue())) return tableau(copie).map(function(x){ return {id:x.id, jour:x.jour, livraisons:tableau(x.livraisons), chaque:x.chaque !== false}; });
+  return recoltesListe();
+}
+function dateDu(jour){ var d = deIso(sem.id); d.setDate(d.getDate() + JOURS.indexOf(jour)); return jourIso(d); }
+function jourDe(date){ return JOURS[(deIso(date).getDay() + 6) % 7]; }
+function titreJour(date){ return deIso(date).toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}); }
+function joursSemaine(){
+  if(!sem.id) return [];
+  var out = {}, fin = dateDu('dimanche');
+  habitudes().forEach(function(r){
+    if(!r.chaque || JOURS.indexOf(r.jour) < 0) return;
+    var d = dateDu(r.jour), x = out[d];
+    if(x){ r.livraisons.forEach(function(c){ if(x.livraisons.indexOf(c) < 0) x.livraisons.push(c); }); return; }
+    out[d] = {date:d, jour:r.jour, livraisons:r.livraisons.slice(), chaque:true, hab:r.id, propre:false};
+  });
+  var w = semLire('recoltes') || {};
+  Object.keys(w).forEach(function(d){
+    var x = w[d];
+    if(!x || !/^\d{4}-\d{2}-\d{2}$/.test(d) || d < sem.id || d > fin) return;
+    if(x.retire){ delete out[d]; return; }
+    var h = out[d];
+    out[d] = {date:d, jour:jourDe(d), livraisons:tableau(x.livraisons), chaque:!!(h && h.chaque), hab:h ? h.hab : '', propre:true};
+  });
+  return Object.keys(out).sort().map(function(d){ return out[d]; });
+}
+function jourSem(date){ return joursSemaine().filter(function(x){ return x.date === date; })[0]; }
+// Aucune quantité ni « tout » dans la semaine : « le cumul est vide ».
+function cumulVide(){
+  var q = semLire('q') || {}, t = semLire('tout') || {};
+  return !Object.keys(q).some(function(pid){ return Object.keys(q[pid] || {}).some(function(c){ return q[pid][c]; }); }) &&
+    !Object.keys(t).some(function(pid){ return t[pid] && t[pid].c; });
+}
+function arrondi(x){ return Math.round(x * 1000) / 1000; }
+// Quantité d'un circuit, depuis les quantités de ses livraisons du jour (Auvabio 03 et 63 réunis) :
+// colis → un nombre (compté dans les caisses) ; kilos → « 5 kg » ; bottes, pièces… → « 6 bottes » ;
+// « tout » → « tout ». Unités mêlées : tout est converti en colis.
+function fusion(parts, f){
+  if(!parts.length) return null;
+  if(parts.indexOf('tout') >= 0) return 'tout';
+  var u = parts[0].u || 'colis', n = 0;
+  if(!parts.every(function(q){ return (q.u || 'colis') === u; })){ parts.forEach(function(q){ n += enColis(q, f); }); return arrondi(n); }
+  parts.forEach(function(q){ n += q.n; });
+  n = arrondi(n);
+  return u === 'colis' ? n : qTxt(n, u, f);
+}
+// Une ligne de la liste : total et contenu (kilos, unités) calculés, plus écrits à la main.
+function ligneCalculee(pid, f, circ){
+  var c = contenu(f), colis = 0, kg = 0, u = 0, tout = false;
+  Object.keys(circ).forEach(function(k){
+    var v = circ[k];
+    if(typeof v === 'number'){ colis += v; return; }
+    if(v === 'tout'){ tout = true; return; }
+    var m = /^([\d,]+) (.+)$/.exec(v); if(!m) return;
+    var n = parseFloat(m[1].replace(',', '.'));
+    if(m[2] === 'kg') kg += n; else u += n;
+  });
+  colis = arrondi(colis); kg = arrondi(kg); u = arrondi(u);
+  var tot = [];
+  if(colis > EPS) tot.push(nb(colis) + ' colis');
+  if(kg > EPS) tot.push(nb(kg) + ' kg');
+  if(u > EPS) tot.push(qTxt(u, 'u', f));
+  var kgT = kg, uT = u, cont = [];
+  if(c && c.u === 'kg') kgT += colis * c.n; else if(c && c.u === 'u') uT += colis * c.n;
+  if(kgT > EPS) cont.push(nb(arrondi(kgT)) + ' kg');
+  if(uT > EPS) cont.push(qTxt(arrondi(uT), 'u', f));
+  if(!c && colis > EPS) cont.push(nb(colis) + ' colis');
+  return {id:pid, produit:f.nom, caisse:f.caisse || null, condit:c ? qTxt(c.n, c.u, f) : (f.unite || ''), circ:circ,
+    total: tot.length ? tot.join(' + ') + (tout ? ' + tout le reste' : '') : (tout ? 'tout ce qu\'il y a' : ''),
+    kg: cont.length ? cont.join(' + ') : (tout ? 'tout' : '')};
+}
+// La liste d'un jour de récolte : un circuit par débouché (son identifiant, comme les listes en fichier),
+// une ligne par produit qui a une quantité pour l'une des livraisons du jour. Le stock au magasin et le
+// reste proposé à Auvabio 63 (s'il n'est pas saisi comme quantité) n'y entrent pas.
+function listeCalculee(j){
+  var cr = creneaux(), debs = debListe(), cols = (REF && REF.colisages) || {};
+  var cs = cr.filter(function(c){ return j.livraisons.indexOf(c.id) >= 0; });
+  var circuits = [], parC = {};
+  cs.forEach(function(c){
+    var k = c.circuit || c.id, ci = parC[k];
+    if(!ci){
+      var d = debs.filter(function(x){ return x.id === k; })[0], colis = d ? d.colis : c.colis;
+      ci = parC[k] = {id:k, nom:d ? d.nom : c.nom, court:d ? d.nom : (c.court || c.nom), livs:[]};
+      if(colis && cols[colis]) ci.colisage = colis;
+      circuits.push(ci);
+    }
+    ci.livs.push(c.id);
+  });
+  var items = [], fiches = semLire('produits') || {}, sansFiche = [];
+  produitsSem().forEach(function(p){
+    var f = p.f, r = calcul(p.id, f), circ = {};
+    circuits.forEach(function(ci){
+      var parts = [];
+      ci.livs.forEach(function(c){
+        if(r.toutC === c){ parts.push('tout'); return; }
+        var q = semLire('q/' + p.id + '/' + c), x = enColis(q, f);
+        if(q && !isNaN(x) && x > EPS) parts.push(q);
+      });
+      var v = fusion(parts, f);
+      if(v !== null) circ[ci.id] = v;
+    });
+    if(Object.keys(circ).length) items.push(ligneCalculee(p.id, f, circ));
+  });
+  // Une quantité sans fiche de produit n'entre pas dans la liste (rien n'est inventé) : c'est signalé.
+  var q = semLire('q') || {};
+  Object.keys(q).forEach(function(pid){
+    if(fiches[pid] && fiches[pid].nom) return;
+    if(cs.some(function(c){ return q[pid] && q[pid][c.id]; })) sansFiche.push(pid);
+  });
+  var colisages = {};
+  circuits.forEach(function(ci){ if(ci.colisage) colisages[ci.colisage] = cols[ci.colisage]; delete ci.livs; });
+  var lundi = deIso(sem.id).toLocaleDateString('fr-FR', {day:'numeric', month:'long'});
+  return {id:j.date, titre:'Récolte du ' + titreJour(j.date), pour:cs.length ? 'Livraisons : ' + cs.map(nomLivraison).join(', ') : 'Aucune livraison cochée pour ce jour.',
+    source:'Calculée depuis l\'onglet Semaine (semaine du ' + lundi + ').', semaine:sem.id, colisages:colisages, circuits:circuits, items:items, calc:true, sansFiche:sansFiche};
+}
+// Ce qui est figé dans la base : la liste telle qu'elle était à la première coche, avec qui et quand.
+function instantane(l){
+  var o = JSON.parse(JSON.stringify({id:l.id, titre:l.titre, pour:l.pour, source:l.source, semaine:l.semaine, colisages:l.colisages || {}, circuits:l.circuits, items:l.items}));
+  o.by = me || ''; o.at = Date.now();
+  return o;
+}
+function deFige(fg){
+  var o = Object.assign({}, fg);
+  o.circuits = tableau(fg.circuits);
+  o.items = tableau(fg.items).map(function(it){ var x = Object.assign({}, it); x.circ = x.circ || {}; if(x.caisse === undefined) x.caisse = null; return x; });
+  o.colisages = fg.colisages || {}; o.calc = true; o.fige = true;
+  o.source = 'Liste figée à la première coche (' + quiQuand(fg) + '), d\'après l\'onglet Semaine.';
+  return o;
+}
+// Écarts entre la liste figée et ce que donne la semaine maintenant.
+function comparer(fg, calc){
+  var e = {lignes:{}, changes:[], ajouts:[], retires:[], circuits:false, calc:calc};
+  var parId = {}, vu = {};
+  calc.items.forEach(function(it){ parId[it.id] = it; });
+  fg.items.forEach(function(it){
+    vu[it.id] = 1;
+    var c = parId[it.id];
+    if(!c){ e.lignes[it.id] = {retire:true}; e.retires.push(it.produit); }
+    else if(canon(c.circ) !== canon(it.circ)){ e.lignes[it.id] = {maintenant:c.total + (c.kg && c.kg !== c.total ? ' (' + c.kg + ')' : '')}; e.changes.push(it.produit); }
+  });
+  calc.items.forEach(function(it){ if(!vu[it.id]) e.ajouts.push(it.produit); });
+  e.circuits = canon(fg.circuits.map(function(c){ return c.id; })) !== canon(calc.circuits.map(function(c){ return c.id; }));
+  return e.changes.length || e.ajouts.length || e.retires.length || e.circuits ? e : null;
+}
+// Liste ouverte par défaut : le jour choisi (aujourd'hui), sinon le prochain jour de récolte, sinon le dernier.
+function jourChoisi(js){
+  if(!js.length) return null;
+  var auj = jourIso(new Date()), j = js.filter(function(x){ return x.date === ui.jour; })[0];
+  if(j && ui.jourLe === auj) return j;
+  return js.filter(function(x){ return x.date >= auj; })[0] || js[js.length - 1];
+}
+// Une liste en fichier (faite à la main avant 13D) l'emporte pour sa date : on regarde une fois par visite.
+function fichierDe(date){
+  var f = fichiers[date];
+  if(f && f.id === date) return f;
+  if(!sondes[date]){
+    sondes[date] = 1;
+    fetch('listes/' + date + '.json', {cache:'no-cache'}).then(function(r){ return r.ok ? r.json() : null; }).then(function(d){
+      if(d && d.id === date && d.items && d.circuits){ fichiers[date] = d; ls('recolte.fichiers', fichiers); if(!drag) render(); }
+    }).catch(function(){});
+  }
+  return null;
+}
+function choisirListe(){
+  vide = null; ecarts = null; jourActif = null;
+  if(demande) return;
+  semOuvrir(semCourante());
+  if(!debVue() || !REF){ chargerRef(); joursSem = []; fermerListe(); vide = {cas: refCharge ? 'charge' : 'erreur'}; return; }
+  var js = joursSem = joursSemaine(), j = jourChoisi(js);
+  if(!j){ fermerListe(); vide = {cas: !sem.recu ? 'charge' : cumulVide() ? 'cumul' : 'jours'}; return; }
+  jourActif = j;
+  ouvrirListe(j.date);
+  var fich = fichierDe(j.date);
+  if(fich){ poserListe(fich); return; }
+  var calc = listeCalculee(j);
+  if(mirror.fige){
+    var fg = deFige(mirror.fige);
+    ecarts = comparer(fg, calc);
+    poserListe(fg);
+    return;
+  }
+  poserListe(calc);
+  if(!sem.recu) vide = {cas:'charge'};
+  else if(cumulVide()) vide = {cas:'cumul'};
+  else if(!calc.items.length) vide = {cas:'jour', j:j, l:calc};
+}
+
+// Récolte et Préparation : la semaine, le menu de ses jours de récolte, et les messages.
+function renderRecNav(autre){
+  var nav = $('#recNav'), vb = $('#videBox'), eb = $('#ecartsBox');
+  if(autre || demande){ nav.hidden = vb.hidden = eb.hidden = true; vb.innerHTML = eb.innerHTML = ''; return; }
+  var d = sem.id ? deIso(sem.id) : null, auj = jourIso(new Date());
+  $('#recSem').textContent = d ? 'Semaine du ' + d.toLocaleDateString('fr-FR', {day:'numeric', month:'long'}) + ' · elle se choisit dans l\'onglet Semaine' : '';
+  var aFichier = joursSem.some(function(x){ return fichiers[x.date]; });
+  var menu = joursSem.length && !(vide && vide.cas === 'cumul' && !aFichier);
+  $('#recJours').hidden = !menu;
+  $('#recJours').innerHTML = menu ? joursSem.map(function(x){
+    var t = majuscule(deIso(x.date).toLocaleDateString('fr-FR', {weekday:'long', day:'numeric'}));
+    return '<button type="button" data-jour="' + x.date + '" aria-pressed="' + (x.date === lid) + '">' + esc(t) + (x.date === auj ? ' · auj.' : '') + '</button>';
+  }).join('') : '';
+  nav.hidden = !sem.id;
+  vb.hidden = !vide;
+  vb.innerHTML = vide ? videHtml(vide) : '';
+  var sansFiche = !vide && list && list.sansFiche && list.sansFiche.length ? '<p class="note">Quantités sans fiche de produit, pas dans la liste : ' + esc(list.sansFiche.join(', ')) + '. Ajouter le produit dans la semaine.</p>' : '';
+  eb.innerHTML = (ecarts && !vide ? ecartsHtml(ecarts) : '') + sansFiche;
+  eb.hidden = !eb.innerHTML;
+}
+function videHtml(v){
+  if(v.cas === 'charge') return '<p class="card empty">Chargement de la semaine…</p>';
+  if(v.cas === 'erreur') return '<p class="card empty">Impossible de charger les débouchés et les produits. Vérifie la connexion.</p>';
+  var lundi = deIso(sem.id).toLocaleDateString('fr-FR', {day:'numeric', month:'long'});
+  if(v.cas === 'cumul') return '<section class="card boite"><p class="grand">Le cumul de cette semaine est vide.</p>' +
+    '<p>Rien n\'est encore réparti pour la semaine du ' + esc(lundi) + '. La liste de récolte se remplit toute seule depuis l\'onglet Semaine.</p>' +
+    '<button type="button" class="sem-add" data-a="aller-semaine" data-page="repartir">Remplir la semaine</button></section>';
+  if(v.cas === 'jours') return '<section class="card boite"><p class="grand">Aucun jour de récolte cette semaine.</p>' +
+    '<p>Le cumul a des quantités, mais aucun jour de récolte n\'est prévu. En ajouter un dans l\'onglet Semaine, page « À récolter ».</p>' +
+    '<button type="button" class="sem-add" data-a="aller-semaine" data-page="recolter">Ajouter un jour de récolte</button></section>';
+  return '<section class="card boite"><p class="grand">Rien à récolter ce jour-là.</p>' +
+    '<p>' + (v.j.livraisons.length ? 'Aucune quantité n\'est prévue pour ses livraisons (' + esc(v.l.pour.replace(/^Livraisons : /, '')) + ').' : 'Aucune livraison n\'est cochée pour ce jour.') + '</p>' +
+    '<button type="button" class="sem-add" data-a="aller-semaine" data-page="recolter">Voir les jours de récolte</button></section>';
+}
+function ecartsHtml(e){
+  var fg = mirror.fige || {}, det = [];
+  if(e.changes.length) det.push('changé : ' + e.changes.join(', '));
+  if(e.ajouts.length) det.push('ajouté : ' + e.ajouts.join(', '));
+  if(e.retires.length) det.push('retiré : ' + e.retires.join(', '));
+  if(e.circuits) det.push('les livraisons de ce jour ont changé');
+  return '<section class="card boite jaune"><p class="grand">La semaine a changé depuis la première coche.</p>' +
+    '<p>La liste reste comme elle était (figée à la première coche, ' + esc(quiQuand(fg)) + '). Dans la semaine, ' + esc(det.join(' ; ')) + '.</p>' +
+    '<button type="button" class="sem-act" data-a="maj-liste">Mettre la liste à jour</button>' +
+    '<p class="hint">Les coches déjà faites sont gardées.</p></section>';
+}
+function brancherJours(){
+  $('#recJours').onclick = function(e){
+    var b = e.target.closest('[data-jour]'); if(!b) return;
+    ui.jour = b.dataset.jour; ui.jourLe = jourIso(new Date()); ui.circ = ''; saveUi(); render();
+  };
+  $('#videBox').onclick = $('#ecartsBox').onclick = function(e){
+    var b = e.target.closest('[data-a]'); if(!b) return;
+    if(b.dataset.a === 'aller-semaine'){ ui.view = 'semaine'; ui.semPage = b.dataset.page || 'repartir'; saveUi(); render(); scrollTo(0, 0); }
+    else if(b.dataset.a === 'maj-liste' && ecarts){ var c = ecarts.calc; avecNom(function(){ write('fige', instantane(c)); }); }
+  };
+}
+
+// Jours de récolte de la semaine, page « À récolter » : chaque changement ne vaut que pour cette semaine.
+function jourEcrire(ch){
+  var o = {};
+  Object.keys(ch).forEach(function(d){ o['recoltes/' + d] = ch[d] ? signe(ch[d]) : null; });
+  semEcrire(o);
+}
+// Cocher une livraison pour un jour la retire des autres jours de la semaine (elle se déplace).
+function cocherLivraison(date, c, oui){
+  avecNom(function(){
+    var ch = {};
+    joursSemaine().forEach(function(j){
+      var l = j.livraisons.filter(function(x){ return x !== c; });
+      if(j.date === date && oui) l.push(c);
+      if(j.date === date || l.length !== j.livraisons.length) ch[j.date] = {livraisons:l};
+    });
+    jourEcrire(ch);
+  });
+}
+// Livraisons proposées, déjà cochées, pour un jour ajouté : celles du jour habituel s'il y en a un
+// (lundi : celles du mardi ; mercredi : mercredi, jeudi, vendredi), sinon les livraisons qui suivent ce jour ;
+// jamais une livraison déjà récoltée un autre jour de la semaine.
+function proposition(jour, js){
+  var pris = {}, cr = creneaux().filter(function(c){ return !c.retire; }), ids = cr.map(function(c){ return c.id; });
+  js.forEach(function(j){ j.livraisons.forEach(function(c){ pris[c] = 1; }); });
+  var h = habitudes().filter(function(r){ return r.jour === jour; })[0];
+  if(h) return h.livraisons.filter(function(c){ return !pris[c] && ids.indexOf(c) >= 0; });
+  var i = JOURS.indexOf(jour), livs = {};
+  debListe().forEach(function(d){ d.livraisons.forEach(function(l){ livs[l.id] = l; }); });
+  return cr.filter(function(c){ var l = livs[c.id], r = l ? rangJour(l.jours) : 9; return !pris[c.id] && r < 7 && r > i; }).map(function(c){ return c.id; });
+}
+function ajouterJour(date){
+  avecNom(function(){ var ch = {}; ch[date] = {livraisons:proposition(jourDe(date), joursSemaine())}; jourEcrire(ch); });
+}
+function retirerJour(date){
+  var j = jourSem(date); if(!j) return;
+  if(!confirm('Retirer le ' + titreJour(date) + ' de cette semaine ? Ses livraisons n\'auront plus de jour de récolte cette semaine. Les coches déjà faites restent gardées.')) return;
+  avecNom(function(){ var ch = {}; ch[date] = j.chaque ? {retire:true} : null; jourEcrire(ch); });
+}
+// « Chaque semaine » : coché, le jour devient un jour habituel (Réglages) avec ces livraisons ; décoché,
+// il garde sa place dans cette semaine, et n'est plus créé tout seul dans les suivantes. Rien n'est effacé.
+function chaqueSemaine(date, oui){
+  var j = jourSem(date); if(!j) return;
+  if(oui){
+    recModifier(function(rec){
+      rec.forEach(function(r){ r.livraisons = r.livraisons.filter(function(c){ return j.livraisons.indexOf(c) < 0; }); });
+      var r = rec.filter(function(x){ return x.jour === j.jour; })[0];
+      if(r){ r.chaque = true; r.livraisons = j.livraisons.slice(); return; }
+      var ids = rec.map(function(x){ return x.id; }), id = j.jour.slice(0, 3), n = 2;
+      while(ids.indexOf(id) >= 0) id = j.jour.slice(0, 3) + '-' + n++;
+      rec.push({id:id, jour:j.jour, livraisons:j.livraisons.slice(), chaque:true});
+    });
+    return;
+  }
+  avecNom(function(){
+    var ch = {}; ch[date] = {livraisons:j.livraisons.slice()}; jourEcrire(ch);
+    recModifier(function(rec){ rec.forEach(function(r){ if(r.jour === j.jour) r.chaque = false; }); });
+  });
+}
+
 /* ---------- Partage (Firebase Realtime Database, sans bibliothèque) ---------- */
 function setStatus(cls, txt){ var s = $('#sync'); s.className = 'pill ' + cls; s.lastElementChild.textContent = txt; }
 
 // État affiché dans la pastille : en ligne ou non, et ce qui attend d'être envoyé.
 var enLigne = false, refuse = false, connu = false;
+// La liste figée part avec la première coche : elle n'est pas comptée à part.
+function nListe(p){ var f = p.filter(function(x){ return x.path === 'fige'; }).length; return p.length - (f && p.length > f ? f : 0); }
+function nAttente(){ return nListe(pending) + sem.pending.length + (deb.pending ? 1 : 0) + clesAutres().reduce(function(a, x){ return a + x.n; }, 0); }
 function enAttente(){
-  var n = pending.length + sem.pending.length + (deb.pending ? 1 : 0);
+  var n = nAttente();
   var coches = !sem.pending.length && !deb.pending && pending.every(function(p){ return p.path !== 'order'; });
   return n + ' ' + (coches ? (n > 1 ? 'coches' : 'coche') : (n > 1 ? 'changements' : 'changement')) + ' en attente';
 }
@@ -2265,11 +2675,12 @@ function majStatut(){
   if(!DB) return;
   if(CLE && !compte) return setStatus('wait', 'Pas connecté');
   if(refuse) return setStatus('err', compte ? 'Compte sans accès' : 'Accès refusé par la base');
+  var n = nAttente();
   if(!enLigne){
-    if(!connu && !pending.length && !sem.pending.length && !deb.pending && !depuisCopie) return setStatus('wait', 'Connexion…');
-    return setStatus('wait', 'Hors ligne' + (pending.length || sem.pending.length || deb.pending ? ' · ' + enAttente() : ''));
+    if(!connu && !n && !depuisCopie) return setStatus('wait', 'Connexion…');
+    return setStatus('wait', 'Hors ligne' + (n ? ' · ' + enAttente() : ''));
   }
-  if(pending.length || sem.pending.length || deb.pending) return setStatus('wait', 'Envoi… ' + enAttente());
+  if(n) return setStatus('wait', 'Envoi… ' + enAttente());
   setStatus('ok', 'Partagé');
 }
 
@@ -2287,7 +2698,7 @@ function heureBase(srv, path){
 
 function setAt(path, val){
   var parts = path.split('/').filter(Boolean);
-  if(!parts.length){ mirror = {order: (val && val.order) || null, done: (val && val.done) || {}, prep: (val && val.prep) || {}, prepClient: (val && val.prepClient) || {}}; return; }
+  if(!parts.length){ mirror = {order: (val && val.order) || null, done: (val && val.done) || {}, prep: (val && val.prep) || {}, prepClient: (val && val.prepClient) || {}, fige: (val && val.fige) || null}; return; }
   if(parts[0] === 'maj') return;
   var o = mirror;
   for(var i = 0; i < parts.length - 1; i++){ if(!o[parts[i]] || typeof o[parts[i]] !== 'object') o[parts[i]] = {}; o = o[parts[i]]; }
@@ -2295,26 +2706,37 @@ function setAt(path, val){
   if(val === null) delete o[last]; else o[last] = val;
   ['done', 'prep', 'prepClient'].forEach(function(k){ if(!mirror[k]) mirror[k] = {}; });
 }
-function persist(){ ls(MKEY, mirror); ls('recolte.pending.' + list.id, pending); }
+function persist(){ if(!lid) return; ls(MKEY, mirror); ls('recolte.pending.' + lid, pending); }
 
 // Chaque action est appliquée tout de suite à l'écran, gardée sur le téléphone avec son heure,
 // puis envoyée (tout de suite, ou au retour du réseau).
+// Liste calculée depuis la semaine : la première coche (récolte, préparation, ordre) la fige (étape 13D).
 function write(path, val){
+  if(!lid) return;
+  if(list && list.calc && !mirror.fige && path !== 'fige') figer();
   setAt(path, val);
   pending = pending.filter(function(p){ return p.path !== path; });
   pending.push({path:path, val:val, at:Date.now()});
   persist(); render(); majStatut(); flush();
 }
+// Première coche : la liste se fige, et son jour existe « en dur » dans la semaine (il reste même si
+// « Chaque semaine » est décoché plus tard).
+function figer(){
+  var f = instantane(list);
+  setAt('fige', f);
+  pending = pending.filter(function(p){ return p.path !== 'fige'; });
+  pending.push({path:'fige', val:f, at:f.at});
+  if(jourActif && jourActif.date === list.id && !jourActif.propre && sem.id === list.semaine){
+    var ch = {}; ch['recoltes/' + jourActif.date] = signe({livraisons:jourActif.livraisons.slice()}); semEcrire(ch);
+  }
+}
 
 // Envoi : on relit la base, puis on n'envoie que les actions plus récentes que celle de la base
 // sur le même chemin. Règle « la dernière action gagne » : si un autre téléphone a agi après,
 // c'est son action qui reste, et l'écran la reprend.
-var flushing = false;
-function flush(){
-  if(!dbPret() || flushing || !pending.length) return;
-  flushing = true;
-  var lot = pending.slice(), base = '/listes/' + list.id;
-  dbFetch(base, {cache:'no-store'})
+function envoyerLot(id, lot){
+  var base = '/listes/' + id;
+  return dbFetch(base, {cache:'no-store'})
     .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
     .then(function(srv){
       var corps = {}, perdus = [], n = 0;
@@ -2323,17 +2745,55 @@ function flush(){
         corps[p.path] = p.val; corps['maj/' + p.path] = p.at || Date.now(); n++;
       });
       var envoi = n ? dbFetch(base, {method:'PATCH', body: JSON.stringify(corps)}).then(function(r){ if(!r.ok) throw new Error(r.status); }) : Promise.resolve();
-      return envoi.then(function(){
-        pending = pending.filter(function(x){ return lot.indexOf(x) < 0; });
-        perdus.forEach(function(p){ setAt(p.path, lireA(srv, p.path)); });
-        pending.forEach(function(p){ setAt(p.path, p.val); });
-        if(es && es.readyState === 1) enLigne = true;
-        flushing = false;
-        persist(); if(!drag) render(); majStatut();
-        if(pending.length) flush(); else verifierNouvelleListe();
-      });
-    })
-    .catch(function(){ flushing = false; enLigne = false; majStatut(); });
+      return envoi.then(function(){ return {srv:srv, perdus:perdus}; });
+    });
+}
+function memeAction(a, b){ return a.path === b.path && a.at === b.at; }
+var flushing = false;
+function flush(){
+  if(!dbPret() || flushing) return;
+  if(!lid || !pending.length){ envoyerAutres(); return; }
+  flushing = true;
+  var lot = pending.slice(), id = lid;
+  envoyerLot(id, lot).then(function(x){
+    flushing = false;
+    if(es && es.readyState === 1) enLigne = true;
+    if(lid !== id){
+      // Liste changée pendant l'envoi : on retire ce qui est parti de ce qu'elle garde sur le téléphone.
+      var reste = (ls('recolte.pending.' + id) || []).filter(function(q){ return !lot.some(function(l){ return memeAction(l, q); }); });
+      ls('recolte.pending.' + id, reste);
+      majStatut(); flush(); return;
+    }
+    pending = pending.filter(function(q){ return lot.indexOf(q) < 0; });
+    x.perdus.forEach(function(p){ setAt(p.path, lireA(x.srv, p.path)); });
+    pending.forEach(function(p){ setAt(p.path, p.val); });
+    persist(); if(!drag) render(); majStatut();
+    flush();
+  }).catch(function(){ flushing = false; enLigne = false; majStatut(); });
+}
+// Actions en attente d'une autre liste que celle affichée (cochée hors ligne, puis on a changé de jour) :
+// elles partent aussi, une liste à la fois.
+var autresEnCours = false;
+function clesAutres(){
+  var r = [];
+  try{
+    for(var i = 0; i < localStorage.length; i++){
+      var k = localStorage.key(i);
+      if(k && k.indexOf('recolte.pending.') === 0 && k !== 'recolte.pending.' + lid){ var v = ls(k); if(v && v.length) r.push({k:k, n:nListe(v)}); }
+    }
+  }catch(e){}
+  return r;
+}
+function envoyerAutres(){
+  if(!dbPret() || autresEnCours) return;
+  var a = clesAutres()[0]; if(!a) return;
+  autresEnCours = true;
+  var lot = ls(a.k), id = a.k.slice('recolte.pending.'.length);
+  envoyerLot(id, lot).then(function(){
+    var reste = (ls(a.k) || []).filter(function(q){ return !lot.some(function(l){ return memeAction(l, q); }); });
+    ls(a.k, reste);
+    autresEnCours = false; majStatut(); envoyerAutres();
+  }, function(){ autresEnCours = false; });
 }
 
 var es = null, lance = false, ecoute = false;
@@ -2357,24 +2817,26 @@ function verifier(){
   jetonFrais().then(function(){
     if(compte && compte.jeton !== avant){ relancerTout(true); return; }
     if(!dbPret()) return;
-    if(es && es.readyState === 2) ouvrir();
+    if(lid && es && es.readyState === 2) ouvrir();
     flush(); semRelancer(); debRelancer();
   }, function(){ enLigne = false; majStatut(); });
 }
 // Ouvre les flux temps réel (liste du jour, semaine, débouchés) puis envoie ce qui attend.
 // tous = true : nouveau jeton, on rouvre aussi les flux encore ouverts (ils portent l'ancien).
 function relancerTout(tous){
-  if(!dbPret() || !list) return;
+  if(!dbPret()) return;
   lance = true;
-  ouvrir();
+  if(lid) ouvrir();
   if(sem.id && (tous || !sem.es || sem.es.readyState === 2)){ if(sem.es) sem.es.close(); sem.es = null; semConnecter(); }
   if(refCharge && (tous || !deb.es || deb.es.readyState === 2)){ if(deb.es) deb.es.close(); deb.es = null; debConnecter(); }
   flush(); semFlush(); debFlush();
 }
 function ouvrir(){
   if(es) es.close();
-  var flux = es = new EventSource(dbUrl('/listes/' + list.id));
+  if(!lid){ es = null; return; }
+  var id = lid, flux = es = new EventSource(dbUrl('/listes/' + id));
   function apply(ev, patch){
+    if(lid !== id) return;
     var m = JSON.parse(ev.data); if(!m) return;
     if(patch) Object.keys(m.data || {}).forEach(function(k){ setAt(m.path.replace(/\/$/, '') + '/' + k, m.data[k]); });
     else setAt(m.path, m.data);
@@ -2382,7 +2844,7 @@ function ouvrir(){
     pending.forEach(function(p){ setAt(p.path, p.val); });
     persist(); if(!drag) render();
   }
-  flux.addEventListener('put', function(ev){ apply(ev, false); enLigne = true; connu = true; renouvSansSucces = 0; if(refuse){ refuse = false; if(ui.view === 'reglages') render(); } majStatut(); flush(); verifierNouvelleListe(); });
+  flux.addEventListener('put', function(ev){ apply(ev, false); enLigne = true; connu = true; renouvSansSucces = 0; if(refuse){ refuse = false; if(ui.view === 'reglages') render(); } majStatut(); flush(); });
   flux.addEventListener('patch', function(ev){ apply(ev, true); });
   flux.addEventListener('cancel', function(){ refusBase({}); });
   flux.addEventListener('auth_revoked', jetonRevoque);
@@ -2396,7 +2858,7 @@ var dernierDiag = 0;
 function diagnostiquer(){
   if(Date.now() - dernierDiag < 10000) return;
   dernierDiag = Date.now();
-  dbFetch('/listes/' + list.id, {cache:'no-store'}, 'shallow=true').catch(function(){});
+  if(lid) dbFetch('/listes/' + lid, {cache:'no-store'}, 'shallow=true').catch(function(){});
 }
 
 /* ---------- Compte (Firebase Authentication, par son API web, sans bibliothèque) ---------- */
