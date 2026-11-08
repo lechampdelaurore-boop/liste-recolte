@@ -3,13 +3,13 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Liste de récolte</title>
-<meta name="description" content="Liste de récolte partagée du Champ de l'Aurore.">
+<title>Cumul</title>
+<meta name="description" content="Cumul : répartition de la semaine, listes de récolte et préparation des commandes du Champ de l'Aurore.">
 <meta name="theme-color" content="#ffffff">
 <meta name="color-scheme" content="only light">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Récolte">
+<meta name="apple-mobile-web-app-title" content="Cumul">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
@@ -246,6 +246,7 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 .db label.db-stock{justify-self:start;border-radius:12px}
 .sr.stock{background:var(--surface)}
 #semGrid td.g-stk,#semGrid th.stk{background:var(--surface2);border-right:3px dashed var(--line)}
+#semGrid td.g-stk{min-width:8.5em}
 .db label.dj small{font-weight:600}
 .rj-sans{margin:0;font-weight:800}
 .rc-vide{padding:16px}
@@ -337,6 +338,8 @@ body.large .wrap{max-width:1600px}
 .g-u{display:block;width:100%;border:0;border-top:1px solid var(--line);border-radius:0;padding:2px 4px;font-size:.8rem;font-weight:700;background:var(--surface2);text-align:right;cursor:pointer}
 .g-u:disabled{cursor:default;opacity:1;color:var(--fg)}
 #semGrid td.g-dispo{background:var(--surface2)}
+.g-qui{display:block;padding:2px 5px 3px;font-size:.7rem;line-height:1.15;font-weight:700;color:var(--muted);text-align:right;white-space:normal;border-top:1px solid var(--line)}
+#semTable .g-qui{border:0;padding:0;font-size:.68rem}
 #semGrid td.g-reste{padding:6px 9px;font-weight:900;min-width:11em;line-height:1.2;font-size:.9rem}
 #semGrid td.g-reste.place{background:var(--accent);color:#fff}
 #semGrid td.g-reste.aplacer{background:#ffb000}
@@ -378,7 +381,7 @@ dialog.big{max-width:min(460px,94vw);width:100%}
 <body>
 <header class="appbar">
   <div class="appbar-in">
-    <span class="brand"><img src="icons/icon.svg" alt="" width="36" height="36"><span>Liste de récolte</span></span>
+    <span class="brand"><img src="icons/icon.svg" alt="" width="36" height="36"><span>Cumul</span></span>
     <span class="appbar-r"><span class="pill" id="sync"><i></i><span>…</span></span><button class="pill who" id="who" type="button" title="Changer de nom">?</button></span>
   </div>
 </header>
@@ -629,7 +632,7 @@ function ouvrirListe(id){
   if(lance && dbPret()){ ouvrir(); flush(); }
 }
 function fermerListe(){
-  list = null; byId = {}; document.title = 'Liste de récolte';
+  list = null; byId = {}; document.title = 'Cumul';
   if(lid === null) return;
   lid = null; MKEY = null; mirror = {order:null, done:{}, prep:{}, prepClient:{}, fige:null}; pending = [];
   if(es){ es.close(); es = null; }
@@ -1261,6 +1264,7 @@ function semOuvrir(id){
   sem.id = id; sem.data = copie || {}; crCache = null;
   // Données de la semaine connues (copie du téléphone ou première réponse de la base) : sinon « Chargement… ».
   sem.recu = !!copie || !DB;
+  sem.direct = false; // vrai dès la première réponse de la base (pas seulement la copie du téléphone)
   semRecouvrir();
   semConnecter();
   semFlush();
@@ -1277,7 +1281,7 @@ function semConnecter(){
     else semSetAt(m.path, m.data);
     semRecouvrir(); semGarder(); if(!drag) render();
   }
-  flux.addEventListener('put', function(ev){ if(sem.id === id) sem.recu = true; appliquer(ev, false); fluxRecu(); semFlush(); });
+  flux.addEventListener('put', function(ev){ if(sem.id === id) sem.recu = sem.direct = true; appliquer(ev, false); fluxRecu(); semFlush(); });
   flux.addEventListener('patch', function(ev){ appliquer(ev, true); });
   flux.addEventListener('error', function(){ if(sem.es === flux) fluxCoupe(flux); if(sem.id === id && !sem.recu){ sem.recu = true; render(); } });
   flux.addEventListener('auth_revoked', jetonRevoque);
@@ -1441,6 +1445,30 @@ function magConnecter(did){
     mag.prec[did] = v || {}; ls(magCle(did, avant), mag.prec[did]); if(ui.view === 'semaine') render();
   }).catch(function(){});
 }
+// Un produit saisi par le magasin pour la semaine ouverte, absent de la semaine de la ferme : il y entre tout
+// seul (fiche du référentiel, signée « Igor (magasin) »), pour apparaître partout (Répartir, Cumul, Stock, grille).
+// magAjout/<débouché>/<produit> garde l'heure de la saisie qui l'a fait entrer : si la ferme retire le produit,
+// il ne revient qu'avec une nouvelle saisie du magasin.
+function magAuto(){
+  if(!sem.direct || mag.w !== sem.id || !REF || magAuto.en) return;
+  var ch = {};
+  stocks().forEach(function(x){
+    Object.keys(mag.d[x.id] || {}).forEach(function(pid){
+      var m = stockMag(pid, x.id);
+      if(!m || semLire('produits/' + pid) || ch['produits/' + pid]) return;
+      var vu = semLire('magAjout/' + x.id + '/' + pid);
+      if(typeof vu === 'number' && vu >= m.at) return;
+      var pr = (REF.produits || []).filter(function(p){ return pidDe(p.produit) === pid; })[0];
+      if(!pr) return;
+      var f = fiche(pr); f.by = (m.by || '?') + ' (magasin)'; f.at = Date.now();
+      ch['produits/' + pid] = f; ch['magAjout/' + x.id + '/' + pid] = m.at;
+    });
+  });
+  if(!Object.keys(ch).length) return;
+  // Écrit juste après l'affichage en cours (pas d'affichage dans l'affichage).
+  var w = sem.id; magAuto.en = true;
+  setTimeout(function(){ magAuto.en = false; if(sem.id === w) semEcrire(ch); }, 0);
+}
 function magRelancer(tous){
   if(tous){ magFermer(); mag.coupe = {}; }
   if(mag.w && mag.w === sem.id) magSuivre();
@@ -1462,6 +1490,12 @@ function stockAvant(pid, did){ var m = mag.w === sem.id && mag.prec[did] ? mag.p
 function quiQuandDate(o){
   var d = new Date(o.at);
   return (o.by ? o.by + ', ' : '') + d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'numeric'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+}
+// Court, pour les cases du tableau : « Igor (magasin) · 08/11 23:13 ».
+function quiCourt(o){
+  if(!o || !o.at) return '';
+  var d = new Date(o.at);
+  return (o.by ? o.by + ' · ' : '') + d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
 }
 function avantTxt(pid, f, did){ var m = stockAvant(pid, did); return m ? 'Magasin, semaine d\'avant : ' + qTxt(m.n, m.u, f) + ' (' + quiQuandDate(m) + ')' : ''; }
 // Journal du magasin pour la semaine ouverte : chargé à la demande, regroupé par personne.
@@ -2014,6 +2048,7 @@ function renderSemaine(){
     return;
   }
   magSuivre();
+  magAuto();
   var pc = PC.matches;
   // Téléphone : ne pas redessiner pendant une saisie, on le fera en quittant la case.
   // Ordinateur (grille) : on redessine, puis on remet le curseur dans la même case, avec ce qui y était tapé.
@@ -2200,7 +2235,8 @@ function grilleHtml(prods, calc, cr){
       var c = o.c, x = o.s;
       if(x){
         var qs = stockVu(pid, x.id), av = qs ? null : stockAvant(pid, x.id);
-        h += '<td class="g-stk">' + caseHtml(pid, f, 'stock/' + x.id, qs, {aria:'Stock chez ' + x.nom + ', ' + f.nom, ph: av ? '(' + qCourt(av, f) + ')' : '', titre: av ? avantTxt(pid, f, x.id) : ''}) + '</td>'; return;
+        h += '<td class="g-stk">' + caseHtml(pid, f, 'stock/' + x.id, qs, {aria:'Stock chez ' + x.nom + ', ' + f.nom, ph: av ? '(' + qCourt(av, f) + ')' : '', titre: av ? avantTxt(pid, f, x.id) : ''}) +
+          (qs && qs.at ? '<span class="g-qui">' + esc(quiCourt(qs)) + '</span>' : '') + '</td>'; return;
       }
       var tout = r.toutC === c.id;
       h += '<td>' + caseHtml(pid, f, 'q/' + c.id, tout ? null : semLire('q/' + pid + '/' + c.id), {tout:tout, aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom,
@@ -2234,7 +2270,7 @@ function ligneHtml(pid, f, k, nom, q, opts){
       '<input type="text" inputmode="decimal" enterkeyhint="done" value="' + (q ? esc(nb(q.n)) : '') + '" placeholder="' + (opts.ph || '') + '" aria-label="' + esc(opts.aria || '') + '">' +
       '<button type="button" data-a="unite"' + (unites.length < 2 ? ' disabled' : '') + ' aria-label="Changer d\'unité">' + esc(nomUnite(u, f, q ? q.n : 2)) + '</button>' +
       '<button type="button" data-a="plus" aria-label="Plus">+</button></div>';
-    var eq = q ? equiv(q, f) : '', qui = q && opts.qui !== false ? quiQuand(q) : '';
+    var eq = q ? equiv(q, f) : '', qui = q && opts.qui !== false ? (opts.cls === 'stock' && q.at ? quiQuandDate(q) : quiQuand(q)) : '';
     if(eq || qui || opts.note) h += '<div class="sr-eq">' + esc([eq, opts.note, qui].filter(Boolean).join(' · ')) + '</div>';
   }
   if(err) h += '<p class="sr-err" role="alert">' + esc(err) + '</p>';
@@ -2312,7 +2348,7 @@ function tableHtml(prods, calc, cr){
     var r = calc[p.id], f = p.f, d = semLire('dispo/' + p.id);
     h += '<tr data-pid="' + esc(p.id) + '"><td>' + esc(f.nom) + '</td><td>' + (d ? esc(qCourt(d, f)) : '') + '</td>' + cols.map(function(o){
       var c = o.c;
-      if(o.s){ var qs = stockVu(p.id, o.s.id); return '<td class="stk">' + (qs ? esc(qCourt(qs, f)) : '') + '</td>'; }
+      if(o.s){ var qs = stockVu(p.id, o.s.id); return '<td class="stk">' + (qs ? esc(qCourt(qs, f)) + (qs.at ? '<small class="g-qui">' + esc(quiCourt(qs)) + '</small>' : '') : '') + '</td>'; }
       if(r.toutC === c.id) return '<td>tout</td>';
       var q = semLire('q/' + p.id + '/' + c.id); return '<td>' + (q ? esc(qCourt(q, f)) : '') + '</td>';
     }).join('') + '<td class="r-' + r.etat + '">' + (r.reste === null ? (r.etat === 'place' ? '0' : '') : esc(deux(r.reste, f))) + '</td>' + reports.map(function(c){

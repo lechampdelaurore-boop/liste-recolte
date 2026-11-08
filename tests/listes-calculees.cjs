@@ -127,7 +127,7 @@ const NON_COMPAREES = ['celeri-branche', 'persil', 'poireau'];
   await A.click('#videBox [data-a="aller-semaine"]');
   await attendre(A, 300);
   verifie(await visible(A, '#semView') && (await A.getAttribute('[data-sem="repartir"]', 'aria-pressed')) === 'true', '« Remplir la semaine » ouvre l\'onglet Semaine, page Répartir');
-  verifie((await A.textContent('[data-sem="cumul"]')) === 'Cumul' && !(await A.$('[data-sem="tableau"]')) && (await A.textContent('.brand span')) === 'Liste de récolte', 'la page « Tableau » s\'appelle « Cumul » ; le titre de l\'appli reste « Liste de récolte »');
+  verifie((await A.textContent('[data-sem="cumul"]')) === 'Cumul' && !(await A.$('[data-sem="tableau"]')) && (await A.textContent('.brand span')) === 'Cumul', 'la page « Tableau » s\'appelle « Cumul » ; l\'appli s\'appelle « Cumul » (en-tête ; demande de François du 8/11)');
 
   // 2. La liste du 4/11 refaite par l'outil, comparée ligne à ligne au fichier
   const reglages = JSON.parse(JSON.stringify({ source: deb0.source, debouches: deb0.debouches, recoltes: deb0.recoltes, rec: true, by: 'François', at: 1793730000000 }));
