@@ -2,6 +2,8 @@
 
 ## 2026-11-08
 
+- **Stock chez Très Allier, facile à remplir et bien placé** (demande de François : « le module de stock de Très Allier qu'on puisse remplir nous-mêmes […] affiché quelque part dans le tableau, à un endroit intelligent »). Nouvelle page **Stock** dans l'onglet Semaine : tous les produits de la semaine d'un coup, avec ce qui est prévu pour Très Allier à côté, combien sont renseignés et la dernière saisie. Dans la grille, le tableau et les fiches, la case de stock se place juste avant la première livraison de son débouché (et non plus toujours après le disponible). Toujours hors du disponible et du reste. Saisie par le personnel du magasin : non faite ici (étape 13C, après l'étape 5 et le « vas-y » de François). `CACHE` → `recolte-v25`. `tests/debouches.cjs` : 75 vérifications (7 nouvelles).
+
 - **Plan de 13D précisé** (demande de François) : Récolte et Préparation suivent la semaine de l'onglet Semaine avec un menu de récoltes, message « cumul vide », « Tableau » renommé « Cumul », jour de récolte « chaque semaine ». Documentation seulement.
 
 - **Plan de l'étape 13D** (documentation seulement, demande de François) : `docs/PLAN_13D.md`, comment les listes de récolte se remplissent depuis l'onglet Semaine, unités et colis, modifications à la main, « vas-y » et sauvegarde, découpage en trois PR, questions à trancher. Aucun code.
