@@ -62,7 +62,7 @@ Avant le premier essai réel (13D-2) : copie de `listes/` (GET `…/listes.json`
 
 ## Ordre et dépendances
 
-- **Après la refonte de l'interface** (onglets Semaine, Récolte, Préparation, Réglages), qui est codée dans un autre fil : un seul fil de code à la fois (règle 17), et 13D change l'écran Récolte et l'ouverture de la liste, au même endroit que la refonte. 13D-1 peut démarrer dès que la refonte est fusionnée.
+- **La refonte de l'interface est fusionnée (PR #37, 8/11)** : 13D-1 peut donc démarrer dès que vous le décidez. Un seul fil de code à la fois (règle 17) : 13D change l'écran Récolte et l'ouverture de la liste, au même endroit que la refonte.
 - Indépendante de l'étape 5 (connexion) et de 13C (page du magasin).
 - Prépare l'étape 14 (historique) : la liste calculée ne change rien aux données gardées, et la liste figée donnera ce qui a vraiment été récolté.
 

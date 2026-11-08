@@ -2,11 +2,13 @@
 
 ## Où on en est
 
-*Au 6 novembre 2026, soir. Source : lecture du dépôt et demandes de François du 4/11 au 6/11.*
+*Au 8 novembre 2026, soir. Source : lecture du dépôt et demandes de François du 4/11 au 8/11.*
+
+- **Refonte de l'interface (8/11 au soir)**, demande de François : quatre onglets fixes de même taille (en bas sur téléphone, en haut sur ordinateur) dans l'ordre Semaine, Récolte, Préparation, Réglages ; onglet Semaine en trois pages (Répartir, Tableau, À récolter) ; débouchés et jours de récolte dans l'onglet Réglages ; bandeau vert, couleurs selon le reste. Aucune donnée ni aucun calcul changé. **Non vérifié en réel** : l'essai sur les vrais téléphones et l'ordinateur ; l'ordre des onglets est à confirmer par François.
 
 - **Ajouté le 6/11 au soir** : onglet « Semaine » (étape 13A), la grille de répartition de la semaine entre les créneaux de vente : disponible, part de chaque créneau en colis, kilos ou unités, reste (placé, à placer, manque), case « tout », reste Auvabio 03 → 63 calculé et modifiable, tableau. Partagé et hors ligne. Sur ordinateur (au moins 1000 px de large), l'onglet est une grille façon tableur où l'on tape directement (demande de François du 6/11 au soir). Le 8/11, l'unité se choisit dans chaque case (menu sur la grille d'ordinateur, demande de François) et le colis porte le nom de sa caisse (PB, PH, GB, GH). Test `tests/semaine.cjs` : 77 sur 77 (deux téléphones et un ordinateur simulés). Le 8/11 au soir, écran « Débouchés et livraisons » (début de 13B, demande de François : débouchés, colis et jours de livraison réglables, débouchés actuels repris) ; puis les jours de récolte (quelles livraisons on récolte chaque jour, cadre « À récolter, jour par jour ») ; puis la case « Stock chez Très Allier » (fin de 13B) ; test `tests/debouches.cjs` : 67 sur 67. **Non vérifié en réel** : l'onglet sur les vrais téléphones et sur un vrai ordinateur (essai à faire par François). 13B est fini ; 13C attend l'étape 5 et le « vas-y » de François, 13D est à reparler avec lui avant de commencer.
 
-- **Plan de 13D écrit le 8/11** (sans code) : `docs/PLAN_13D.md`. Une liste de récolte naît d'un jour de récolte de l'onglet Semaine, calculée en direct. Six questions restent à trancher par François ; le code attend la refonte de l'interface.
+- **Plan de 13D écrit le 8/11** (sans code) : `docs/PLAN_13D.md`. Une liste de récolte naît d'un jour de récolte de l'onglet Semaine, calculée en direct. Les six questions sont tranchées (8/11) ; la refonte de l'interface est fusionnée ; le code de 13D n'est pas lancé.
 
 - **Licence (8/11)** : PolyForm Noncommercial 1.0.0 (fichier `LICENSE`), usage commercial interdit ; avant, aucune licence. Prend effet à la fusion de la PR. `outils-de-la-ferme` : pas encore de licence, à décider par François.
 
@@ -26,7 +28,7 @@
 - **Onglet Détail** : caché « pour l'instant » le 4/11 au soir (étape 20), remplacé par la flèche de répartition. Le retirer pour de bon ou le remettre reste à décider plus tard.
 - **Prévu** : base de données des produits et de leurs colisages, modifiable par l'utilisateur sans code (étape 19).
 - **Ajouté le 5/11** : mode hors ligne (étape 21). La dernière liste et ses coches sont gardées sur le téléphone ; les coches faites sans réseau attendent et partent seules au retour du réseau ; « la dernière action gagne » (heure du téléphone) ; pastille « Hors ligne · N coches en attente ». Nouveau nœud `maj` dans la base (heure de chaque action), voir `docs/base-partagee.md`.
-- **Vérifié** : le test `tests/deux-telephones.cjs` passe (85 vérifications sur 85) et `tests/semaine.cjs` aussi (77 sur 77), et `tests/debouches.cjs` (67 sur 67), lancés le 8/11/2026, coupures du réseau simulées comprises.
+- **Vérifié** : le test `tests/deux-telephones.cjs` passe (85 vérifications sur 85) et `tests/semaine.cjs` aussi (84 sur 84), et `tests/debouches.cjs` (68 sur 68), lancés le 8/11/2026 au soir après la refonte, coupures du réseau simulées comprises.
 - **Retiré le 6/11** : les messages de félicitations (« Tout est récolté. Bravo. », « Toutes les commandes sont prêtes. Bravo. », « Tout est récolté. » dans la barre, « Tout est préparé · » en Préparation), à la demande de François.
 - **Premier retour réel** : le 6/11/2026 au soir, François écrit que le mode hors ligne « semble bien fonctionner ». Le détail de l'essai n'est pas connu (nombre de téléphones, conflit entre deux téléphones essayé ou non) : la règle « la dernière action gagne » reste non vérifiée en réel.
 - **Reçu le 6/11** : l'ancien tableau de cumul et la fiche des prix de François, décrits dans `docs/tableau-cumul.md` (calculs devinés, doublons, erreurs sur les tomates). Pas encore de code. Le calcul des prix est exclu de l'outil (décision du 6/11).
@@ -42,9 +44,9 @@
 - Référentiel `referentiel/conditionnements.json` : 74 produits, type de caisse et contenu d'un colis ; colisages par circuit (colis bois).
 - Base partagée Firebase Realtime Database (europe-west1), appelée par l'API REST sans SDK ; adresse dans `config.js`. Règles : lecture et écriture ouvertes sous `listes`. Détails : `docs/base-partagee.md`.
 - Barre de progression : lit le champ `kg` des lignes (kilos d'un côté, bottes, bouquets, pièces de l'autre).
-- Hors ligne : `sw.js` (page, référentiel et débouchés en cache), `CACHE` à `recolte-v23` ; liste, coches et actions en attente gardées dans le téléphone (`localStorage`).
+- Hors ligne : `sw.js` (page, référentiel et débouchés en cache), `CACHE` à `recolte-v24` ; liste, coches et actions en attente gardées dans le téléphone (`localStorage`).
 - Préparation de commandes : onglet « Préparation » ; coches dans la base sous `prep/<circuit>/<produit>` et `prepClient/<circuit>`.
-- Répartition de la semaine : onglet « Semaine » ; débouchés de départ dans `referentiel/debouches.json`, puis réglés dans l'appli (base : `listes/reglages/debouches`) ; données dans la base sous `listes/semaines/<lundi>` (voir `docs/base-partagee.md`).
+- Répartition de la semaine : onglet « Semaine » ; débouchés de départ dans `referentiel/debouches.json`, puis réglés dans l'appli, onglet « Réglages » (base : `listes/reglages/debouches`) ; données dans la base sous `listes/semaines/<lundi>` (voir `docs/base-partagee.md`).
 - Hébergement : Cloudflare Pages, relié à `main`.
 
 ## Écarts relevés entre le prompt de reprise et le dépôt
