@@ -15,9 +15,10 @@ Aujourd'hui, une liste de récolte est un fichier écrit à la main et envoyé p
 
 ## Comment une liste naît d'un jour de récolte
 
-1. Une liste = **un jour de récolte d'une semaine**. Son identifiant est la date réelle de ce jour (lundi 9 novembre = `2026-11-09`), comme aujourd'hui : les coches et l'ordre restent donc dans `listes/2026-11-09`, au même endroit et de la même façon qu'aujourd'hui.
-2. L'appli **calcule la liste en direct** à partir de la semaine : pour chaque produit où au moins une livraison de ce jour a une quantité, une ligne.
-3. Chaque livraison récoltée ce jour-là devient un « circuit » de la liste (c'est ce que font déjà les débouchés : leur identifiant sert de circuit). Une livraison d'un autre jour n'y figure pas.
+0. **Comment François s'en sert (précision du 8/11)** : dans l'onglet Semaine, il **ajoute un jour de récolte** (par exemple le lundi 9 novembre). L'appli lui montre alors **toutes les livraisons de la semaine** et il coche celles qu'il récolte ce jour-là. La liste de récolte se remplit toute seule. Logique habituelle : le lundi, les livraisons du mardi ; le mercredi, celles du mercredi, du jeudi et du vendredi. Les jours de récolte « habituels » déjà réglés (lundi, mercredi) servent seulement de **proposition de départ** déjà cochée, que François change à volonté pour cette semaine (question 6).
+1. Une liste = **un jour de récolte d'une semaine**. Son identifiant est la date réelle de ce jour (lundi 9 novembre = `2026-11-09`), comme aujourd'hui : les coches et l'ordre restent donc dans `listes/2026-11-09`, au même endroit et de la même façon qu'aujourd'hui. Les jours de récolte de la semaine sont gardés avec elle, dans `listes/semaines/<lundi>` (nouveau nœud, aucune donnée existante touchée).
+2. L'appli **calcule la liste en direct** à partir de la semaine et des livraisons cochées : pour chaque produit où au moins une de ces livraisons a une quantité, une ligne. Une livraison cochée un jour ne l'est pas un autre jour de la même semaine (elle se déplace).
+3. Chaque livraison cochée pour ce jour devient un « circuit » de la liste (c'est ce que font déjà les débouchés : leur identifiant sert de circuit). Une livraison d'un autre jour n'y figure pas.
 4. Le produit, la caisse (PB, PH, GB, GH) et le contenu d'un colis viennent de la fiche du produit copiée dans la semaine. Rien n'est inventé : un produit sans fiche n'entre pas dans la liste et l'appli le signale.
 5. Le **total** et les **kilos** de chaque ligne, écrits à la main aujourd'hui, sont **calculés par l'appli**. Test de confiance : refaire avec l'outil la liste du 4/11 et comparer ligne à ligne avec le fichier existant.
 6. Pas de lieu (zone, emplacement) : masqué depuis le 4/11, rien à calculer. Les zones reviendront avec l'étape 9 (Ouvre ta ferme).
@@ -44,7 +45,7 @@ Aujourd'hui, une liste de récolte est un fichier écrit à la main et envoyé p
 
 | PR | Contenu | Touche les vraies données ? |
 |---|---|---|
-| 13D-1 | **Aperçu seul** : dans l'onglet Semaine, bouton « Voir la liste de ce jour », la liste calculée s'affiche en lecture seule. Test qui refait la liste du 4/11 et la compare au fichier. | Non (lecture seule) |
+| 13D-1 | **Aperçu seul** : dans l'onglet Semaine, « Ajouter un jour de récolte » (date + livraisons à cocher) et bouton « Voir la liste de ce jour », la liste calculée s'affiche en lecture seule. Test qui refait la liste du 4/11 et la compare au fichier. | Non (lecture seule) |
 | 13D-2 | La liste calculée s'ouvre dans l'onglet Récolte, avec coches et ordre (même base qu'aujourd'hui). Réglage pour l'activer ; sans lui, tout se passe comme avant. | **Oui : « vas-y » exprès** avant d'activer sur les vrais téléphones |
 | 13D-3 | Choix du jour dans l'appli (fin de `listes/actuelle.json` fait à la main), registres, mode d'emploi. | **Oui : « vas-y » exprès** (change ce que les téléphones ouvrent) |
 
@@ -76,5 +77,9 @@ Lecture de la roadmap : 13D = **Opus 5.5 · Élevé (proposé)**, « à reparler
 3. **Peut-on corriger une quantité sur la liste elle-même ?** Recommandation : non au début (on corrige dans Semaine) ; une note libre par ligne pourra venir après.
 4. **Auvabio 03 et 63, Panier La Magic, Ferme Deschamps dans la liste.** Recommandation : Auvabio 03 et 63 réunis en un seul circuit « Auvabio » (une même récolte, le mercredi) ; Panier La Magic rattaché au lundi comme aujourd'hui ; Ferme Deschamps seulement si François l'ajoute dans « Débouchés et livraisons ».
 5. **Quelle liste s'ouvre sur le téléphone ?** Recommandation : celle du prochain jour de récolte, avec un sélecteur de jour ; `actuelle.json` ne servirait plus qu'aux anciennes listes.
+
+6. **Jours de récolte : créés chaque semaine, ou réglés une fois pour toutes ?** Recommandation (d'après votre message du 8/11) : on ajoute le jour semaine par semaine et l'on coche les livraisons ; les jours habituels (lundi = mardi ; mercredi = mercredi, jeudi, vendredi) sont proposés déjà cochés, modifiables. Aujourd'hui l'appli ne connaît que des jours réglés une fois pour toutes (PR #33) : 13D-1 ajoute la version « par semaine ».
+
+*Le total des questions passe de 5 à 6 (ajout du 8/11).*
 
 *Avancement des questions : voir le fil de la conversation.*
