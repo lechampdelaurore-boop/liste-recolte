@@ -4,7 +4,9 @@
 
 *Au 8 novembre 2026, soir. Source : lecture du dépôt et demandes de François du 4/11 au 8/11.*
 
-- **Une couleur par débouché (8/11, 23 h)**, demande de François : couleur choisie dans Réglages → Débouchés (palette de 10 couleurs foncées), et dans Semaine → Répartir le titre, le chiffre et l'unité de chaque débouché dans sa couleur (grille de l'ordinateur, fiches du téléphone, page Cumul). Couleurs de départ différentes pour les 7 débouchés. Vérifié : `tests/couleurs.cjs` (24 sur 24), les six autres tests verts. **Non vérifié en réel** : la lisibilité au soleil sur les vrais téléphones. **Suite demandée par François** : filtre par jour de récolte et impression du tableau Répartir (PR à part).
+- **Filtre par jour de récolte et impression (8/11, 23 h 45)**, demande de François : en haut de Répartir et Cumul, une case par jour de récolte (toutes cochées au départ) ; décocher un jour masque ses colonnes, le reste compte toujours tout ; bouton « Imprimer » (A4 paysage, tableau tel que filtré, couleurs gardées). Vérifié : `tests/filtre.cjs` (25 sur 25, PDF compris), les sept autres tests verts. **Non vérifié en réel** : une vraie imprimante, l'impression depuis un vrai téléphone.
+
+- **Une couleur par débouché (8/11, 23 h)**, demande de François : couleur choisie dans Réglages → Débouchés (palette de 10 couleurs foncées), et dans Semaine → Répartir le titre, le chiffre et l'unité de chaque débouché dans sa couleur (grille de l'ordinateur, fiches du téléphone, page Cumul). Couleurs de départ différentes pour les 7 débouchés. Vérifié : `tests/couleurs.cjs` (24 sur 24), les six autres tests verts. **Non vérifié en réel** : la lisibilité au soleil sur les vrais téléphones. Filtre et impression : voir plus haut.
 
 - **Grille « Répartir » sans ascenseur (8/11, 22 h)**, demande de François : sur ordinateur, tous les produits s'affichent d'un coup, la page entière défile, les titres des débouchés restent collés en haut. Vérifié : `tests/semaine.cjs` (88 sur 88, dont la grille plus haute que l'écran, les titres collés et une fenêtre de 1020 px), les cinq autres tests verts. **Non vérifié en réel** : le vrai ordinateur de François.
 
@@ -57,7 +59,7 @@
 - Référentiel `referentiel/conditionnements.json` : 74 produits, type de caisse et contenu d'un colis ; colisages par circuit (colis bois).
 - Base partagée Firebase Realtime Database (europe-west1), appelée par l'API REST sans SDK ; adresse dans `config.js`. Règles : base fermée par des comptes depuis le 8/11 à 20 h 55 (`docs/regles-base/fermees-sans-magasin.json` en place ; `fermees.json`, qui ajoute le magasin, à publier par François). Connexion par compte (clé web dans `cle-web.js`). Détails : `docs/base-partagee.md`.
 - Barre de progression : lit le champ `kg` des lignes (kilos d'un côté, bottes, bouquets, pièces de l'autre).
-- Hors ligne : `sw.js` (page, référentiel et débouchés en cache), `CACHE` à `recolte-v33` ; liste, coches et actions en attente gardées dans le téléphone (`localStorage`).
+- Hors ligne : `sw.js` (page, référentiel et débouchés en cache), `CACHE` à `recolte-v34` ; liste, coches et actions en attente gardées dans le téléphone (`localStorage`).
 - Préparation de commandes : onglet « Préparation » ; coches dans la base sous `prep/<circuit>/<produit>` et `prepClient/<circuit>`.
 - Répartition de la semaine : onglet « Semaine » ; débouchés de départ dans `referentiel/debouches.json`, puis réglés dans l'appli, onglet « Réglages » (base : `listes/reglages/debouches`) ; données dans la base sous `listes/semaines/<lundi>` (voir `docs/base-partagee.md`).
 - Page du magasin : `magasin.html` (étape 13C), stock sous `magasins/<débouché>/` dans la base.
