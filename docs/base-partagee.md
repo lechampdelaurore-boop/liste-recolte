@@ -60,7 +60,7 @@ Pour la liste de récolte, seuls l'ordre, les coches et (depuis l'étape 13D) la
 
 ## Règles de sécurité
 
-Aujourd'hui (tant que François n'a pas fini le pas-à-pas de l'étape 5) : `docs/regles-base/ouvertes.json`.
+Jusqu'au 8/11/2026 à 20 h 55 (anciennes règles, gardées pour revenir en arrière) : `docs/regles-base/ouvertes.json`.
 
 ```json
 { "rules": { "listes": { ".read": true, ".write": true } } }
@@ -68,7 +68,7 @@ Aujourd'hui (tant que François n'a pas fini le pas-à-pas de l'étape 5) : `doc
 
 Lecture et écriture libres sous `listes/`, rien ailleurs. Pas de mot de passe : l'adresse de la base est dans `config.js`, donc publique.
 
-Après l'étape 5 : `docs/regles-base/fermees.json`. Seul un compte connecté **avec le profil « ferme »** (`profils/<uid>` = `"ferme"`) lit et écrit `listes/` ; personne ne lit ni n'écrit `profils/` ni rien d'autre, sauf la console. Le profil est indispensable : avec la clé web (publique), n'importe qui pourrait se créer un compte, et `auth != null` seul le laisserait entrer. Les règles sont essayées sur l'émulateur officiel par `tests/regles.cjs`. Pas-à-pas pour les poser, avec le retour arrière : `docs/PAS_A_PAS_SECURITE.md`. Le compte du magasin (étape 13C) ajoutera un profil « magasin » qui n'ouvrira que son stock.
+**En place depuis le 8/11/2026 à 20 h 55** (étape 5) : `docs/regles-base/fermees.json`. Seul un compte connecté **avec le profil « ferme »** (`profils/<uid>` = `"ferme"`) lit et écrit `listes/` ; personne ne lit ni n'écrit `profils/` ni rien d'autre, sauf la console. Le profil est indispensable : avec la clé web (publique), n'importe qui pourrait se créer un compte, et `auth != null` seul le laisserait entrer. Les règles sont essayées sur l'émulateur officiel par `tests/regles.cjs`. Pas-à-pas pour les poser, avec le retour arrière : `docs/PAS_A_PAS_SECURITE.md`. Le compte du magasin (étape 13C) ajoutera un profil « magasin » qui n'ouvrira que son stock.
 
 ## Vider une semaine
 

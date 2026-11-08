@@ -2,6 +2,8 @@
 
 *Écrit le 8/11/2026 avec le code de l'étape 5. À faire par François lui-même, dans l'ordre, sur l'ordinateur. Claude ne voit jamais ni les mots de passe, ni la clé web, ni la sauvegarde.*
 
+**Fait le 8/11/2026 au soir** (base fermée à 20 h 55). Ce qui a été appris sur la vraie console est noté ci-dessous ; à reprendre tel quel pour une autre ferme ou pour recréer un compte.
+
 ## En deux phrases
 
 Aujourd'hui, toute personne qui connaît l'adresse de la base peut lire et modifier les listes. Après ces huit actions, seuls les comptes que vous créez, avec le profil « ferme », y ont accès ; un téléphone se connecte une seule fois.
@@ -26,7 +28,7 @@ Aujourd'hui, toute personne qui connaît l'adresse de la base peut lire et modif
 1. Menu de gauche : **Authentication** (sous « Créer » ou « Build »). S'il y a un bouton **Commencer**, cliquer dessus.
 2. Onglet **Sign-in method** (ou **Mode de connexion**).
 3. Choisir **Adresse e-mail/Mot de passe**, cocher **Activer** (la première case seulement, pas « Lien envoyé par e-mail »), puis **Enregistrer**.
-4. Si la page **Paramètres** de l'onglet propose « Autoriser la création de comptes » (*Enable create (sign-up)*), la décocher : ainsi, personne ne peut se créer de compte seul. Si la case n'existe pas, ce n'est pas grave : un compte créé par quelqu'un d'autre n'a pas le profil « ferme » et la base le refuse (vérifié sur l'émulateur de Firebase).
+4. Si la page **Paramètres** de l'onglet propose « Autoriser la création de comptes » (*Enable create (sign-up)*), la décocher : ainsi, personne ne peut se créer de compte seul. Sur la vraie console (8/11), on a décoché la création **et la suppression** de compte par l'utilisateur. Si la case n'existe pas, ce n'est pas grave : un compte créé par quelqu'un d'autre n'a pas le profil « ferme » et la base le refuse (vérifié sur l'émulateur de Firebase).
 
 ## Action 3 : créer les comptes
 
@@ -35,7 +37,7 @@ Aujourd'hui, toute personne qui connaît l'adresse de la base peut lire et modif
 3. Recommencer pour `aurore@ferme.invalid`, avec un autre mot de passe.
 4. Noter les mots de passe à l'abri (carnet, gestionnaire de mots de passe). Ne jamais les écrire à Claude.
 
-*Non vérifié dans la vraie console* : qu'elle accepte la fin `@ferme.invalid` (l'émulateur officiel de Firebase l'accepte). Si elle la refuse, prendre `francois@example.com` (nom réservé lui aussi) et, sur le téléphone, taper l'identifiant en entier.
+*Vérifié le 8/11* : la vraie console accepte la fin `@ferme.invalid`.
 
 ## Action 4 : donner le profil « ferme » à chaque compte
 
@@ -55,7 +57,7 @@ Ne rien toucher d'autre dans les données (surtout pas `listes`).
 
 La clé web n'est pas un mot de passe (elle est faite pour être publique), mais la règle du projet est que Claude ne la voit ni ne l'écrit.
 
-1. Console Firebase : roue dentée **⚙** en haut à gauche, **Paramètres du projet**, onglet **Général**. Copier la **Clé API Web** (elle apparaît une fois l'action 2 faite).
+1. Console Firebase : roue dentée **⚙** en haut à gauche, **Paramètres du projet**, onglet **Général**. Copier la **Clé API Web**. *Vu le 8/11* : si la ligne n'apparaît pas, c'est que le projet n'a pas encore d'**application Web** : en bas de la même page, « Vos applications », bouton **</>** (Web), un nom (par exemple « liste-recolte »), sans cocher Firebase Hosting, **Enregistrer l'application** ; la clé apparaît alors (`apiKey`).
 2. Sur GitHub, ouvrir le dépôt `liste-recolte`, le fichier `cle-web.js`, puis le crayon (**Edit this file**).
 3. Dans la dernière ligne, coller la clé **entre les deux apostrophes** : `window.RECOLTE_CLE_WEB = 'la-clé-ici';`. Ne rien changer d'autre.
 4. Bouton **Commit changes…**, choisir **Create a new branch for this commit and start a pull request**, puis **Propose changes** et **Create pull request**.
@@ -76,7 +78,7 @@ La connexion reste sur le téléphone, même sans réseau. On ne la refait qu'ap
 
 1. Console Firebase, **Realtime Database**, onglet **Règles**.
 2. Avant de changer : sélectionner tout le texte actuel et le copier dans un fichier sur l'ordinateur (c'est le retour arrière ; il doit ressembler aux « anciennes règles » plus bas).
-3. Effacer tout le texte et coller exactement les **nouvelles règles** ci-dessous, puis **Publier**.
+3. Effacer tout le texte et coller exactement les **nouvelles règles** ci-dessous, puis **Publier**. *Vu le 8/11* : si la console affiche « Parse error » en ligne 1, c'est que l'ancien texte est resté au-dessus du collage ; l'effacer pour qu'il ne reste que les nouvelles règles, puis publier.
 
 Nouvelles règles (`docs/regles-base/fermees.json`) :
 
@@ -116,4 +118,4 @@ En cas de souci : recoller les anciennes règles (action 7), publier, et préven
 
 - Les règles ont été essayées sur l'**émulateur officiel de Firebase** (copie locale de Firebase, sans la vraie base) : syntaxe acceptée ; sans compte, tout est refusé (lecture, écriture, flux en direct, racine) ; un compte sans profil est refusé et ne peut pas se donner le profil ; un compte « ferme » lit et écrit les listes, les semaines et les débouchés, mais ne peut pas toucher aux profils ; l'appli s'y connecte, coche et partage. Test `tests/regles.cjs`.
 - L'appli a été essayée avec deux téléphones simulés : connexion une seule fois, jeton renouvelé tout seul toutes les heures, mode hors ligne gardé, compte refusé, déconnexion. Test `tests/connexion.cjs`.
-- **Non vérifié** : la vraie console Firebase (libellés exacts, `@ferme.invalid` accepté), les vrais téléphones.
+- **Vérifié le 8/11 en réel** : la vraie console (libellés ci-dessus, `@ferme.invalid` accepté) ; après publication, sans compte, la base répond « Permission denied » ; l'appli connectée dit « Partagé ». Correction faite en route (PR #44) : la pastille restait sur « Connexion… » quand l'appli s'ouvrait sur l'onglet Semaine.
