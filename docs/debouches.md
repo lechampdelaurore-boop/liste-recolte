@@ -17,6 +17,8 @@ Source : message de François du 6/11/2026 (dicté à la voix ; les noms ci-dess
 
 ## Ce que François demande à l'outil
 
+**Fait le 08/11/2026** (étape 13B) : écran « Débouchés et livraisons » de l'onglet Semaine (voir `README.md`). Le tableau ci-dessus est repris dans `referentiel/debouches.json` comme point de départ ; ensuite la référence est la fiche gardée dans la base.
+
 **Les débouchés ne doivent pas être figés dans le code.** Une option pour **ajouter et supprimer des débouchés**. Dans la **fiche de création d'un débouché** : le **colisage** (type : **plastique** ou **bois**) et les **jours de livraison**. **Chaque débouché doit avoir un jour de livraison** (champ obligatoire de la fiche, demande de François du 6/11). Cela concorde avec la règle « ne jamais réduire un outil à une seule ferme » et avec l'étape 19 (base de données des produits modifiable).
 
 ## À préciser plus tard (pas encore demandé à François)
