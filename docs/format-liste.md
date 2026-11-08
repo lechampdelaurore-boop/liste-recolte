@@ -1,5 +1,7 @@
 # Format d'une liste de récolte
 
+> **Depuis l'étape 13D (08/11/2026), les listes ne s'écrivent plus à la main** : la liste de chaque jour de récolte est calculée par l'appli depuis l'onglet Semaine (voir `README.md`, « La liste de récolte de chaque jour »), avec les mêmes champs que ci-dessous. Ce format reste celui des listes faites avant 13D (`listes/2026-11-04.json`), qui l'emportent pour leur date et s'ouvrent aussi par `?liste=AAAA-MM-JJ` ; `listes/actuelle.json` ne sert plus à l'appli.
+
 Un fichier par jour de récolte : `listes/AAAA-MM-JJ.json`. `listes/actuelle.json` désigne celle qui s'ouvre : `{"liste": "2026-11-04"}`.
 
 ## Exemple commenté

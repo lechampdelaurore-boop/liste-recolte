@@ -2,6 +2,8 @@
 
 *Préparation sur le papier, 8 novembre 2026. Aucun code. Source : lecture du dépôt (état du 8/11, après les PR #31 à #34). Demande de François : « Oui, vas-y. La préparation de 13D. »*
 
+> **Fait le 8/11 au soir**, en une seule PR au lieu des trois prévues plus bas (le « vas-y » de François couvre l'essai réel et la liste ouverte par défaut ; essai prévu le 9/11 au matin). Ce qui a été fait et les choix de Claude : `docs/DECISIONS.md` (8/11, « Étape 13D, code ») et `README.md` (« La liste de récolte de chaque jour »). Pas de réglage d'activation : le retour arrière, c'est annuler la PR.
+
 ## Le but en une phrase
 
 Aujourd'hui, une liste de récolte est un fichier écrit à la main et envoyé par une PR (seule celle du 4/11 existe). Demain, François choisit un **jour de récolte** dans l'onglet Semaine, et la liste de ce jour apparaît dans l'onglet Récolte, sans fichier ni PR.
