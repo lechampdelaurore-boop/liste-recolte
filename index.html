@@ -225,6 +225,8 @@ body.sem-pc .sem-add{justify-self:start;padding:12px 26px}
 .g-in.err{outline:3px solid #b00000;outline-offset:-3px;background:var(--warn-bg)}
 .g-in.auto{font-style:italic;font-weight:600}
 .g-in.tout{text-align:center}
+.g-u{display:block;width:100%;border:0;border-top:1px solid var(--line);border-radius:0;padding:2px 4px;font-size:.8rem;font-weight:700;background:var(--surface2);text-align:right;cursor:pointer}
+.g-u:disabled{cursor:default;opacity:1;color:var(--fg)}
 #semGrid td.g-dispo{background:var(--surface2)}
 #semGrid td.g-reste{padding:6px 9px;font-weight:900;min-width:11em;line-height:1.2;font-size:.9rem}
 #semGrid td.g-reste.place{background:var(--accent);color:#fff}
@@ -325,7 +327,7 @@ dialog.big{max-width:min(460px,94vw);width:100%}
     <div id="semVide" hidden></div>
     <div class="sem-list" id="semList"></div>
     <div id="semPc" hidden>
-      <p class="hint">Taper dans une case : « 3 » (colis), « 12 kg », « 36 bottes » ou « tout ». <b>Entrée</b> ou flèche du bas : case du dessous ; <b>Tab</b> : case de droite ; <b>Échap</b> : annuler la saisie ; case vidée : effacée.</p>
+      <p class="hint">Taper un nombre dans une case : il est compté dans l'unité choisie sous la case (la caisse du produit, PB, PH, GB ou GH, ou kg, ou bottes…). On peut aussi taper « 10 PB », « 12 kg », « 36 bottes » ou « tout ». <b>Entrée</b> ou flèche du bas : case du dessous ; <b>Tab</b> : case de droite ; <b>Échap</b> : annuler la saisie ; case vidée : effacée.</p>
       <div id="semErrs"></div>
       <div class="g-wrap" id="semGridWrap"><table id="semGrid"></table></div>
     </div>
@@ -333,7 +335,7 @@ dialog.big{max-width:min(460px,94vw);width:100%}
       <summary><span>Tableau de la semaine</span><span class="chev">›</span></summary>
       <div class="sem-scroll"><table id="semTable"></table></div>
     </details>
-    <p class="hint">Reste = disponible − tout ce qui est réparti. <b>Placé</b> : le reste est à zéro. <b>À placer</b> : il reste à vendre. <b>Manque</b> : on a promis plus qu'on n'a. Une case accepte des colis (« 3 »), des kilos (« 12 kg ») ou des unités (« 36 bottes »).</p>
+    <p class="hint">Reste = disponible − tout ce qui est réparti. <b>Placé</b> : le reste est à zéro. <b>À placer</b> : il reste à vendre. <b>Manque</b> : on a promis plus qu'on n'a. Une case se remplit dans l'unité choisie sous elle (sur ordinateur) ou à côté d'elle (sur téléphone) : la caisse du produit (« 3 » ou « 3 PB »), des kilos (« 12 kg ») ou des unités (« 36 bottes »).</p>
   </div>
 
   <footer>
@@ -1055,8 +1057,10 @@ function creneaux(){ var c = semLire('creneaux'); return c ? tableau(c) : ((CREN
 function pidDe(nom){ return nom.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
 function contenu(f){ return f.kg ? {u:'kg', n:+f.kg} : (f.par_colis ? {u:'u', n:+f.par_colis} : null); }
 function unitesDe(f){ var c = contenu(f); return c ? ['colis', c.u] : ['colis']; }
+// Le colis d'un produit porte le nom de sa caisse (PB, PH, GB, GH) : « 10 PB » = 10 petites basses.
+var NOMS_CAISSES = {PB:'petite basse', PH:'petite haute', GB:'grande basse', GH:'grande haute'};
 function nomUnite(u, f, n){
-  if(u === 'colis') return 'colis';
+  if(u === 'colis') return f.caisse || 'colis';
   if(u === 'kg') return 'kg';
   var t = (f.type || 'unité');
   return Math.abs(n) >= 2 ? t + 's' : t;
@@ -1076,25 +1080,33 @@ function nb(x){
 function qTxt(n, u, f){ return nb(n) + ' ' + nomUnite(u, f, n); }
 // « 2,5 colis (12,5 kg) » : le reste et les équivalences s'affichent dans les deux unités.
 function deux(x, f){
-  var c = contenu(f), t = nb(x) + ' colis';
+  var c = contenu(f), t = nb(x) + ' ' + nomUnite('colis', f);
   return c ? t + ' (' + qTxt(deColis(x, c.u, f), c.u, f) + ')' : t;
 }
 function equiv(q, f){
   var x = enColis(q, f); if(isNaN(x)) return '';
   if(q.u === 'colis'){ var c = contenu(f); return c ? '= ' + qTxt(deColis(x, c.u, f), c.u, f) : ''; }
-  return '= ' + nb(x) + ' colis';
+  return '= ' + nb(x) + ' ' + nomUnite('colis', f);
 }
 function sansAccent(s){ return s.normalize('NFD').replace(/[̀-ͯ]/g, ''); }
-// Texte tapé : « 3 » (dans l'unité de la case), « 3 colis », « 12 kg », « 500 g », « 36 bottes ».
+// Texte tapé : « 3 » (dans l'unité de la case), « 3 colis », « 3 PB » ou « 3 petites basses » (la caisse
+// du produit), « 12 kg », « 500 g », « 36 bottes ».
 function lireSaisie(txt, f, defU){
   var t = sansAccent(String(txt).trim().toLowerCase()).replace(',', '.');
   if(!t) return {vide:true};
   if(t === 'tout') return {tout:true};
-  var m = /^(\d+(?:\.\d+)?|\.\d+)\s*([a-z.]*)$/.exec(t);
+  var m = /^(\d+(?:\.\d+)?|\.\d+)\s*([a-z. ]*)$/.exec(t);
   if(!m) return {err:'Écrire un nombre, par exemple 3, 12 kg ou 36 bottes.'};
-  var n = parseFloat(m[1]), w = m[2].replace(/\.$/, ''), u, c = contenu(f);
+  var n = parseFloat(m[1]), w = m[2].trim().replace(/\.$/, ''), u, c = contenu(f);
+  var caisse = Object.keys(NOMS_CAISSES).filter(function(k){
+    return w === k.toLowerCase() || w.replace(/s(?= |$)/g, '') === NOMS_CAISSES[k];
+  })[0];
   if(!w) u = defU;
-  else if(/^c(olis)?$/.test(w)) u = 'colis';
+  else if(/^(c|colis|caisses?)$/.test(w)) u = 'colis';
+  else if(caisse){
+    if(f.caisse && caisse !== f.caisse) return {err:f.nom + ' part en ' + f.caisse + ' (' + NOMS_CAISSES[f.caisse] + '), pas en ' + caisse + '.'};
+    u = 'colis';
+  }
   else if(/^(kg|kgs|kilos?)$/.test(w)) u = 'kg';
   else if(/^(g|gr|grammes?)$/.test(w)){ u = 'kg'; n = n / 1000; }
   else if(/^(u|unites?)$/.test(w) || (f.type && w.length >= 3 && sansAccent(f.type).indexOf(w.replace(/s$/, '').slice(0, 5)) === 0)) u = 'u';
@@ -1102,7 +1114,7 @@ function lireSaisie(txt, f, defU){
   if(u !== 'colis' && (!c || c.u !== u)) return {err:aideUnites(f)};
   return {n:Math.round(n * 1000) / 1000, u:u};
 }
-function aideUnites(f){ var c = contenu(f); return 'Ce produit se compte en colis' + (c ? ' ou en ' + nomUnite(c.u, f, 2) : '') + '.'; }
+function aideUnites(f){ var c = contenu(f); return 'Ce produit se compte en ' + (f.caisse ? f.caisse + ' (' + NOMS_CAISSES[f.caisse] + ')' : 'colis') + (c ? ' ou en ' + nomUnite(c.u, f, 2) : '') + '.'; }
 function pas(u){ return u === 'colis' ? 0.5 : 1; }
 
 // Calcul d'une ligne : reste = disponible − tout ce qui est réparti. « tout » prend ce qui reste.
@@ -1219,12 +1231,17 @@ function renderSemaine(){
 }
 
 /* Grille de l'ordinateur : une ligne par produit, une case à taper par créneau. */
+// Chaque case a son menu d'unité (la caisse du produit, ou kg, ou bottes…) ; le nombre tapé est dans cette unité.
 function caseHtml(pid, f, k, q, opts){
   opts = opts || {};
-  var cle = pid + '|' + k, val = opts.tout ? 'tout' : (q ? qCourt(q, f) : '');
-  var titre = opts.titre || (q ? [equiv(q, f), quiQuand(q)].filter(Boolean).join(' · ') : '');
+  var cle = pid + '|' + k, u = q ? (q.u || 'colis') : (semUnite[cle] || uniteParDefaut(pid, f));
+  var val = opts.tout ? 'tout' : (q ? nb(q.n) : '');
+  var titre = opts.titre || (q ? [qTxt(q.n, u, f), equiv(q, f), quiQuand(q)].filter(Boolean).join(' · ') : '');
+  var us = unitesDe(f);
   return '<input type="text" class="g-in' + (semErr[cle] ? ' err' : '') + (opts.auto ? ' auto' : '') + (opts.tout ? ' tout' : '') + '" data-cell="' + esc(cle) + '" data-pid="' + esc(pid) + '" data-k="' + esc(k) + '"' +
-    ' value="' + esc(val) + '" title="' + esc(titre) + '" aria-label="' + esc(opts.aria || '') + '" autocomplete="off" spellcheck="false">';
+    ' value="' + esc(val) + '" title="' + esc(titre) + '" aria-label="' + esc(opts.aria || '') + '" autocomplete="off" spellcheck="false">' +
+    (opts.tout ? '' : '<select class="g-u" data-a="unite-g" data-cell="' + esc(cle) + '" data-pid="' + esc(pid) + '" data-k="' + esc(k) + '" tabindex="-1"' + (us.length < 2 ? ' disabled' : '') +
+      ' aria-label="' + esc('Unité, ' + (opts.aria || '')) + '">' + us.map(function(x){ return '<option value="' + x + '"' + (x === u ? ' selected' : '') + '>' + esc(nomUnite(x, f, 2)) + '</option>'; }).join('') + '</select>');
 }
 function grilleHtml(prods, calc, cr){
   var reports = cr.filter(function(c){ return c.reprend; });
@@ -1247,7 +1264,7 @@ function grilleHtml(prods, calc, cr){
     reports.forEach(function(c){
       var prop = propose(pid, c), man = semLire('report/' + pid + '/' + c.id), auto = reportAuto(pid, f, c, r), avant = cr.filter(function(x){ return x.id === c.reprend; })[0];
       h += '<td class="rep"><div class="g-rep"><input type="checkbox" data-a="propose" data-s="' + esc(c.id) + '"' + (prop ? ' checked' : '') + ' aria-label="' + esc('Proposé à ' + nomDebouche(c, avant) + ', ' + f.nom) + '" title="Proposé à ' + esc(c.nom) + '">' +
-        (prop ? caseHtml(pid, f, 'report/' + c.id, man || (auto === null ? null : {n:Math.round(auto * 100) / 100, u:'colis'}),
+        (prop ? caseHtml(pid, f, 'report/' + c.id, man || valeurCase(pid, f, 'report/' + c.id),
           {auto:!man, aria:'Reste proposé à ' + c.nom + ', ' + f.nom, titre: auto === null ? 'Calcul : saisir le disponible' : (man ? 'Modifié · ' : '') + 'Calcul : ' + deux(auto, f) + (man ? ' · ' + quiQuand(man) + ' · vider la case pour revenir au calcul' : '')}) : '') + '</div></td>';
     });
     h += '<td><button type="button" class="g-x" data-a="retirer" aria-label="' + esc('Retirer ' + f.nom + ' de la semaine') + '" title="Retirer de la semaine">×</button></td></tr>';
@@ -1426,10 +1443,19 @@ $('#semView').addEventListener('change', function(e){
     avecNom(function(){ var ch = {}; ch['propose/' + pid + '/' + s] = signe({v:inp.checked}); semEcrire(ch); });
     return;
   }
+  if(inp.dataset.a === 'unite-g'){
+    // Menu d'unité de la grille : une case remplie est convertie (même quantité), une case vide prend l'unité choisie.
+    var kk = inp.dataset.k, cc = pid + '|' + kk, qq = valeurCase(pid, f, kk), u2 = inp.value;
+    delete semErr[cc];
+    if(!qq || (kk.indexOf('report/') === 0 && !semLire(cible(pid, kk)))){ semUnite[cc] = u2; render(); return; }
+    var n2 = deColis(enColis(qq, f), u2, f);
+    avecNom(function(){ poser(pid, kk, signe({n:Math.round(n2 * 100) / 100, u:u2})); });
+    return;
+  }
   if(inp.tagName !== 'INPUT') return;
   var k = inp.dataset.k || inp.closest('.sr').dataset.k, cle = pid + '|' + k, q = semLire(cible(pid, k));
-  // Sur la grille, un nombre seul = des colis ; sur le téléphone, l'unité affichée à côté de la case.
-  var u = grille ? 'colis' : q ? (q.u || 'colis') : (semUnite[cle] || uniteParDefaut(pid, f));
+  // Un nombre seul est dans l'unité affichée à côté de la case (menu de la grille, bouton du téléphone).
+  var u = q ? (q.u || 'colis') : (semUnite[cle] || uniteParDefaut(pid, f));
   var v = lireSaisie(inp.value, f, u), slot = k.indexOf('q/') === 0 ? k.split('/')[1] : null, t = semLire('tout/' + pid);
   if(v.tout && !slot) v = {err:'« tout » se met seulement dans un créneau de vente.'};
   if(v.err){ semErr[cle] = v.err; if(grille) plusTard(render); else semAttente = true; return; }
@@ -1462,7 +1488,7 @@ $('#semView').addEventListener('keydown', function(e){
   var i = cases.indexOf(inp), dest = cases[i + sens];
   if(dest) dest.focus(); else inp.blur();
 });
-$('#semView').addEventListener('focusin', function(e){ if(e.target.dataset && e.target.dataset.cell) e.target.select(); });
+$('#semView').addEventListener('focusin', function(e){ if(e.target.tagName === 'INPUT' && e.target.dataset.cell) e.target.select(); });
 $('#semView').addEventListener('focusout', function(){ setTimeout(function(){ if(semAttente) render(); }, 0); });
 $('#semTab').addEventListener('toggle', function(){ ui.semTab = this.open; saveUi(); });
 
