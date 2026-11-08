@@ -206,7 +206,7 @@ Le test ouvre deux téléphones simulés (François et Aurore) reliés à un fau
 
 ## Limites connues
 
-- **Dépôt et base publics** : tant que l'étape 5 n'est pas finie (règles fermées collées par François), quelqu'un qui connaît l'adresse peut lire la liste (produits, quantités, noms des circuits) et cocher des cases. Ensuite, la base n'est ouverte qu'aux comptes avec le profil « ferme » ; les listes du dépôt (`listes/*.json`) restent publiques, comme le site.
+- **Dépôt public, base fermée** : depuis le 8/11/2026 (étape 5), la base n'est ouverte qu'aux comptes avec le profil « ferme » ; les listes du dépôt (`listes/*.json`) restent publiques, comme le site.
 - **Deux personnes qui glissent en même temps** : le dernier ordre envoyé gagne.
 - **Liste figée** (étape 13D) : si deux téléphones font la toute première coche d'une liste au même moment, la dernière liste figée envoyée gagne (même contenu, sauf si la semaine a changé entre les deux). Une semaine passée garde ses jours de récolte habituels seulement si elle a été modifiée au moins une fois (copie prise à la première modification, comme ses colonnes).
 - **Glisser-déposer à la souris** sur ordinateur : prévu pour le doigt, la souris n'a été testée qu'en simulation tactile.
