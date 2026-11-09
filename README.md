@@ -55,6 +55,8 @@ La pastille sous le titre dit l'état du partage :
 
 Fond blanc pur, texte noir, traits de 2 px, textes gros et gras, pas de gris clair ni de couleurs pâles. Les cases à cocher font 44 px. Un seul affichage : même si le téléphone est en mode sombre, la liste reste en fond blanc et texte noir (demande de François, 03/11/2026).
 
+**Miniatures des légumes** (09/11/2026, demande de François) : devant le nom de chaque produit, le petit dessin de son espèce, pris dans les dessins d'Ouvre ta ferme (dossier [`especes/`](especes/LISEZMOI.md)) : Récolte, Préparation, Semaine (Répartir, Cumul, À récolter, Stock), « Ajouter un produit » et page du magasin. L'espèce se trouve à partir du nom du produit : en minuscules, sans accents, avec des tirets, en retirant les mots de la fin jusqu'à trouver une espèce (« Carotte (botte) » → carotte, « Tomate Cerise » → tomate-cerise), plus quelques noms qu'Ouvre ta ferme écrit autrement (bette → blette, salade → laitue, rabiole → navet, radis → radis-rave, chou vert → chou blanc, chou frisé → chou de Milan, chou chinois → pé-tsaï, roquette → roquette cultivée, petit pois → pois, aillet → ail…). Pas d'espèce trouvée (« Aromatiques ») : pas de dessin. Ça marche pour les produits d'une autre ferme, tant que leur nom commence par une espèce connue d'Ouvre ta ferme.
+
 ## Mise en route
 
 À faire une seule fois.
@@ -161,6 +163,8 @@ Onglet **Semaine** (étape 13A, « vas-y » de François du 06/11/2026). Remplac
 
 Le code de ce dépôt est publié sous la licence **PolyForm Noncommercial 1.0.0** (fichier [`LICENSE`](LICENSE)), choisie par François le 08/11/2026. En clair : on peut l'utiliser, le copier et le modifier **à titre non commercial** (usage personnel, étude, association, recherche…) ; tout **usage commercial est interdit** sans accord écrit du Champ de l'Aurore. Ce n'est donc pas une licence « open source » au sens strict. Les copies faites avant cette date n'étaient couvertes par aucune licence. Ce résumé n'est pas un conseil juridique : seul le texte de `LICENSE` fait foi.
 
+**Exception : le dossier `especes/`** (dessins des espèces d'Ouvre ta ferme, copiés sans modification) reste sous la licence de leur auteur, la **GNU Affero GPL version 3 ou ultérieure** (AGPL-3.0, texte dans `especes/LICENSE-AGPL-3.0.txt`) ; la licence PolyForm ne s'y applique pas. Voir [`especes/LISEZMOI.md`](especes/LISEZMOI.md).
+
 ## Fichiers du dépôt
 
 | Fichier | Rôle |
@@ -173,10 +177,11 @@ Le code de ce dépôt est publié sous la licence **PolyForm Noncommercial 1.0.0
 | `listes/AAAA-MM-JJ.json` | Listes faites à la main avant l'étape 13D (une par jour de récolte) ; une liste en fichier l'emporte pour sa date. Format : [docs/format-liste.md](docs/format-liste.md). |
 | `referentiel/conditionnements.json` | Pour chaque produit : type de caisse (PB, PH, GB, GH) et contenu d'un colis (kg, ou nombre de bottes, bouquets, pièces, sachets). Source : onglet « Liste produits » du cumul. Aussi : les colisages (colis bois) et les circuits qui les utilisent. Un produit marqué `"masque": true` n'est plus proposé à l'ajout mais reste lisible dans les semaines qui l'ont déjà ; `"remplace_par"` donne le produit qui le remplace quand on reprend la semaine précédente (exemple : l'ancien « Persil frisé (bouquet) », remplacé le 9/11/2026). Ne pas renommer un produit déjà utilisé : son nom fait son identifiant dans la base. |
 | `referentiel/debouches.json` | Débouchés de départ de l'onglet Semaine (avant toute modification dans l'appli) : nom, colis, remarque, et livraisons (jours, moment, nom court, seconde livraison `reprend` : Auvabio 63 reprend Auvabio 03), et jours de récolte (`recoltes`). L'identifiant du débouché est celui du circuit des listes de récolte. |
+| `especes/` | Dessins des espèces d'Ouvre ta ferme (`plants.svg`, 183 dessins, copie sans modification, licence AGPL-3.0) : la miniature devant le nom de chaque produit. Voir `especes/LISEZMOI.md`. |
 | `magasin.html` | Page du magasin (étape 13C) : saisie du stock avec le compte du magasin. Autonome, même charte. |
 | `sw.js` | Hors ligne : la page et la liste passent par le réseau, sinon la dernière copie. Changer `CACHE` à chaque modification de l'appli. Ne met jamais la base Firebase en cache. |
 | `manifest.webmanifest`, `icons/` | Installation sur l'écran d'accueil. |
-| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`), débouchés et livraisons (`debouches.cjs`), connexion par compte (`connexion.cjs`), listes calculées depuis la semaine (`listes-calculees.cjs`), couleur des débouchés (`couleurs.cjs`), filtre par jour de récolte et impression (`filtre.cjs`), flèches du clavier dans la grille (`fleches.cjs`) ; règles de la base sur l'émulateur officiel de Firebase (`regles.cjs`). |
+| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`), débouchés et livraisons (`debouches.cjs`), connexion par compte (`connexion.cjs`), listes calculées depuis la semaine (`listes-calculees.cjs`), couleur des débouchés (`couleurs.cjs`), filtre par jour de récolte et impression (`filtre.cjs`), flèches du clavier dans la grille (`fleches.cjs`), aromatiques (`aromatiques.cjs`), miniatures des légumes (`miniatures.cjs`) ; règles de la base sur l'émulateur officiel de Firebase (`regles.cjs`). |
 | `docs/` | Format des listes, fonctionnement de la base partagée. |
 | `LICENSE` | Licence PolyForm Noncommercial 1.0.0 : usage non commercial seulement. |
 | `AGENTS.md` | Consignes pour les agents IA qui modifient ce dépôt (`CLAUDE.md` y renvoie). |
@@ -197,6 +202,7 @@ node tests/couleurs.cjs
 node tests/filtre.cjs
 node tests/fleches.cjs
 node tests/aromatiques.cjs
+node tests/miniatures.cjs
 ```
 
 `tests/couleurs.cjs` vérifie la couleur des débouchés avec un téléphone et un ordinateur : palette lisible sur fond blanc (contraste d'au moins 7), une couleur différente pour chaque débouché de départ, une fiche gardée dans la base avant les couleurs qui reprend celles du départ (et la première couleur libre pour un débouché inconnu du départ), rien d'écrit avant un choix, choix partagé et gardé, les autres débouchés qui gardent la leur, nouveau débouché avec une couleur libre, et dans la page « Répartir » (grille, fiches du téléphone, page Cumul) titre, chiffre et unité de chaque débouché dans sa couleur.
