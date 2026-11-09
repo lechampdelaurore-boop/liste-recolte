@@ -1,10 +1,11 @@
 {
- "source": "Onglet « Liste produits » du cumul, envoyé par François le 03/11/2026 (capture). Poireau : 10 kg confirmé par François le 03/11/2026 (la ligne vide du cumul est un doublon). Persil frisé : colis de 10 bouquets donné par François le 04/11/2026 (commande Ferme Deschamps), passé à 6 bouquets par colis le 06/11/2026. Céleri-branche : caisse GH (grande haute) au lieu de GB, François le 06/11/2026. Colisage bois : François, 04/11/2026. Persil frisé, persil plat et thym : conditionnés comme les aromatiques (petite basse, 6 bottes par colis), François le 09/11/2026 ; l'ancien « Persil frisé (bouquet) » est gardé pour les semaines déjà saisies mais n'est plus proposé (« masque ») ; « Reprendre la semaine précédente » le remplace par « Persil frisé » (« remplace_par »).",
+ "source": "Onglet « Liste produits » du cumul, envoyé par François le 03/11/2026 (capture). Poireau : 10 kg confirmé par François le 03/11/2026 (la ligne vide du cumul est un doublon). Persil frisé : colis de 10 bouquets donné par François le 04/11/2026 (commande Ferme Deschamps), passé à 6 bouquets par colis le 06/11/2026. Céleri-branche : caisse GH (grande haute) au lieu de GB, François le 06/11/2026. Colisage bois : François, 04/11/2026. Persil frisé, persil plat et thym : conditionnés comme les aromatiques (petite basse, 6 bottes par colis), François le 09/11/2026 ; l'ancien « Persil frisé (bouquet) » est gardé pour les semaines déjà saisies mais n'est plus proposé (« masque ») ; « Reprendre la semaine précédente » le remplace par « Persil frisé » (« remplace_par »). Carotte lavée : toujours récoltée en caisse bleue de 16 kg (« recolte_en », compté dans les caisses à emporter), puis conditionnée au choix en petite haute de 8 kg ou en caisse bleue de 16 kg (« autres_colis »), François le 09/11/2026.",
  "caisses": {
   "PB": "petite basse",
   "PH": "petite haute",
   "GB": "grande basse",
-  "GH": "grande haute"
+  "GH": "grande haute",
+  "CB": "caisse bleue"
  },
  "colisages": {
   "bois": {
@@ -96,7 +97,17 @@
    "produit": "Carotte lavée",
    "caisse": "PH",
    "unite": "8 kg",
-   "kg": 8.0
+   "kg": 8.0,
+   "autres_colis": [
+    {
+     "caisse": "CB",
+     "kg": 16.0
+    }
+   ],
+   "recolte_en": {
+    "caisse": "CB",
+    "kg": 16.0
+   }
   },
   {
    "produit": "Céleri-branche",
