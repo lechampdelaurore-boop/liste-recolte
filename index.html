@@ -94,6 +94,9 @@ details[open]>summary .chev{transform:rotate(90deg)}
 .crate-opt input{width:24px;height:24px;flex:none;margin:0;accent-color:var(--accent)}
 .crate-note{padding:0 14px 12px;margin:0;font-size:.85rem;color:var(--muted)}
 .hint{margin:0;font-size:.85rem;color:var(--muted)}
+.ordre-hab{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.ordre-hab .hint{flex:1 1 16em;color:var(--fg);font-weight:600}
+.ordre-hab .sem-act:disabled{cursor:default;border-style:dashed;box-shadow:none;transform:none;color:var(--fg)}
 /* Barre de progression : fond blanc, bord noir épais, remplissage vert foncé */
 details.prog>summary{list-style:none;cursor:pointer;padding:12px 14px;display:grid;gap:8px}
 details.prog>summary::-webkit-details-marker{display:none}
@@ -592,6 +595,10 @@ dialog.big{max-width:min(460px,94vw);width:100%}
 
   <p class="hint" id="dragHint"><span class="tel">Appui long sur une ligne pour la déplacer.</span><span class="pc">Pour ranger dans l'ordre de récolte : glissez une ligne par sa poignée (les six points à gauche), ou passez la souris sur la ligne pour ses boutons tout en haut, monter, descendre, tout en bas.</span></p>
   <ul class="list" id="todo"></ul>
+  <div class="ordre-hab" id="ordreBox" hidden>
+    <button type="button" class="sem-act" id="ordreBtn">Enregistrer cet ordre</button>
+    <p class="hint" id="ordreInfo"></p>
+  </div>
 
   <details class="donesec" id="doneSec">
     <summary><span class="chev">›</span><span>Récoltes déjà effectuées (<span id="doneCount">0</span>)</span></summary>
@@ -781,11 +788,121 @@ function poserListe(data){
 }
 
 /* ---------- Ordre et état ---------- */
+// Un jour déjà trié garde son ordre (« order » de sa liste) ; un jour pas encore trié suit l'ordre habituel.
 function order(){
   var ids = list.items.map(function(i){ return i.id; });
-  var o = (mirror.order || []).filter(function(id){ return byId[id]; });
+  if(!mirror.order) return selonHabitude(ids);
+  var o = mirror.order.filter(function(id){ return byId[id]; });
   ids.forEach(function(id){ if(o.indexOf(id) < 0) o.push(id); });
   return o;
+}
+
+/* ---------- Ordre de récolte habituel (demande de François du 9/11/2026) ---------- */
+// Le bouton « Enregistrer cet ordre » garde l'ordre de la liste affichée comme ordre habituel de la ferme, dans
+// listes/reglages/ordre ({ids, by, at}) : réglage de la ferme, pas de la liste. Un jour de récolte pas encore trié
+// s'ouvre dans cet ordre ; les produits qui n'y sont pas se placent à la fin (dans l'ordre de la liste). Un jour déjà
+// trié garde son propre ordre, jamais réécrit ici. Seule écriture : le clic sur le bouton ; gardée sur le téléphone
+// et envoyée au retour du réseau ; la dernière l'emporte, comme les débouchés.
+var ordreH = {data:ls('recolte.ordre'), pending:ls('recolte.ordre.pending'), es:null, flushing:false};
+function ordreVue(){ return ordreH.pending || ordreH.data || null; }
+function ordreIds(){ var v = ordreVue(); return tableau(v && v.ids).filter(function(x){ return typeof x === 'string'; }); }
+function selonHabitude(ids){
+  var h = ordreIds(), pos = {};
+  if(!h.length) return ids.slice();
+  h.forEach(function(x, i){ if(pos[x] === undefined) pos[x] = i; });
+  var connus = ids.filter(function(x){ return pos[x] !== undefined; }).sort(function(a, b){ return pos[a] - pos[b]; });
+  return connus.concat(ids.filter(function(x){ return pos[x] === undefined; }));
+}
+// Nouvel ordre habituel : celui de la liste « l » ; chaque produit de l'ancien ordre « h » absent de la liste reste
+// juste après le produit qui le précédait dans l'ancien ordre et n'a pas bougé (en tête s'il n'y en a pas). « N'a pas
+// bougé » : la plus longue suite de produits rangés dans le même ordre avant et après (un produit monté tout en haut
+// n'entraîne pas avec lui les produits absents qui le suivaient).
+function fusionOrdre(h, l){
+  var a = h.filter(function(x){ return l.indexOf(x) >= 0; }), b = l.filter(function(x){ return h.indexOf(x) >= 0; });
+  var n = a.length, m = b.length, t = [], i, j, fixe = {};
+  for(i = 0; i <= n; i++){ t.push([]); for(j = 0; j <= m; j++) t[i].push(0); }
+  for(i = n - 1; i >= 0; i--) for(j = m - 1; j >= 0; j--) t[i][j] = a[i] === b[j] ? t[i + 1][j + 1] + 1 : Math.max(t[i + 1][j], t[i][j + 1]);
+  for(i = 0, j = 0; i < n && j < m;){
+    if(a[i] === b[j]){ fixe[a[i]] = 1; i++; j++; } else if(t[i + 1][j] >= t[i][j + 1]) i++; else j++;
+  }
+  var r = l.slice(), prec = null;
+  h.forEach(function(x){
+    if(r.indexOf(x) >= 0){ if(fixe[x]) prec = x; return; }
+    r.splice(prec === null ? 0 : r.indexOf(prec) + 1, 0, x);
+    prec = x;
+  });
+  return r;
+}
+function ordreEnregistrer(){
+  if(!list) return;
+  ordreH.pending = {ids:fusionOrdre(ordreIds(), order()), by:me || '', at:Date.now()};
+  ls('recolte.ordre.pending', ordreH.pending);
+  render(); majStatut(); ordreFlush();
+}
+function ordreFlush(){
+  if(!dbPret() || ordreH.flushing || !ordreH.pending) return;
+  ordreH.flushing = true;
+  var p = ordreH.pending, url = '/listes/reglages/ordre';
+  dbFetch(url, {cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(srv){
+      // Un ordre enregistré plus tard sur un autre téléphone l'emporte : le nôtre est abandonné.
+      var envoi = srv && srv.at > p.at ? Promise.resolve(srv) :
+        dbFetch(url, {method:'PUT', body:JSON.stringify(p)}).then(function(r){ if(!r.ok) throw new Error(r.status); return p; });
+      return envoi.then(function(v){
+        if(ordreH.pending === p){ ordreH.pending = null; ls('recolte.ordre.pending', null); }
+        ordreH.data = v; ls('recolte.ordre', v);
+        ordreH.flushing = false;
+        if(!drag) render(); majStatut();
+        if(ordreH.pending) ordreFlush();
+      });
+    })
+    .catch(function(){ ordreH.flushing = false; majStatut(); });
+}
+function ordreConnecter(){
+  if(!dbPret() || !window.EventSource || ordreH.es) return;
+  var flux = new EventSource(dbUrl('/listes/reglages/ordre'));
+  ordreH.es = flux;
+  function appliquer(path, data){
+    var parts = path.split('/').filter(Boolean);
+    if(!parts.length) ordreH.data = data;
+    else {
+      var o = ordreH.data = ordreH.data || {};
+      for(var i = 0; i < parts.length - 1; i++){ if(!o[parts[i]] || typeof o[parts[i]] !== 'object') o[parts[i]] = {}; o = o[parts[i]]; }
+      if(data === null) delete o[parts[parts.length - 1]]; else o[parts[parts.length - 1]] = data;
+    }
+    ls('recolte.ordre', ordreH.data);
+  }
+  flux.addEventListener('put', function(ev){
+    var m = JSON.parse(ev.data); if(m){ appliquer(m.path, m.data); if(!drag) render(); }
+    fluxRecu(); ordreFlush();
+  });
+  flux.addEventListener('patch', function(ev){
+    var m = JSON.parse(ev.data); if(!m) return;
+    Object.keys(m.data || {}).forEach(function(k){ appliquer(m.path.replace(/\/$/, '') + '/' + k, m.data[k]); });
+    if(!drag) render();
+  });
+  flux.addEventListener('error', function(){ if(ordreH.es === flux) fluxCoupe(flux); });
+  flux.addEventListener('auth_revoked', jetonRevoque);
+  flux.addEventListener('cancel', function(){ refusBase({}); });
+}
+function ordreRelancer(){ if(ordreH.es && ordreH.es.readyState === 2){ ordreH.es = null; ordreConnecter(); } ordreFlush(); }
+// Le bouton et sa phrase, en bas de la liste à récolter (téléphone et ordinateur) : le haut de la liste ne bouge pas.
+function renderOrdre(){
+  var box = $('#ordreBox');
+  if(!list || list.items.length < 2){ box.hidden = true; return; }
+  var v = ordreVue(), h = ordreIds(), cur = order(), b = $('#ordreBtn'), t;
+  var suit = h.length && selonHabitude(cur).join() === cur.join();
+  var nouveaux = cur.filter(function(x){ return h.indexOf(x) < 0; }), pareil = suit && !nouveaux.length;
+  var qui = v && v.at ? ' (enregistré par ' + quiQuand(v) + (ordreH.pending ? ', pas encore envoyé' : '') + ')' : '';
+  if(!h.length) t = 'Pas encore d\'ordre habituel. Rangez la liste dans l\'ordre de récolte, puis enregistrez-le : les prochains jours de récolte s\'ouvriront dans cet ordre.';
+  else if(pareil) t = 'Cette liste suit l\'ordre habituel' + qui + '.';
+  else if(suit) t = 'Cette liste suit l\'ordre habituel' + qui + '. Pas encore dans l\'ordre habituel, placés à la fin : ' +
+    nouveaux.map(function(x){ return byId[x].produit; }).join(', ') + '. Enregistrer les y ajoute à cette place.';
+  else t = 'Cette liste n\'est pas dans l\'ordre habituel' + qui + '. Enregistrer remplace l\'ordre habituel par celui-ci ; les produits absents de cette liste gardent leur place.';
+  b.disabled = !!pareil;
+  b.textContent = pareil ? '✓ Ordre habituel' : 'Enregistrer cet ordre';
+  $('#ordreInfo').textContent = t;
 }
 function isDone(id){ return !!(mirror.done && mirror.done[id]); }
 function visible(it){
@@ -835,6 +952,7 @@ function brancher(){
   $('#prog').ontoggle = function(){ ui.progOpen = this.open; saveUi(); };
   $('#doneSec').open = ui.doneOpen;
   $('#doneSec').ontoggle = function(){ ui.doneOpen = this.open; saveUi(); };
+  $('#ordreBtn').onclick = function(){ avecNom(ordreEnregistrer); };
   brancherJours();
 }
 
@@ -1063,7 +1181,7 @@ function render(){
   var sans = !autre && (!list || !!vide);
   enTete();
   renderRecNav(autre);
-  ['#dragHint', '#todo', '#doneSec'].forEach(function(s){ $(s).hidden = prep || autre || sans; });
+  ['#dragHint', '#todo', '#doneSec', '#ordreBox'].forEach(function(s){ $(s).hidden = prep || autre || sans; });
   $('#prepView').hidden = !prep || sans; $('#prepSort').hidden = !prep || sans;
   // Semaine et Réglages : ni filtres de circuit, ni caisses, ni barre de récolte (ils concernent la liste du jour).
   ['#circs', '#crates', '#source'].forEach(function(s){ $(s).hidden = autre || sans; });
@@ -1091,6 +1209,7 @@ function render(){
   document.querySelectorAll('#todo li.vient-coche').forEach(function(li){ li.style.setProperty('--h', li.scrollHeight + 'px'); });
   $('#done').innerHTML = done.filter(function(it){ return !enCoche(it.id); }).map(function(it){ return itemHtml(it, true); }).join('');
   $('#doneCount').textContent = done.length;
+  if(!prep && !autre) renderOrdre();
   if(prep) renderPrep();
   renderCrates();
   renderProgress();
@@ -3405,10 +3524,10 @@ function setStatus(cls, txt){ var s = $('#sync'); s.className = 'pill ' + cls; s
 var enLigne = false, refuse = false, connu = false;
 // La liste figée part avec la première coche : elle n'est pas comptée à part.
 function nListe(p){ var f = p.filter(function(x){ return x.path === 'fige'; }).length; return p.length - (f && p.length > f ? f : 0); }
-function nAttente(){ return nListe(pending) + sem.pending.length + (deb.pending ? 1 : 0) + clesAutres().reduce(function(a, x){ return a + x.n; }, 0); }
+function nAttente(){ return nListe(pending) + sem.pending.length + (deb.pending ? 1 : 0) + (ordreH.pending ? 1 : 0) + clesAutres().reduce(function(a, x){ return a + x.n; }, 0); }
 function enAttente(){
   var n = nAttente();
-  var coches = !sem.pending.length && !deb.pending && pending.every(function(p){ return p.path !== 'order'; });
+  var coches = !sem.pending.length && !deb.pending && !ordreH.pending && pending.every(function(p){ return p.path !== 'order'; });
   return n + ' ' + (coches ? (n > 1 ? 'coches' : 'coche') : (n > 1 ? 'changements' : 'changement')) + ' en attente';
 }
 function majStatut(){
@@ -3558,14 +3677,14 @@ function verifier(){
     if(compte && compte.jeton !== avant){ relancerTout(true); return; }
     if(!dbPret()) return;
     if(lid && es && es.readyState === 2) ouvrir();
-    flush(); semRelancer(); debRelancer(); magRelancer(false);
+    flush(); semRelancer(); debRelancer(); ordreRelancer(); magRelancer(false);
     if(!enLigne && navigator.onLine) sonder();
   }, function(){ enLigne = false; majStatut(); });
 }
 // Encore « Hors ligne » alors que le réseau est revenu : un flux resté ouvert n'envoie rien de neuf
 // tant que personne ne change rien. Une petite lecture dit si la base répond ; si oui, « Partagé ».
 function sonder(){
-  var ouvert = [es, sem.es, deb.es].some(function(f){ return f && f.readyState === 1; });
+  var ouvert = [es, sem.es, deb.es, ordreH.es].some(function(f){ return f && f.readyState === 1; });
   if(!ouvert) return;
   dbFetch(lid ? '/listes/' + lid : '/listes/reglages/debouches', {cache:'no-store'}, 'shallow=true').then(function(r){
     if(r.ok && !enLigne) fluxRecu();
@@ -3579,8 +3698,9 @@ function relancerTout(tous){
   if(lid) ouvrir();
   if(sem.id && (tous || !sem.es || sem.es.readyState === 2)){ if(sem.es) sem.es.close(); sem.es = null; semConnecter(); }
   if(refCharge && (tous || !deb.es || deb.es.readyState === 2)){ if(deb.es) deb.es.close(); deb.es = null; debConnecter(); }
+  if(tous || !ordreH.es || ordreH.es.readyState === 2){ if(ordreH.es) ordreH.es.close(); ordreH.es = null; ordreConnecter(); }
   magRelancer(tous);
-  flush(); semFlush(); debFlush();
+  flush(); semFlush(); debFlush(); ordreFlush();
 }
 // Un flux de la base (liste, semaine ou débouchés) a répondu : la pastille passe à « Partagé ».
 // Sans jour de récolte dans la semaine, aucune liste n'est ouverte : la semaine suffit (sinon « Connexion… » restait).
@@ -3744,6 +3864,7 @@ function perdreCompte(msg){
   if(es){ es.close(); es = null; }
   if(sem.es){ sem.es.close(); sem.es = null; }
   if(deb.es){ deb.es.close(); deb.es = null; }
+  if(ordreH.es){ ordreH.es.close(); ordreH.es = null; }
   magFermer();
   enLigne = false; refuse = false; lance = false;
   majStatut(); render();
@@ -3751,7 +3872,7 @@ function perdreCompte(msg){
 }
 function compteHtml(){
   if(!compte) return '<p class="empty">Pas connecté.</p>';
-  var n = pending.length + sem.pending.length + (deb.pending ? 1 : 0);
+  var n = pending.length + sem.pending.length + (deb.pending ? 1 : 0) + (ordreH.pending ? 1 : 0);
   return '<section class="card cpt"><h2 class="db-h">Compte de ce téléphone</h2>' +
     '<p>Connecté avec l\'identifiant <b>' + esc(compte.id) + '</b>.</p>' +
     (refuse ? '<p class="sr-err" role="alert">Ce compte n\'a pas encore accès à la base : dans la console Firebase, lui donner le profil « ferme » (voir le pas-à-pas).</p>' : '') +
