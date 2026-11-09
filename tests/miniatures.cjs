@@ -42,7 +42,7 @@ const plus = (s, n) => { const d = new Date(s + 'T12:00:00'); d.setDate(d.getDat
 
 // Correspondance attendue pour chaque produit du référentiel (vide : pas de dessin).
 const ATTENDU = {
-  'Ail sec': 'ail', 'Aillet': 'ail', 'Aromatiques': '', 'Aubergine Violette': 'aubergine',
+  'Ail sec': 'ail', 'Aillet': 'ail', 'Aromatiques': 'persil', 'Aubergine Violette': 'aubergine',
   'Bette': 'blette', 'Bette mini (pied)': 'blette', 'Bette multicolore (bouquet)': 'blette',
   'Betterave Rouge': 'betterave', 'Betterave Rouge (botte)': 'betterave', 'Betterave Rouge cuite sous vide': 'betterave',
   'Carotte (botte)': 'carotte', 'Carotte lavée': 'carotte', 'Céleri-branche': 'celeri-branche', 'Céleri-rave': 'celeri-rave',
@@ -56,7 +56,7 @@ const ATTENDU = {
   'Oignon Blanc (botte)': 'oignon', 'Oignon Blanc Cebette (botte)': 'oignon', 'Oignon blanc demi-sec': 'oignon',
   'Panais': 'panais', 'Pastèque': 'pasteque', 'Patate douce': 'patate-douce', 'Persil frisé': 'persil',
   'Persil frisé (bouquet)': 'persil', 'Persil plat': 'persil', 'Petit-Pois': 'pois', 'Pois Mange-Tout': 'pois',
-  'Poireau': 'poireau', 'Rabiole': 'navet', 'Radis long rose': 'radis-rave', "Radis d'hiver en mélange": 'radis-rave',
+  'Poireau': 'poireau', 'Rabiole': 'navet', 'Radis long rose': 'radis-rave', "Radis d'hiver en mélange": 'radis-rave-rouge',
   'Radis noir rond': 'radis-rave', 'Rhubarbe': 'rhubarbe', 'Roquette': 'roquette-cultivee', 'Rutabaga': 'rutabaga',
   'Salade Batavia Carmen (170g+)': 'laitue', 'Salade Batavia Carmen (marbrée verte et rouge)': 'laitue',
   'Salade Batavia Verte': 'laitue', 'Salade Batavia Verte (170g+)': 'laitue', 'Salade Feuille de Chêne Rouge': 'laitue',
@@ -69,7 +69,7 @@ const ATTENDU = {
 // Les miniatures d'une zone : [{nom (texte de l'élément), espece (dessin demandé), dessine (le dessin a une taille)}].
 const minis = (p, sel) => p.$$eval(sel, (els) => els.map((e) => {
   const u = e.querySelector('svg.mini use'), b = u ? u.getBBox() : null;
-  return { nom: e.textContent.trim(), espece: u ? u.getAttribute('href').replace('especes/plants.svg#', '') : '', dessine: !!(b && b.width > 20 && b.height > 20) };
+  return { nom: e.textContent.trim(), espece: u ? u.getAttribute('href').replace(/^especes\/(plants|modifies)\.svg#/, '') : '', dessine: !!(b && b.width > 20 && b.height > 20) };
 }));
 const resume = (l) => l.map((x) => x.nom.split('\n')[0].slice(0, 30) + '→' + (x.espece || '∅')).join(', ');
 
@@ -89,10 +89,15 @@ const resume = (l) => l.map((x) => x.nom.split('\n')[0].slice(0, 30) + '→' + (
   const ecarts = REF.produits.filter((p) => especeDe(p.produit) !== ATTENDU[p.produit]).map((p) => p.produit + ' : ' + (especeDe(p.produit) || '∅') + ' au lieu de ' + (ATTENDU[p.produit] || '∅'));
   verifie(ecarts.length === 0 && Object.keys(ATTENDU).length === REF.produits.length, 'les ' + REF.produits.length + ' produits du référentiel ont l\'espèce attendue' + (ecarts.length ? ' : ' + ecarts.join(' ; ') : ''));
   const sans = REF.produits.filter((p) => !especeDe(p.produit)).map((p) => p.produit);
-  verifie(sans.join() === 'Aromatiques', 'seul « Aromatiques » (mélange) n\'a pas de dessin (obtenu ' + sans.join(', ') + ')');
+  verifie(sans.length === 0 && especeDe('Aromatiques') === especeDe('Persil plat'), 'tous les produits du référentiel ont un dessin ; « Aromatiques » a celui du persil plat (demande de François)' + (sans.length ? ' (sans dessin : ' + sans.join(', ') + ')' : ''));
   verifie(especeDe('Radis botte') === 'radis-botte' && especeDe('Pomme de terre Charlotte') === 'pomme-de-terre' && especeDe('Tomate cœur de bœuf') === 'tomate' && especeDe('Courge') === 'courge' && especeDe('Chou') === '' && especeDe('Poivron rouge') === 'poivron' && especeDe('') === '', 'autres fermes : « Radis botte », « Pomme de terre Charlotte », « Poivron rouge » trouvent leur espèce ; « Chou » seul n\'en a pas');
   const sw = fs.readFileSync(path.join(RACINE, 'sw.js'), 'utf8');
-  verifie(sw.includes("'./especes/plants.svg'"), 'le fichier des dessins est gardé pour le mode hors ligne (sw.js)');
+  verifie(sw.includes("'./especes/plants.svg'") && sw.includes("'./especes/modifies.svg'"), 'les fichiers des dessins sont gardés pour le mode hors ligne (sw.js)');
+  const modif = fs.readFileSync(path.join(RACINE, 'especes/modifies.svg'), 'utf8');
+  const rouge = (modif.match(/<symbol id="radis-rave-rouge"[\s\S]*?<\/symbol>/) || [''])[0], noir = (svg.match(/<symbol id="radis-rave"[\s\S]*?<\/symbol>/) || [''])[0];
+  const formes = (s) => s.replace(/<symbol[^>]*>/, '').replace(/#[0-9A-Fa-f]{6}/g, '');
+  verifie(rouge && formes(rouge) === formes(noir) && !rouge.includes('#221F38') && rouge.includes('#C8304F'), 'radis rouge-rose (especes/modifies.svg) : exactement la forme du radis-rave d\'Ouvre ta ferme, seules les couleurs changent (noir → rouge-rose)');
+  verifie(especeDe("Radis d'hiver en mélange") === 'radis-rave-rouge' && especeDe('Radis noir rond') === 'radis-rave', '« Radis d\'hiver en mélange » prend le radis rouge-rose, « Radis noir rond » garde le radis noir');
 
   // Données : une semaine avec six produits, dont un sans dessin, et le mercredi en jour de récolte.
   const site = await serveurSite();
@@ -127,10 +132,10 @@ const resume = (l) => l.map((x) => x.nom.split('\n')[0].slice(0, 30) + '→' + (
   };
   const connecter = async (p, id, mdp) => { await p.fill('#authId', id); await p.fill('#authMdp', mdp); await p.click('#authOk'); };
   const capture = async (p, nom) => { if (CAPTURES) await p.screenshot({ path: path.join(CAPTURES, nom + '.png'), fullPage: true }); };
-  // Chaque produit de la zone a le dessin de son espèce, bien dessiné ; « Aromatiques » n'en a pas.
+  // Chaque produit de la zone a le dessin de son espèce, bien dessiné (« Aromatiques » : celui du persil).
   const controle = (l, quoi, n) => {
     const faux = l.filter((x) => { const nom = Object.values(NOMS).concat(['Poireau']).find((k) => x.nom.startsWith(k) && !Object.values(NOMS).some((k2) => k2 !== k && k2.startsWith(k) && x.nom.startsWith(k2))); return !nom || x.espece !== (ATTENDU[nom] || '') || (x.espece && !x.dessine); });
-    verifie(l.length === n && faux.length === 0, quoi + ' : ' + n + ' produits, chacun avec le dessin de son espèce, « Aromatiques » sans dessin (obtenu ' + resume(l) + (faux.length ? ' ; en défaut : ' + resume(faux) : '') + ')');
+    verifie(l.length === n && faux.length === 0, quoi + ' : ' + n + ' produits, chacun avec le dessin de son espèce, « Aromatiques » avec le persil (obtenu ' + resume(l) + (faux.length ? ' ; en défaut : ' + resume(faux) : '') + ')');
   };
 
   // 1. Téléphone de la ferme
@@ -220,7 +225,7 @@ const resume = (l) => l.map((x) => x.nom.split('\n')[0].slice(0, 30) + '→' + (
   await M.waitForSelector('#addDlg[open]');
   const magAjout = await minis(M, '#addList button');
   const magSans = magAjout.filter((x) => !x.espece).map((x) => x.nom.split('\n')[0]);
-  verifie(magAjout.length === 75 && magAjout.filter((x) => x.espece && x.dessine).length === 74 && magSans.length === 1 && magSans[0].startsWith('Aromatiques'), 'magasin, « Ajouter un produit » : 75 produits, 74 avec leur dessin, seul « Aromatiques » sans (obtenu ' + magAjout.length + ', sans dessin : ' + magSans.join(', ') + ')');
+  verifie(magAjout.length === 75 && magAjout.every((x) => x.espece && x.dessine), 'magasin, « Ajouter un produit » : les 75 produits ont leur dessin (obtenu ' + magAjout.length + (magSans.length ? ', sans dessin : ' + magSans.join(', ') : '') + ')');
   await M.fill('#addQ', 'salade');
   await M.waitForTimeout(200);
   await capture(M, '8-magasin-ajouter');
