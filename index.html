@@ -2682,6 +2682,9 @@ function reprendre(){
     var ch = {};
     ids.forEach(function(k){
       var r = (REF.produits || []).filter(function(x){ return pidDe(x.produit) === k; })[0];
+      // Produit retiré du référentiel (« masque ») : on reprend celui qui le remplace (« remplace_par »), s'il existe.
+      var n = r && r.masque && r.remplace_par && (REF.produits || []).filter(function(x){ return x.produit === r.remplace_par; })[0];
+      if(n){ ch['produits/' + pidDe(n.produit)] = signe(fiche(n)); return; }
       ch['produits/' + k] = signe(r ? fiche(r) : fiche(prods[k]));
     });
     semEcrire(ch);
@@ -2691,7 +2694,7 @@ function ouvrirAjout(){
   var dlg = $('#addDlg'), q = $('#addQ');
   function liste(){
     var t = sansAccent(q.value.trim().toLowerCase()), deja = semLire('produits') || {};
-    var l = (REF.produits || []).filter(function(p){ return !deja[pidDe(p.produit)] && sansAccent(p.produit.toLowerCase()).indexOf(t) >= 0; });
+    var l = (REF.produits || []).filter(function(p){ return !p.masque && !deja[pidDe(p.produit)] && sansAccent(p.produit.toLowerCase()).indexOf(t) >= 0; });
     $('#addList').innerHTML = l.length ? l.map(function(p){
       return '<li><button type="button" class="sem-act" data-nom="' + esc(p.produit) + '"><span>' + esc(p.produit) + '</span><small>' + esc(colisTxt(fiche(p))) + '</small></button></li>';
     }).join('') : '<li class="empty">Aucun produit trouvé.</li>';
