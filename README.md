@@ -32,7 +32,7 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 | **Petite flèche en bas à droite d'un produit** (onglet Récolte) | Déplie la répartition du produit par client : le colis (ex. « GH de 5 kg »), puis pour chaque client le nombre de colis (colis bois compris) et le poids ou le nombre d'unités correspondant. Toucher à nouveau pour replier. Ouvert ou fermé sur ce téléphone seulement. Remplace l'onglet Détail, caché depuis le 04/11/2026 (`MONTRER_DETAIL` dans `index.html`, à passer à `true` pour le remettre). |
 | **Appui long sur une ligne** (0,45 s, sans bouger) | La ligne se décolle (petite vibration) ; la glisser à sa place. Un geste rapide fait défiler la page normalement, sans rien déplacer. L'ordre est le même sur les deux téléphones. |
 | **Sur ordinateur (fenêtre d'au moins 1000 px, souris) : poignée et boutons de tri** | Lignes compactes (environ 48 px). La poignée (six points, à gauche) décolle la ligne tout de suite, sans appui long. Au survol d'une ligne, quatre boutons : tout en haut, monter d'un cran, descendre d'un cran, tout en bas ; après monter ou descendre, la ligne reste sous la souris pour cliquer encore. Le téléphone ne change pas. |
-| **Case à cocher** | La ligne part dans « Récoltes déjà effectuées », avec le prénom et l'heure. |
+| **Case à cocher** | La ligne devient vert plein (nom en blanc, case qui grossit) et reste à sa place environ 3 secondes, pour voir quel produit on vient de cocher ; puis elle glisse vers la droite et part dans « Récoltes déjà effectuées », avec le prénom et l'heure. Toucher de nouveau la case pendant ces 3 secondes décoche. La coche est enregistrée et partagée tout de suite ; sur l'autre téléphone, la ligne part sans animation. |
 | **Récoltes déjà effectuées ›** (en bas) | Déroule la liste de ce qui est fait. Toucher la case d'une ligne pour la décocher. |
 | **Récolté … %** (barre en haut de la liste) | Avance à chaque coche, sur les deux téléphones : kilos et unités additionnés (voir [Barre de progression](#barre-de-progression)). La petite flèche vers le bas déplie le détail : une barre pour les unités (bottes, bouquets, pièces…), une barre pour les kilos, avec ce qui reste. |
 | **Caisses ›** | Nombre de caisses PB, PH, GB, GH, et de colis bois, qui restent à remplir (voir [Calcul des caisses](#calcul-des-caisses)). |
@@ -184,7 +184,7 @@ Le code de ce dépôt est publié sous la licence **PolyForm Noncommercial 1.0.0
 | `magasin.html` | Page du magasin (étape 13C) : saisie du stock avec le compte du magasin. Autonome, même charte. |
 | `sw.js` | Hors ligne : la page et la liste passent par le réseau, sinon la dernière copie. Changer `CACHE` à chaque modification de l'appli. Ne met jamais la base Firebase en cache. |
 | `manifest.webmanifest`, `icons/` | Installation sur l'écran d'accueil. |
-| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`), débouchés et livraisons (`debouches.cjs`), connexion par compte (`connexion.cjs`), listes calculées depuis la semaine (`listes-calculees.cjs`), couleur des débouchés (`couleurs.cjs`), filtre par jour de récolte et impression (`filtre.cjs`), flèches du clavier dans la grille (`fleches.cjs`), tri de l'onglet Récolte sur ordinateur (`tri-ordinateur.cjs`), aromatiques (`aromatiques.cjs`), miniatures des légumes (`miniatures.cjs`) ; règles de la base sur l'émulateur officiel de Firebase (`regles.cjs`). |
+| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`), débouchés et livraisons (`debouches.cjs`), connexion par compte (`connexion.cjs`), listes calculées depuis la semaine (`listes-calculees.cjs`), couleur des débouchés (`couleurs.cjs`), filtre par jour de récolte et impression (`filtre.cjs`), flèches du clavier dans la grille (`fleches.cjs`), tri de l'onglet Récolte sur ordinateur (`tri-ordinateur.cjs`), aromatiques (`aromatiques.cjs`), miniatures des légumes (`miniatures.cjs`), animation de la coche (`animation-coche.cjs`) ; règles de la base sur l'émulateur officiel de Firebase (`regles.cjs`). |
 | `docs/` | Format des listes, fonctionnement de la base partagée. |
 | `LICENSE` | Licence PolyForm Noncommercial 1.0.0 : usage non commercial seulement. |
 | `AGENTS.md` | Consignes pour les agents IA qui modifient ce dépôt (`CLAUDE.md` y renvoie). |
@@ -208,7 +208,10 @@ node tests/aromatiques.cjs
 node tests/tri-ordinateur.cjs
 node tests/caisse-bleue.cjs
 node tests/miniatures.cjs
+node tests/animation-coche.cjs
 ```
+
+`tests/animation-coche.cjs` vérifie l'animation de la coche dans l'onglet Récolte, avec deux téléphones et un ordinateur : ligne cochée encore à sa place et en vert plein 0,5 s et 1,9 s après, partie dans « Récoltes déjà effectuées » à 3,3 s, coche enregistrée et compteur à jour tout de suite, rien d'animé sur l'autre téléphone, animation pas relancée par une coche reçue entre-temps, second toucher qui décoche, deux coches coup sur coup, pas de glisser-déposer sur une ligne en animation, ordinateur (lignes compactes, case qui ne saute pas).
 
 `tests/caisse-bleue.cjs` vérifie la caisse bleue avec un téléphone et un ordinateur : référentiel (caisse CB, carotte lavée en PH de 8 kg avec CB de 16 kg en plus, récoltée en CB), semaine saisie avant le changement complétée sans rien écrire, liste de récolte « 5 PH + 1 CB » (56 kg), cadre « Caisses » à 4 CB (avec ou sans « une caisse par circuit »), Préparation client par client (CB, PH, colis bois), bouton et menu d'unité PH, CB, kg, saisie « 2 caisses bleues », refus de « 1 GH », conversion CB → PH → kg, page « À récolter », fiche copiée par « Ajouter un produit ».
 

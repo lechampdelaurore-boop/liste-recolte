@@ -250,7 +250,8 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   await A.click('[data-view="recolte"]');
   const pastille = async (p) => (await p.textContent('#sync')).trim();
   const partage = (p) => p.waitForFunction(() => document.querySelector('#sync').textContent.includes('Partagé'), null, { timeout: 15000 });
-  const estCoche = (p, id) => p.$$eval('#done li', (e, i) => e.some((x) => x.dataset.id === i), id);
+  // Coché : rangé dans « Récoltes déjà effectuées », ou encore en animation (vert) à sa place juste après la coche.
+  const estCoche = (p, id) => p.$$eval('#done li, #todo li.vient-coche', (e, i) => e.some((x) => x.dataset.id === i), id);
   const cocher = (p, id) => p.click(`#todo li[data-id="${id}"] .box`);
   const decocher = async (p, id) => {
     if (!(await p.$eval('#doneSec', (d) => d.open))) await p.click('#doneSec summary');
@@ -332,7 +333,7 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
 
   // Plus de message de félicitations (demande de François du 6/11) : tout cocher ne fait apparaître aucun texte.
   for (const id of await D.$$eval('#todo li.item', (ls) => ls.map((l) => l.dataset.id))) await cocher(D, id);
-  await D.waitForTimeout(300);
+  await D.waitForTimeout(3300); // fin de l'animation de la dernière coche (2,8 s)
   const corps = await D.textContent('body');
   verifie((await D.$$('#todo li')).length === 0 && (await D.textContent('#progPct')) === '100 %' && !/Bravo|Tout est récolté/.test(corps),
     'tout coché : la liste à faire reste vide, sans « Tout est récolté. Bravo. » (barre à ' + (await D.textContent('#progPct')) + ', obtenu « ' + (await D.textContent('#progSum')) + ' »)');

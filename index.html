@@ -176,6 +176,27 @@ li.done .box{background:var(--accent);border-color:var(--accent)} li.done .box s
 .by{grid-column:2 / 4;font-size:.85rem;color:var(--muted);font-weight:600}
 li.done .prod{text-decoration:line-through;text-decoration-thickness:2px}
 li.done{border-style:dashed;box-shadow:none}
+/* Animation de la coche (9/11, demande de François) : la ligne qu'on vient de cocher reste à sa place environ
+   3 secondes, en vert plein avec le nom en blanc et la case qui grossit, puis glisse vers la droite et se replie
+   avant de passer dans « Récoltes déjà effectuées ». On voit ainsi quel produit on a coché. Pas de texte ajouté. */
+li.item.vient-coche{animation-name:coche-ligne,coche-part;animation-duration:var(--coche-ms),.7s;animation-delay:var(--d1),var(--d2);animation-timing-function:ease-out,ease-in;animation-fill-mode:both;overflow:hidden;position:relative;z-index:1}
+li.item.vient-coche .prod,li.item.vient-coche .qty,li.item.vient-coche .qty small,li.item.vient-coche .ecart{color:inherit}
+li.item.vient-coche .box{background:var(--accent);border-color:var(--accent-fg);animation:coche-case .6s ease-out both;animation-delay:var(--d1)}
+li.item.vient-coche .box svg{opacity:1;color:var(--accent-fg)}
+#todo li.item.vient-coche .poignee,#todo li.item.vient-coche .bouger{visibility:hidden !important}
+@keyframes coche-ligne{
+  0%{background:var(--surface);color:var(--fg);box-shadow:0 0 0 0 var(--accent)}
+  8%{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);box-shadow:0 0 0 7px var(--accent)}
+  16%{box-shadow:0 0 0 3px var(--accent)}
+  24%{box-shadow:0 0 0 7px var(--accent)}
+  32%,100%{background:var(--accent);color:var(--accent-fg);border-color:var(--accent);box-shadow:0 0 0 4px var(--accent)}
+}
+/* Les 0,7 dernières secondes : la ligne glisse vers la droite et se replie. */
+@keyframes coche-part{
+  from{max-height:var(--h,240px)}
+  to{opacity:0;transform:translateX(60%);max-height:0;padding-top:0;padding-bottom:0;margin-bottom:-8px;border-width:0;box-shadow:none}
+}
+@keyframes coche-case{0%{transform:scale(1)}35%{transform:scale(1.45)}65%{transform:scale(.92)}100%{transform:scale(1)}}
 .empty{padding:16px;text-align:center;color:var(--muted);font-weight:700}
 details.donesec>summary{list-style:none;cursor:pointer;padding:14px 12px;font-weight:800;display:flex;gap:10px;align-items:center;border:var(--bw) solid var(--line);border-radius:var(--radius)}
 details.donesec>summary::-webkit-details-marker{display:none}
@@ -970,7 +991,7 @@ function bougerHtml(it, premier, dernier){
   }).join('') + '</span>';
 }
 
-function itemHtml(it, done, premier, dernier){
+function itemHtml(it, done, premier, dernier, coche){
   var d = '';
   if(ui.view === 'detail'){
     var tags = [];
@@ -999,9 +1020,12 @@ function itemHtml(it, done, premier, dernier){
   // Liste figée : un changement fait depuis dans la semaine est signalé sur la ligne, jamais appliqué en silence.
   var ec = ecarts && ecarts.lignes[it.id];
   var ecart = ec ? '<div class="ecart">' + esc(ec.retire ? 'Retiré de la semaine depuis la première coche.' : 'Changé dans la semaine : maintenant ' + ec.maintenant + '.') + '</div>' : '';
-  return '<li class="item' + (done ? ' done' : '') + '" data-id="' + it.id + '">' +
+  // Ligne qu'on vient de cocher : rendue « en animation », reprise là où elle en était (un nouvel affichage ne la relance pas).
+  var ecoule = coche ? Math.min(COCHE_MS, Date.now() - coche.t) : 0;
+  var anim = coche ? ' vient-coche" style="--coche-ms:' + COCHE_MS + 'ms;--d1:-' + ecoule + 'ms;--d2:' + (COCHE_MS - 700 - ecoule) + 'ms' : '';
+  return '<li class="item' + (done ? ' done' : '') + anim + '" data-id="' + it.id + '">' +
     (done ? '' : '<span class="poignee" title="Glisser pour déplacer">' + POIGNEE + '</span>') +
-    '<button class="box" type="button" aria-label="' + (done ? 'Décocher ' : 'Cocher ') + esc(it.produit) + '">' + CHECK + '</button>' +
+    '<button class="box" type="button" aria-label="' + (done || coche ? 'Décocher ' : 'Cocher ') + esc(it.produit) + '">' + CHECK + '</button>' +
     '<div class="main"><div class="prod">' + miniHtml(it.produit) + esc(it.produit) + '</div>' + (MONTRER_LIEU && it.ou ? '<div class="ou">' + esc(it.ou) + '</div>' : '') + '</div>' +
     '<div class="qty">' + qtyHtml(it) + '</div>' + (done ? '' : bougerHtml(it, premier, dernier)) + d + ecart + by + more + '</li>';
 }
@@ -1047,12 +1071,15 @@ function render(){
     return;
   }
   var o = order().map(function(id){ return byId[id]; }).filter(visible);
-  var todo = o.filter(function(it){ return !isDone(it.id); });
+  // Une ligne qu'on vient de cocher reste à sa place, dans « à récolter », le temps de son animation ;
+  // elle compte déjà dans « Récoltes déjà effectuées ».
+  var todo = o.filter(function(it){ return !isDone(it.id) || enCoche(it.id); });
   var done = o.filter(function(it){ return isDone(it.id); });
   done.sort(function(a, b){ return (mirror.done[b.id].at || 0) - (mirror.done[a.id].at || 0); });
-  $('#todo').innerHTML = todo.length ? todo.map(function(it, i){ return itemHtml(it, false, i === 0, i === todo.length - 1); }).join('') :
+  $('#todo').innerHTML = todo.length ? todo.map(function(it, i){ return itemHtml(it, false, i === 0, i === todo.length - 1, enCoche(it.id)); }).join('') :
     (o.length ? '' : '<li class="empty">Rien pour ce filtre.</li>');
-  $('#done').innerHTML = done.map(function(it){ return itemHtml(it, true); }).join('');
+  document.querySelectorAll('#todo li.vient-coche').forEach(function(li){ li.style.setProperty('--h', li.scrollHeight + 'px'); });
+  $('#done').innerHTML = done.filter(function(it){ return !enCoche(it.id); }).map(function(it){ return itemHtml(it, true); }).join('');
   $('#doneCount').textContent = done.length;
   if(prep) renderPrep();
   renderCrates();
@@ -1235,11 +1262,23 @@ function renderProgress(){
 }
 
 /* ---------- Cocher ---------- */
+// Animation de la coche (9/11, demande de François) : la ligne cochée sur ce téléphone reste visible, en vert,
+// pendant COCHE_MS avant de rejoindre les récoltes effectuées. La coche, elle, est enregistrée tout de suite.
+var COCHE_MS = 2800, coches = {};
+function enCoche(id){
+  var c = coches[id];
+  if(c && (c.lid !== lid || !isDone(id) || Date.now() - c.t >= COCHE_MS)){ delete coches[id]; c = null; }
+  return c || null;
+}
 function toggle(id){
   if(!me){ askName(function(){ toggle(id); }); return; }
-  if(isDone(id)) write('done/' + id, null);
-  else write('done/' + id, {by: me, at: Date.now()});
-  if(navigator.vibrate) navigator.vibrate(15);
+  if(isDone(id)){ delete coches[id]; write('done/' + id, null); }
+  else {
+    var c = coches[id] = {lid: lid, t: Date.now()};
+    setTimeout(function(){ if(coches[id] === c){ delete coches[id]; if(!drag) render(); } }, COCHE_MS);
+    write('done/' + id, {by: me, at: c.t});
+  }
+  if(navigator.vibrate) navigator.vibrate(isDone(id) ? [40, 60, 40] : 15);
 }
 // Préparation : une coche par ligne produit × client, et une par client (commande prête).
 function prepToggle(path){
@@ -1291,7 +1330,7 @@ function startDrag(li, y){
 function beginPress(target, x, y){
   if(drag || press) return;
   var li = target.closest('#todo li.item');
-  if(!li || target.closest('.box, .more, .bouger')) return;
+  if(!li || li.classList.contains('vient-coche') || target.closest('.box, .more, .bouger')) return;
   li.classList.add('pressing');
   press = {li:li, x:x, y:y, timer:setTimeout(function(){ var p = press; press = null; if(p) startDrag(p.li, p.y); }, LONG)};
 }
