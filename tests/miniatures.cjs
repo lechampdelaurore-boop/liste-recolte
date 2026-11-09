@@ -67,10 +67,19 @@ const ATTENDU = {
 };
 
 // Les miniatures d'une zone : [{nom (texte de l'élément), espece (dessin demandé), dessine (le dessin a une taille)}].
-const minis = (p, sel) => p.$$eval(sel, (els) => els.map((e) => {
+const lireMinis = (p, sel) => p.$$eval(sel, (els) => els.map((e) => {
   const u = e.querySelector('svg.mini use'), b = u ? u.getBBox() : null;
   return { nom: e.textContent.trim(), espece: u ? u.getAttribute('href').replace(/^especes\/(plants|modifies)\.svg#/, '') : '', dessine: !!(b && b.width > 20 && b.height > 20) };
 }));
+// Le fichier des dessins se charge à part : on attend (5 s au plus) que chaque dessin demandé soit tracé avant de mesurer.
+const minis = async (p, sel) => {
+  const fin = Date.now() + 5000;
+  for (;;) {
+    const l = await lireMinis(p, sel);
+    if (l.every((x) => !x.espece || x.dessine) || Date.now() > fin) return l;
+    await p.waitForTimeout(150);
+  }
+};
 const resume = (l) => l.map((x) => x.nom.split('\n')[0].slice(0, 30) + '→' + (x.espece || '∅')).join(', ');
 
 (async () => {
