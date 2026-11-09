@@ -136,6 +136,9 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   await T.waitForTimeout(500);
   verifie(JSON.stringify(base.lire('listes/semaines/' + W)) === avant, 'ouvrir la semaine, la récolte et la préparation n\'écrit rien dans la base');
   await T.click('[data-sem="recolter"]');
+  // Jours repliés (9/11) : déplier chacun par sa flèche.
+  await T.waitForSelector('#semRecList .rc-tete');
+  for (let i = 0; i < 9 && (await T.$('#semRecList .rc-tete[aria-expanded="false"]')); i++) await T.click('#semRecList .rc-tete[aria-expanded="false"]');
   await T.waitForSelector('#semRecList li[data-pid="carotte-lavee"]');
   const arec = net(await T.textContent('#semRecList li[data-pid="carotte-lavee"] b'));
   verifie(arec === '7 PH (56 kg) · récolte : 4 CB', 'À récolter, mercredi : « ' + arec + ' »');

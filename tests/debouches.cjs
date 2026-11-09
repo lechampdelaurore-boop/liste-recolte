@@ -266,6 +266,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await attendre(B);
   await B.click('[data-sem="recolter"]');
   const jourRec = (r) => `#semRecList .rc-jour[data-r="${r}"]`;
+  for (const r of ['mer', 'lun']) { await B.waitForSelector(jourRec(r) + ' [data-a="rc-plier"]'); await B.click(jourRec(r) + ' [data-a="rc-plier"]'); }
   verifie(await B.isVisible('#semRec') && (await B.textContent(jourRec('mer') + ' h3')).startsWith('Mercredi'), 'l\'onglet Semaine montre « À récolter, jour par jour »');
   const betteMer = await B.textContent(jourRec('mer') + ' li[data-pid="bette"]');
   verifie(betteMer.includes('Bette') && betteMer.includes('3 GH (15 kg)') && betteMer.includes('Locavore 2') && betteMer.includes('Ferme Deschamps 1'), 'mercredi : bette 3 GH (15 kg), soit Locavore 2 et Ferme Deschamps 1 (obtenu « ' + betteMer + ' »)');

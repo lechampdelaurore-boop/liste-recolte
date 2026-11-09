@@ -2,7 +2,9 @@
 
 ## Où on en est
 
-*Au 9 novembre 2026, midi. Source : lecture du dépôt et demandes de François du 4/11 au 9/11.*
+*Au 9 novembre 2026, début d'après-midi. Source : lecture du dépôt et demandes de François du 4/11 au 9/11.*
+
+- **Page « À récolter » simplifiée (9/11, début d'après-midi)**, demande de François (un mardi créé sans qu'on lui demande) : les jours de récolte sont repliés, une ligne par jour avec une flèche pour déplier son détail ; « ＋ Nouveau jour de récolte » et « Régler les jours habituels » sont tout en haut ; « Nouveau jour de récolte » ouvre un petit menu « Quel jour de récolte créer ? » avec les seuls jours libres, et ne crée rien tant qu'on n'a pas choisi. Rien de changé dans la base ni dans les calculs ; aucun jour existant touché. Vérifié : `tests/jours-recolte.cjs` (30 sur 30, téléphone et ordinateur), les quatorze autres tests verts. **Non vérifié en réel** : le vrai téléphone et l'ordinateur de François. Le mardi du 10/11 créé ce matin par erreur est toujours là : François peut le retirer lui-même (flèche du mardi, puis « Retirer ce jour de cette semaine »).
 
 - **Animation de la coche dans l'onglet Récolte (9/11, midi)**, demande de François (le chou vert coché par erreur) : la ligne cochée reste environ 3 secondes à sa place en vert plein, case qui grossit, puis glisse et part dans « Récoltes déjà effectuées ». Pas de texte, pas de confirmation ; un second toucher décoche ; la coche est enregistrée tout de suite. Vérifié : `tests/animation-coche.cjs` (22 sur 22), les treize autres tests verts. **Non vérifié en réel** : les vrais téléphones (durée assez longue ? lisible au soleil ?) et l'ordinateur.
 

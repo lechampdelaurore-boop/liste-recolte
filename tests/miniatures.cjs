@@ -163,6 +163,9 @@ const resume = (l) => l.map((x) => x.nom.split('\n')[0].slice(0, 30) + '→' + (
   await T.waitForSelector('#semTable tbody tr');
   controle(await minis(T, '#semTable tbody tr[data-pid] td:first-child'), 'Semaine → Cumul', 6);
   await T.click('[data-sem="recolter"]');
+  // Jours repliés (9/11) : déplier chacun par sa flèche.
+  await T.waitForSelector('#semRecList .rc-tete');
+  for (let i = 0; i < 9 && (await T.$('#semRecList .rc-tete[aria-expanded="false"]')); i++) await T.click('#semRecList .rc-tete[aria-expanded="false"]');
   await T.waitForSelector('#semRecList li[data-pid]');
   const arec = await minis(T, '#semRecList li[data-pid] > span');
   controle(arec, 'Semaine → À récolter (' + arec.length + ' lignes, une par jour de récolte)', arec.length);
