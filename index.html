@@ -284,8 +284,18 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 .db label.dj small{font-weight:600}
 /* Filtre par jour de récolte et impression du tableau de la semaine */
 .sem-filtre{display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;border:var(--bw) solid var(--line);border-radius:var(--radius);padding:8px 10px;background:var(--surface)}
-.sf-l{display:flex;flex-wrap:wrap;gap:6px;align-items:center;flex:1 1 auto}
-.sf-t{font-weight:900;margin-right:4px}
+.sf-barre{display:flex;flex-wrap:wrap;gap:8px;align-items:center;flex:1 1 100%}
+.sf-btn{display:inline-flex;align-items:center;gap:10px;flex:1 1 auto;justify-content:flex-start;text-align:left}
+.sf-btn small{font-weight:700;font-size:.85rem}
+.sf-btn.sf-actif{background:var(--warn-bg);border-width:3px}
+.sf-chev{margin-left:auto;font-size:1.1rem}
+.sf-panneau{flex:1 1 100%;display:grid;gap:10px;border-top:var(--bw) solid var(--line);padding-top:10px}
+.sf-l{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.sf-t{font-weight:900;margin-right:4px;flex:1 1 100%}
+.sem-filtre label.sf-d[style]{color:var(--dc);border-color:var(--dc);border-width:3px}
+.sf-pied{display:flex;flex-wrap:wrap;gap:8px}
+.sf-aide{margin:0}
+.sf-note.sf-oubli{border-width:3px}
 .sem-filtre label.dj{display:inline-flex;align-items:center;gap:8px;border:2px solid var(--line);border-radius:12px;padding:6px 12px;min-height:48px;cursor:pointer;font-weight:900}
 .sem-filtre label.dj input{width:24px;height:24px;margin:0;flex:none;accent-color:var(--accent)}
 .sem-filtre label.dj small{display:block;font-weight:600;font-size:.8rem}
@@ -2509,35 +2519,95 @@ function horsHtml(x, prods){
   }).join('') + '</ul></div>';
 }
 
-/* Filtre par jour de récolte (demande de François du 8/11) : en haut des pages « Répartir » et « Cumul », une case
-   par jour de récolte de la semaine, toutes cochées au départ ; décocher un jour masque les colonnes des livraisons
-   récoltées ce jour-là (et le stock d'un débouché dont toutes les livraisons sont masquées). Le reste compte toujours
-   toutes les livraisons. Le choix est gardé sur l'appareil (par nom de jour : « lundi », « sans » pour les livraisons
-   sans jour de récolte), pas dans la base : chacun regarde ce qu'il veut. */
-var semFiltre = null;
+/* Bouton « Filtre » des pages « Répartir » et « Cumul » (demandes de François du 8/11 et du 9/11). Il ouvre un cadre à
+   deux groupes de cases, toutes cochées au départ :
+   - « Jours de récolte » : décocher un jour masque les colonnes des livraisons récoltées ce jour-là ;
+   - « Débouchés » : décocher un débouché masque toutes ses livraisons et son stock (ex. une semaine sans Panier La Magic).
+   Une colonne n'est affichée que si son jour ET son débouché sont cochés ; le stock d'un débouché part aussi quand toutes
+   ses livraisons sont masquées. Ce n'est qu'un affichage : le reste compte toujours toutes les livraisons, rien n'est écrit
+   dans la base. Le choix est gardé sur l'appareil (jours par nom : « lundi », « sans » ; débouchés par identifiant),
+   d'une semaine à l'autre : chacun regarde ce qu'il veut. Un débouché masqué qui a des quantités cette semaine est signalé. */
+var semFiltre = null, semFiltreOuvert = false;
 function filtreCtx(cr){
   var js = joursSemaine(), ou = {}, cles = [];
   js.forEach(function(j){ var k = jourDe(j.date); cles.push({k:k, date:j.date, cs:cr.filter(function(c){ return j.livraisons.indexOf(c.id) >= 0; })}); j.livraisons.forEach(function(c){ ou[c] = k; }); });
   var sans = cr.filter(function(c){ return !ou[c.id]; });
   if(sans.length) cles.push({k:'sans', cs:sans});
   var m = (ui.semMasque || []).filter(function(k){ return cles.some(function(x){ return x.k === k; }); });
-  return {ou:ou, cles:cles, masque:m};
+  // Débouchés : ceux qui ont une colonne cette semaine (livraison ou stock), dans l'ordre des réglages.
+  var liste = debListe(), st = stocks(), ids = [];
+  cr.forEach(function(c){ if(c.circuit && ids.indexOf(c.circuit) < 0) ids.push(c.circuit); });
+  st.forEach(function(x){ if(ids.indexOf(x.id) < 0) ids.push(x.id); });
+  var rang = function(id){ var i = liste.map(function(d){ return d.id; }).indexOf(id); return i < 0 ? 1e6 + ids.indexOf(id) : i; };
+  ids.sort(function(a, b){ return rang(a) - rang(b); });
+  var debs = ids.map(function(id){
+    var d = liste.filter(function(x){ return x.id === id; })[0], s = st.filter(function(x){ return x.id === id; })[0];
+    var cs = cr.filter(function(c){ return c.circuit === id; });
+    return {id:id, nom:d ? d.nom : s ? s.nom : cs.length ? cs[0].nom : id, cs:cs, stock:!!s};
+  });
+  var md = (ui.semMasqueD || []).filter(function(id){ return ids.indexOf(id) >= 0; });
+  return {ou:ou, cles:cles, masque:m, debs:debs, masqueD:md};
 }
-function visibleC(c){ return !semFiltre || semFiltre.masque.indexOf(semFiltre.ou[c.id] || 'sans') < 0; }
+function visibleC(c){
+  if(!semFiltre) return true;
+  return semFiltre.masque.indexOf(semFiltre.ou[c.id] || 'sans') < 0 && semFiltre.masqueD.indexOf(c.circuit) < 0;
+}
 function stocksVisibles(st, cr){
-  return st.filter(function(x){ var l = cr.filter(function(c){ return c.circuit === x.id; }); return !l.length || l.some(visibleC); });
+  return st.filter(function(x){
+    if(semFiltre && semFiltre.masqueD.indexOf(x.id) >= 0) return false;
+    var l = cr.filter(function(c){ return c.circuit === x.id; }); return !l.length || l.some(visibleC);
+  });
+}
+// Ce que le filtre cache : noms courts des colonnes masquées (livraisons, puis stocks).
+function filtreMasquees(){
+  var f = semFiltre; if(!f) return [];
+  var cr = creneaux(), st = stocks(), vus = stocksVisibles(st, cr).map(function(x){ return x.id; });
+  return cr.filter(function(c){ return !visibleC(c); }).map(function(c){ return c.court || c.nom; })
+    .concat(st.filter(function(x){ return vus.indexOf(x.id) < 0; }).map(function(x){ return 'Stock ' + x.nom; }));
+}
+// Débouchés masqués qui ont pourtant des quantités cette semaine (une case remplie, un « tout » ou un reste repris).
+function filtreOublis(){
+  var f = semFiltre; if(!f || !f.masqueD.length) return [];
+  var pleins = {};
+  ['q', 'report'].forEach(function(k){ var o = semLire(k) || {}; Object.keys(o).forEach(function(pid){ Object.keys(o[pid] || {}).forEach(function(c){ if(o[pid][c]) pleins[c] = 1; }); }); });
+  var t = semLire('tout') || {}; Object.keys(t).forEach(function(pid){ if(t[pid] && t[pid].c) pleins[t[pid].c] = 1; });
+  return f.debs.filter(function(d){ return f.masqueD.indexOf(d.id) >= 0 && d.cs.some(function(c){ return pleins[c.id]; }); }).map(function(d){ return d.nom; });
 }
 function filtreHtml(){
   var f = semFiltre;
-  if(!f || !f.cles.length) return '';
-  var masquees = [];
-  f.cles.forEach(function(x){ if(f.masque.indexOf(x.k) >= 0) x.cs.forEach(function(c){ masquees.push(c.court || c.nom); }); });
-  return '<div class="sem-filtre"><div class="sf-l" role="group" aria-label="Récoltes affichées"><span class="sf-t">Récoltes affichées</span>' + f.cles.map(function(x){
-    var nom = x.k === 'sans' ? 'Sans jour de récolte' : majuscule(titreJour(x.date));
-    return '<label class="dj sf-j"><input type="checkbox" data-a="filtre" data-j="' + x.k + '"' + (f.masque.indexOf(x.k) < 0 ? ' checked' : '') + '><span>' + esc(nom) +
-      '<small>' + esc(x.cs.length ? x.cs.map(function(c){ return c.court || c.nom; }).join(', ') : 'aucune livraison') + '</small></span></label>';
-  }).join('') + '</div><button type="button" class="sem-act sf-imp" data-a="imprimer">Imprimer</button>' +
-    (masquees.length ? '<p class="sf-note">Colonnes masquées : ' + esc(masquees.join(', ')) + '. Le reste compte toujours toutes les livraisons.</p>' : '') + '</div>';
+  if(!f || (!f.cles.length && !f.debs.length)) return '';
+  var masquees = filtreMasquees(), oublis = filtreOublis(), n = masquees.length;
+  var etat = n ? n + ' colonne' + (n > 1 ? 's' : '') + ' masquée' + (n > 1 ? 's' : '') : 'tout affiché';
+  var h = '<div class="sem-filtre"><div class="sf-barre">' +
+    '<button type="button" class="sem-act sf-btn' + (n ? ' sf-actif' : '') + '" data-a="filtre-ouvrir" aria-expanded="' + semFiltreOuvert + '" aria-controls="sfPanneau">' +
+      '<span>Filtre</span><small>' + esc(etat) + '</small><span class="sf-chev" aria-hidden="true">' + (semFiltreOuvert ? '▴' : '▾') + '</span></button>' +
+    '<button type="button" class="sem-act sf-imp" data-a="imprimer">Imprimer</button></div>';
+  if(semFiltreOuvert){
+    h += '<div class="sf-panneau" id="sfPanneau">';
+    // Jours de récolte : inutile s'il n'y a qu'une case « Sans jour de récolte » (ferme sans jours de récolte réglés).
+    if(f.cles.length && !(f.cles.length === 1 && f.cles[0].k === 'sans')){
+      h += '<div class="sf-l" role="group" aria-label="Jours de récolte affichés"><span class="sf-t">Jours de récolte</span>' + f.cles.map(function(x){
+        var nom = x.k === 'sans' ? 'Sans jour de récolte' : majuscule(titreJour(x.date));
+        return '<label class="dj sf-j"><input type="checkbox" data-a="filtre" data-j="' + x.k + '"' + (f.masque.indexOf(x.k) < 0 ? ' checked' : '') + '><span>' + esc(nom) +
+          '<small>' + esc(x.cs.length ? x.cs.map(function(c){ return c.court || c.nom; }).join(', ') : 'aucune livraison') + '</small></span></label>';
+      }).join('') + '</div>';
+    }
+    if(f.debs.length){
+      h += '<div class="sf-l" role="group" aria-label="Débouchés affichés"><span class="sf-t">Débouchés</span>' + f.debs.map(function(d){
+        var det = d.cs.map(function(c){ return c.court || c.nom; });
+        if(d.stock) det.push('stock');
+        var court = d.cs.length === 1 && !d.stock; // une seule livraison : le nom du débouché suffit
+        return '<label class="dj sf-j sf-d"' + dc(d.id) + '><input type="checkbox" data-a="filtre-d" data-d="' + esc(d.id) + '"' + (f.masqueD.indexOf(d.id) < 0 ? ' checked' : '') + '><span>' + esc(d.nom) +
+          (court ? '' : '<small>' + esc(det.join(', ')) + '</small>') + '</span></label>';
+      }).join('') + '</div>';
+    }
+    h += '<div class="sf-pied">' + (f.masque.length || f.masqueD.length ? '<button type="button" class="sem-act" data-a="filtre-tout">Tout afficher</button>' : '') +
+      '<button type="button" class="sem-act" data-a="filtre-ouvrir">Fermer</button></div>' +
+      '<p class="hint sf-aide">Le filtre ne change que l\'affichage, sur cet appareil : aucun chiffre n\'est effacé, et le reste compte toujours toutes les livraisons.</p></div>';
+  }
+  if(n) h += '<p class="sf-note">Colonnes masquées : ' + esc(masquees.join(', ').replace(/\.$/, '')) + '. Le reste compte toujours toutes les livraisons.</p>';
+  if(oublis.length) h += '<p class="sf-note sf-oubli" role="status">Attention : ' + esc(oublis.join(', ')) + (oublis.length > 1 ? ' sont masqués mais ont' : ' est masqué mais a') + ' des quantités cette semaine.</p>';
+  return h + '</div>';
 }
 // Impression : le tableau de la semaine tel que filtré (noms courts, chiffres et unités, couleurs des débouchés),
 // en paysage, avec des lignes assez hautes pour écrire à la main. Le reste de la page n'est pas imprimé.
@@ -2547,9 +2617,13 @@ function imprimerSemaine(){
   prods.forEach(function(p){ calc[p.id] = calcul(p.id, p.f); });
   dcCache = couleurs();
   var f = semFiltre, rec = f ? f.cles.filter(function(x){ return f.masque.indexOf(x.k) < 0; }).map(function(x){ return x.k === 'sans' ? 'sans jour de récolte' : titreJour(x.date); }) : [];
+  var debM = f ? f.debs.filter(function(x){ return f.masqueD.indexOf(x.id) >= 0; }).map(function(x){ return x.nom; }) : [];
+  var jours = f && f.cles.length && !(f.cles.length === 1 && f.cles[0].k === 'sans');
   var d = deIso(sem.id), maintenant = new Date();
   $('#semPrint').innerHTML = '<h1>Répartition · semaine du ' + esc(d.toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'})) + '</h1>' +
-    '<p>' + esc((f && f.cles.length ? (rec.length ? 'Récoltes : ' + rec.join(', ') : 'Aucune récolte cochée') + (f.masque.length ? ' (les autres sont masquées ; le reste compte toutes les livraisons)' : '') + ' · ' : '') +
+    '<p>' + esc((jours ? (rec.length ? 'Récoltes : ' + rec.join(', ') : 'Aucune récolte cochée') + ' · ' : '') +
+      (debM.length ? 'Débouchés masqués : ' + debM.join(', ') + ' · ' : '') +
+      (f && (f.masque.length || f.masqueD.length) ? 'le reste compte toutes les livraisons · ' : '') +
       'imprimé le ' + maintenant.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}) + ' à ' + maintenant.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})) + '</p>' +
     '<table class="imp-t">' + tableHtml(prods, calc, cr) + '</table>';
   window.print();
@@ -2746,7 +2820,9 @@ $('#semView').addEventListener('click', function(e){
   }
   var a = b.dataset.a, ligne = b.closest('.sr'), k = (ligne && ligne.dataset.k) || b.dataset.k;
   if(a === 'imprimer'){ imprimerSemaine(); return; }
-  if(a === 'filtre') return;
+  if(a === 'filtre' || a === 'filtre-d') return;
+  if(a === 'filtre-ouvrir'){ semFiltreOuvert = !semFiltreOuvert; render(); var bf = $('#semFiltre .sf-btn'); if(bf) bf.focus(); return; }
+  if(a === 'filtre-tout'){ ui.semMasque = []; ui.semMasqueD = []; saveUi(); render(); return; }
   if(a === 'ajouter'){ ouvrirAjout(); return; }
   if(a === 'voir-jour'){ ui.jour = b.dataset.date; ui.jourLe = jourIso(new Date()); ui.circ = ''; ui.view = 'recolte'; saveUi(); render(); scrollTo(0, 0); return; }
   if(a === 'ajouter-jour'){ var aj = $('#ajJour'); if(aj && aj.value) ajouterJour(aj.value); return; }
@@ -2800,6 +2876,11 @@ $('#semView').addEventListener('change', function(e){
     var m = (ui.semMasque || []).filter(function(k){ return k !== inp.dataset.j; });
     if(!inp.checked) m.push(inp.dataset.j);
     ui.semMasque = m; saveUi(); render(); return;
+  }
+  if(inp.dataset.a === 'filtre-d'){
+    var md = (ui.semMasqueD || []).filter(function(id){ return id !== inp.dataset.d; });
+    if(!inp.checked) md.push(inp.dataset.d);
+    ui.semMasqueD = md; saveUi(); render(); return;
   }
   if(inp.dataset.a === 'jliv'){ cocherLivraison(inp.dataset.date, inp.dataset.c, inp.checked); return; }
   if(inp.dataset.a === 'chaque'){ chaqueSemaine(inp.dataset.date, inp.checked); return; }

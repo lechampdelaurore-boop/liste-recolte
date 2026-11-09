@@ -102,6 +102,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   verifie((await touche('ArrowUp')) === 'bette|q/lv', 'flèche haut : retour à la bette');
 
   // 5. Colonnes masquées par le filtre : sautées
+  await C.click('#semFiltre [data-a="filtre-ouvrir"]');
   await C.click('#semFiltre input[data-j="lundi"]');
   await attendre(500);
   const L2 = await ligne('bette');
