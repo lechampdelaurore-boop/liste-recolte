@@ -500,7 +500,7 @@ function majStatut(){
 function produits(){
   return ((REF && REF.produits) || []).map(function(p){
     var f = {nom:p.produit}; ['caisse', 'unite', 'kg', 'par_colis', 'type'].forEach(function(k){ if(p[k] !== undefined) f[k] = p[k]; });
-    return {id:pidDe(p.produit), f:f};
+    return {id:pidDe(p.produit), f:f, masque:!!p.masque};
   }).sort(function(a, b){ return a.f.nom.localeCompare(b.f.nom, 'fr'); });
 }
 function ficheDe(pid){ return produits().filter(function(p){ return p.id === pid; })[0]; }
@@ -515,7 +515,7 @@ function ouvrirAjout(){
   var dlg = $('#addDlg'), q = $('#addQ');
   function liste(){
     var t = sansAccent(q.value.trim().toLowerCase()), deja = produitsSemaine().map(function(p){ return p.id; });
-    var l = produits().filter(function(p){ return deja.indexOf(p.id) < 0 && sansAccent(p.f.nom.toLowerCase()).indexOf(t) >= 0; });
+    var l = produits().filter(function(p){ return !p.masque && deja.indexOf(p.id) < 0 && sansAccent(p.f.nom.toLowerCase()).indexOf(t) >= 0; });
     $('#addList').innerHTML = l.length ? l.map(function(p){ return '<li><button type="button" data-pid="' + esc(p.id) + '"><span>' + esc(p.f.nom) + '</span><small>' + esc(colisTxt(p.f)) + '</small></button></li>'; }).join('') : '<li class="vide">Aucun produit trouvé.</li>';
   }
   q.value = ''; liste();

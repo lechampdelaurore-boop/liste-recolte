@@ -125,7 +125,9 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   // 1 bis. Ajouter un produit un par un, en colis par défaut
   await M.click('#ajouter');
   await M.waitForSelector('#addDlg[open]');
-  verifie((await M.$$('#addList button')).length === 73, 'la fenêtre « Ajouter un produit » propose tous les produits du référentiel, sauf ceux déjà dans la liste (obtenu ' + (await M.$$('#addList button')).length + ')');
+  verifie((await M.$$('#addList button')).length === 75, 'la fenêtre « Ajouter un produit » propose tous les produits du référentiel, sauf ceux déjà dans la liste et l\'ancien « Persil frisé (bouquet) » (obtenu ' + (await M.$$('#addList button')).length + ')');
+  await M.fill('#addQ', 'persil');
+  verifie((await M.$$eval('#addList button', (e) => e.map((x) => x.dataset.pid))).join() === 'persil-frise,persil-plat', 'la recherche « persil » propose persil frisé et persil plat, plus l\'ancien en bouquets (9/11)');
   await M.fill('#addQ', 'carotte');
   verifie((await M.$$eval('#addList button', (e) => e.map((x) => x.dataset.pid))).join() === 'carotte-botte,carotte-lavee', 'la recherche « carotte » ne garde que les carottes');
   await capture(M, '3-ajouter');
