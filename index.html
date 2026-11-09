@@ -545,7 +545,7 @@ dialog.big{max-width:min(460px,94vw);width:100%}
     <summary><span>Caisses <span class="crate-sum" id="crateSum"></span></span><span class="chev">›</span></summary>
     <div class="crate-grid" id="crateGrid"></div>
     <label class="crate-opt"><input type="checkbox" id="perCirc" checked> <span>Une caisse par circuit (un demi-colis pour Très Allier et un pour le marché = 2 caisses). Décoché : les demi-colis d'un même produit sont regroupés.</span></label>
-    <p class="crate-note">Une caisse par colis, d'après le code du cumul (PB, PH, GB, GH). Des kilos hors colis (« 1 colis + 5 kg ») prennent une caisse de plus. Les sachets Locavore, les bottes, les pièces et les tomates ne sont pas comptés.</p>
+    <p class="crate-note">Une caisse par colis, d'après le code du cumul (PB, PH, GB, GH). Des kilos hors colis (« 1 colis + 5 kg ») prennent une caisse de plus. Les sachets Locavore, les bottes, les pièces et les tomates ne sont pas comptés. Un produit récolté dans sa propre caisse (par exemple la carotte lavée, en caisse bleue de 16 kg) est compté dans cette caisse, d'après son poids total, tous circuits ensemble.</p>
     <p class="crate-note" id="crateAlt" hidden></p>
   </details>
 
@@ -660,6 +660,12 @@ var MONTRER_LIEU = false;
    passer à true pour le remettre. */
 var MONTRER_DETAIL = false;
 var CRATES = [['PB','Petite basse'],['PH','Petite haute'],['GB','Grande basse'],['GH','Grande haute']];
+// Les caisses de la ferme viennent du référentiel (« caisses » : code → nom) ; CRATES sert tant qu'il n'est pas chargé.
+function caisses(){
+  var c = REF && REF.caisses;
+  if(!c || !Object.keys(c).length) return CRATES;
+  return Object.keys(c).map(function(k){ var n = String(c[k] || k); return [k, n.charAt(0).toUpperCase() + n.slice(1)]; });
+}
 var $ = function(s){ return document.querySelector(s); };
 function ls(k, v){ try{ if(v === undefined){ var x = localStorage.getItem(k); return x ? JSON.parse(x) : null; } localStorage.setItem(k, JSON.stringify(v)); }catch(e){ return null; } }
 function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -803,19 +809,26 @@ function plural(name, v){
   if(v < 2) return name;
   return name.replace(/^(\S+?)(s|x)?(?=\s|$)/, function(w, a, end){ return a + (end || 's'); });
 }
-// Les types de colis à compter, dans l'ordre : PB, PH, GB, GH, puis les colisages des circuits utilisés.
-function crateKinds(){
-  var kinds = CRATES.map(function(c){ return {key:c[0], nm:c[1] + ' (' + c[0] + ')', alt:false}; });
+// Les types de colis à compter, dans l'ordre : les caisses du référentiel (PB, PH, GB, GH ; une caisse qui n'est
+// la caisse principale d'aucun produit, comme la caisse bleue, seulement quand elle a un compte), puis les colisages
+// des circuits utilisés, puis une caisse inconnue du référentiel qui aurait un compte.
+function crateKinds(tot){
+  tot = tot || {};
+  var princ = {};
+  ((REF && REF.produits) || []).forEach(function(p){ if(p.caisse) princ[p.caisse] = 1; });
+  var kinds = caisses().filter(function(c){ return !REF || princ[c[0]] || tot[c[0]]; })
+    .map(function(c){ return {key:c[0], nm:c[1] + ' (' + c[0] + ')', alt:false}; });
   var seen = {};
   list.circuits.forEach(function(ci){
     var m = ci.colisage && list.colisages && list.colisages[ci.colisage];
     if(!m || seen[ci.colisage] || !usedCirc(ci)) return;
     seen[ci.colisage] = 1;
-    CRATES.forEach(function(c){
+    caisses().forEach(function(c){
       var n = m[c[0]];
       if(n && !kinds.some(function(k){ return k.key === n; })) kinds.push({key:n, nm:n, alt:true});
     });
   });
+  Object.keys(tot).forEach(function(k){ if(tot[k] && !kinds.some(function(x){ return x.key === k; })) kinds.push({key:k, nm:k, alt:false}); });
   return kinds;
 }
 function usedCirc(ci){ return list.items.some(function(it){ return it.circ[ci.id] !== undefined && it.circ[ci.id] !== 0; }); }
@@ -826,15 +839,42 @@ function usedCirc(ci){ return list.items.some(function(it){ return it.circ[ci.id
 function circLabel(ci, v, it, short){
   if(typeof v === 'number'){
     var alt = ci && altName(ci.id, it.caisse);
-    if(!alt) return fr(v) + ' colis';
+    if(!alt) return fr(v) + ' ' + (autresIt(it).length && it.caisse ? it.caisse : 'colis');
     return fr(v) + ' ' + plural(alt.charAt(0).toLowerCase() + alt.slice(1), v) + (short ? '' : ' de ' + it.condit);
   }
   return v;
 }
 // Contenu total d'une quantité en colis : 3,5 colis de « 5 kg » = 17,5 kg ; 1 colis de « 10 bouquets » = 10 bouquets.
 function content(v, it){
-  var m = typeof v === 'number' && /^([\d,.]+) (.+)$/.exec(it.condit || '');
-  return m ? fr(Math.round(v * parseFloat(m[1].replace(',', '.')) * 10) / 10) + ' ' + m[2] : '';
+  var m = /^([\d,.]+) (.+)$/.exec(it.condit || ''), a = typeof v === 'string' && autreDeTxt(it, v);
+  if(a && m) return fr(Math.round(a.n * a.c * 10) / 10) + ' ' + m[2];
+  return m && typeof v === 'number' ? fr(Math.round(v * parseFloat(m[1].replace(',', '.')) * 10) / 10) + ' ' + m[2] : '';
+}
+/* Autres conditionnements d'un produit (référentiel « autres_colis », ex. carotte lavée en caisse bleue de 16 kg au
+   lieu de la petite haute de 8 kg) et caisse de récolte (« recolte_en », ex. toujours récoltée en caisse bleue).
+   Une ligne de liste les porte (autres, recolte) ; une ligne plus ancienne les reprend du référentiel. */
+function refDe(id){ return ((REF && REF.produits) || []).filter(function(p){ return pidDe(p.produit) === id; })[0] || null; }
+function autresIt(it){
+  var a = it.autres || (list && list.calc && !it.autres && (refDe(it.id) || {}).autres_colis);
+  return tableau(a).filter(function(x){ return x && x.caisse; });
+}
+function recolteIt(it){
+  var r = it.recolte !== undefined ? it.recolte : (list && list.calc ? (refDe(it.id) || {}).recolte_en : null);
+  return r && r.caisse && (+r.kg > 0 || +r.par_colis > 0) ? r : null;
+}
+// « 2 CB » dans une liste : {n:2, c:16} (16 = contenu d'une caisse bleue, dans l'unité du conditionnement).
+function autreDeTxt(it, v){
+  var m = /^([\d,.]+) (\S+)$/.exec(String(v)); if(!m) return null;
+  var a = autresIt(it).filter(function(x){ return x.caisse === m[2]; })[0]; if(!a) return null;
+  return {n:parseFloat(m[1].replace(',', '.')), c:+(a.kg || a.par_colis), caisse:a.caisse};
+}
+// Contenu d'une quantité de liste, dans l'unité du conditionnement (kilos ou unités) ; 0 si inconnu.
+function contenuDe(it, v){
+  var m = /^([\d,.]+) (.+)$/.exec(it.condit || ''), c = m ? parseFloat(m[1].replace(',', '.')) : 0;
+  if(typeof v === 'number') return v * c;
+  var a = autreDeTxt(it, v); if(a) return a.n * a.c;
+  var k = /^\s*([\d,.]+)\s*(\S+)\s*$/.exec(String(v)); if(!k || !m) return 0;
+  return (k[2] === m[2] || (m[2] === 'kg' && k[2] === 'kg')) ? parseFloat(k[1].replace(',', '.')) : 0;
 }
 // Quantité d'un produit pour un circuit (filtre de circuit, ligne de préparation).
 function circQtyHtml(it, circId){
@@ -861,13 +901,24 @@ function colisOf(it, v){
 }
 function itemCrates(it){
   var r = {};
+  // Produit récolté dans sa propre caisse (carotte lavée en caisse bleue de 16 kg) : le poids total, tous circuits
+  // ensemble (il est reconditionné après), divisé par le contenu de cette caisse, arrondi au-dessus.
+  var rec = recolteIt(it);
+  if(rec){
+    var t = 0;
+    Object.keys(it.circ).forEach(function(k){ if(!(ui.circ && k !== ui.circ)) t += contenuDe(it, it.circ[k]); });
+    var nr = Math.ceil(t / +(rec.kg || rec.par_colis) - 1e-6);
+    if(nr > 0) r[rec.caisse] = nr;
+    return r;
+  }
   if(!it.caisse) return r;
   var sum = {}, n = {};
   Object.keys(it.circ).forEach(function(k){
-    var v = colisOf(it, it.circ[k]);
+    var a = autreDeTxt(it, it.circ[k]);
+    var v = a ? a.n : colisOf(it, it.circ[k]);
     if(!(v > 0)) return;
     if(ui.circ && k !== ui.circ) return;
-    var key = altName(k, it.caisse) || it.caisse;
+    var key = a ? a.caisse : (altName(k, it.caisse) || it.caisse);
     sum[key] = (sum[key] || 0) + v; n[key] = (n[key] || 0) + Math.ceil(v);
   });
   Object.keys(sum).forEach(function(key){
@@ -1091,7 +1142,7 @@ function renderCrates(){
     });
   });
   var allT = 0, allR = 0;
-  $('#crateGrid').innerHTML = crateKinds().map(function(k){
+  $('#crateGrid').innerHTML = crateKinds(tot).map(function(k){
     var t = tot[k.key] || 0, r = rest[k.key] || 0; allT += t; allR += r;
     return '<div class="crate' + (k.alt ? ' alt' : '') + '" data-c="' + esc(k.key) + '"><span class="nm">' + esc(k.nm) + '</span><b>' + r + '</b><span>' +
       (t === r ? 'à remplir' : 'à remplir sur ' + t) + '</span></div>';
@@ -1105,7 +1156,7 @@ function renderCrates(){
   });
   var notes = Object.keys(groups).map(function(g){
     var m = list.colisages[g];
-    return groups[g].join(', ') + ' : ' + CRATES.filter(function(c){ return m[c[0]]; }).map(function(c){ return c[0] + ' → ' + m[c[0]].toLowerCase(); }).join(', ') + '. Même contenu que dans la caisse.';
+    return groups[g].join(', ') + ' : ' + caisses().filter(function(c){ return m[c[0]]; }).map(function(c){ return c[0] + ' → ' + m[c[0]].toLowerCase(); }).join(', ') + '. Même contenu que dans la caisse.';
   });
   $('#crateAlt').hidden = !notes.length;
   $('#crateAlt').textContent = notes.join(' ');
@@ -1375,7 +1426,7 @@ function chargerRef(){
   }
   debConnecter();
   refCharge = Promise.all([lire('referentiel/conditionnements.json', 'recolte.referentiel'), lire('referentiel/debouches.json', 'recolte.debouches0')])
-    .then(function(r){ REF = r[0]; DEB0 = r[1]; crCache = null; if(!REF || !DEB0){ refCharge = null; refEchec = Date.now(); } render(); });
+    .then(function(r){ REF = r[0]; DEB0 = r[1]; crCache = null; nomsCaisses(); if(!REF || !DEB0){ refCharge = null; refEchec = Date.now(); } render(); });
   return refCharge;
 }
 
@@ -1679,7 +1730,7 @@ function nomProduit(pid){
   return r ? r.produit : pid;
 }
 function ficheDe(pid){
-  var p = semLire('produits/' + pid); if(p && p.nom) return p;
+  var p = semLire('produits/' + pid); if(p && p.nom) return complet(pid, p);
   var r = REF && (REF.produits || []).filter(function(x){ return pidDe(x.produit) === pid; })[0];
   return r ? fiche(r) : {nom:pid};
 }
@@ -2103,11 +2154,35 @@ function miniHtml(nom){
   return e ? '<svg class="mini" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="especes/plants.svg#' + e + '"/></svg>' : '';
 }
 function contenu(f){ return f.kg ? {u:'kg', n:+f.kg} : (f.par_colis ? {u:'u', n:+f.par_colis} : null); }
-function unitesDe(f){ var c = contenu(f); return c ? ['colis', c.u] : ['colis']; }
+// Autres conditionnements possibles d'un produit (référentiel « autres_colis ») : leur unité est le code de leur
+// caisse (« CB » : caisse bleue). Seulement ceux dont le contenu est dans la même unité que le colis principal.
+function autresDe(f){
+  var c = contenu(f);
+  return tableau(f && f.autres_colis).filter(function(a){
+    return a && a.caisse && a.caisse !== f.caisse && ['colis', 'kg', 'u'].indexOf(a.caisse) < 0 && c && (c.u === 'kg' ? +a.kg > 0 : +a.par_colis > 0);
+  });
+}
+function autreDe(f, u){ return autresDe(f).filter(function(a){ return a.caisse === u; })[0] || null; }
+function contenuAutre(a){ return +(a.kg || a.par_colis); }
+function unitesDe(f){ var c = contenu(f); return ['colis'].concat(autresDe(f).map(function(a){ return a.caisse; }), c ? [c.u] : []); }
 // Le colis d'un produit porte le nom de sa caisse (PB, PH, GB, GH) : « 10 PB » = 10 petites basses.
+// Les noms viennent du référentiel (« caisses ») une fois chargé.
 var NOMS_CAISSES = {PB:'petite basse', PH:'petite haute', GB:'grande basse', GH:'grande haute'};
+function nomsCaisses(){ if(REF && REF.caisses) Object.keys(REF.caisses).forEach(function(k){ NOMS_CAISSES[k] = String(REF.caisses[k]).toLowerCase(); }); }
+// Fiche d'un produit de la semaine, complétée par le référentiel pour ce qu'elle n'a pas encore (autres
+// conditionnements, caisse de récolte) : une semaine saisie avant leur ajout en profite, sans rien écrire.
+function complet(pid, f){
+  if(!f) return f;
+  var r = refDe(pid);
+  if(!r || (f.autres_colis !== undefined && f.recolte_en !== undefined)) return f;
+  var o = Object.assign({}, f);
+  if(o.autres_colis === undefined && r.autres_colis && r.caisse === o.caisse) o.autres_colis = r.autres_colis;
+  if(o.recolte_en === undefined && r.recolte_en) o.recolte_en = r.recolte_en;
+  return o;
+}
 function nomUnite(u, f, n){
   if(u === 'colis') return f.caisse || 'colis';
+  if(autreDe(f, u)) return u;
   if(u === 'kg') return 'kg';
   var t = (f.type || 'unité');
   return Math.abs(n) >= 2 ? t + 's' : t;
@@ -2115,10 +2190,16 @@ function nomUnite(u, f, n){
 function enColis(q, f){
   if(!q || typeof q.n !== 'number') return NaN;
   if(q.u === 'colis' || !q.u) return q.n;
-  var c = contenu(f);
+  var c = contenu(f), a = autreDe(f, q.u);
+  if(a) return q.n * contenuAutre(a) / c.n;
   return c && c.u === q.u ? q.n / c.n : NaN;
 }
-function deColis(x, u, f){ if(u === 'colis') return x; var c = contenu(f); return c ? x * c.n : NaN; }
+function deColis(x, u, f){
+  if(u === 'colis') return x;
+  var c = contenu(f), a = autreDe(f, u);
+  if(a) return x * c.n / contenuAutre(a);
+  return c ? x * c.n : NaN;
+}
 function nb(x){
   var r = Math.round(x * 100) / 100;
   if(Math.abs(r) < EPS) r = 0;
@@ -2132,7 +2213,7 @@ function deux(x, f){
 }
 function equiv(q, f){
   var x = enColis(q, f); if(isNaN(x)) return '';
-  if(q.u === 'colis'){ var c = contenu(f); return c ? '= ' + qTxt(deColis(x, c.u, f), c.u, f) : ''; }
+  if(q.u === 'colis' || autreDe(f, q.u)){ var c = contenu(f); return c ? '= ' + qTxt(deColis(x, c.u, f), c.u, f) : ''; }
   return '= ' + nb(x) + ' ' + nomUnite('colis', f);
 }
 function sansAccent(s){ return s.normalize('NFD').replace(/[̀-ͯ]/g, ''); }
@@ -2150,19 +2231,26 @@ function lireSaisie(txt, f, defU){
   })[0];
   if(!w) u = defU;
   else if(/^(c|colis|caisses?)$/.test(w)) u = 'colis';
+  else if(caisse && autreDe(f, caisse)) u = caisse;
   else if(caisse){
-    if(f.caisse && caisse !== f.caisse) return {err:f.nom + ' part en ' + f.caisse + ' (' + NOMS_CAISSES[f.caisse] + '), pas en ' + caisse + '.'};
+    if(f.caisse && caisse !== f.caisse) return {err:f.nom + ' part en ' + caissesTxt(f) + ', pas en ' + caisse + '.'};
     u = 'colis';
   }
   else if(/^(kg|kgs|kilos?)$/.test(w)) u = 'kg';
   else if(/^(g|gr|grammes?)$/.test(w)){ u = 'kg'; n = n / 1000; }
   else if(/^(u|unites?)$/.test(w) || (f.type && w.length >= 3 && sansAccent(f.type).indexOf(w.replace(/s$/, '').slice(0, 5)) === 0)) u = 'u';
   else return {err:'Unité inconnue : « ' + m[2] + ' ». ' + aideUnites(f)};
-  if(u !== 'colis' && (!c || c.u !== u)) return {err:aideUnites(f)};
+  if(u !== 'colis' && !autreDe(f, u) && (!c || c.u !== u)) return {err:aideUnites(f)};
   return {n:Math.round(n * 1000) / 1000, u:u};
 }
-function aideUnites(f){ var c = contenu(f); return 'Ce produit se compte en ' + (f.caisse ? f.caisse + ' (' + NOMS_CAISSES[f.caisse] + ')' : 'colis') + (c ? ' ou en ' + nomUnite(c.u, f, 2) : '') + '.'; }
-function pas(u){ return u === 'colis' ? 0.5 : 1; }
+// « PH (petite haute) ou CB (caisse bleue) »
+function caissesTxt(f){
+  var l = [f.caisse].concat(autresDe(f).map(function(a){ return a.caisse; })).filter(Boolean)
+    .map(function(k){ return k + (NOMS_CAISSES[k] ? ' (' + NOMS_CAISSES[k] + ')' : ''); });
+  return l.length ? l.join(' ou ') : 'colis';
+}
+function aideUnites(f){ var c = contenu(f); return 'Ce produit se compte en ' + caissesTxt(f) + (c ? ' ou en ' + nomUnite(c.u, f, 2) : '') + '.'; }
+function pas(u){ return u === 'kg' || u === 'u' ? 1 : 0.5; }
 
 // Calcul d'une ligne : reste = disponible − tout ce qui est réparti. « tout » prend ce qui reste.
 function calcul(pid, f){
@@ -2227,10 +2315,14 @@ function grilleMesures(){
 window.addEventListener('resize', grilleMesures);
 function produitsSem(){
   var p = semLire('produits') || {};
-  return Object.keys(p).filter(function(id){ return p[id] && p[id].nom; }).map(function(id){ return {id:id, f:p[id]}; })
+  return Object.keys(p).filter(function(id){ return p[id] && p[id].nom; }).map(function(id){ return {id:id, f:complet(id, p[id])}; })
     .sort(function(a, b){ return a.f.nom.localeCompare(b.f.nom, 'fr'); });
 }
-function colisTxt(f){ var c = contenu(f); return (f.caisse ? f.caisse + ' de ' : 'Colis de ') + (c ? qTxt(c.n, c.u, f) : (f.unite || '?')); }
+function colisTxt(f){
+  var c = contenu(f);
+  return (f.caisse ? f.caisse + ' de ' : 'Colis de ') + (c ? qTxt(c.n, c.u, f) : (f.unite || '?')) +
+    autresDe(f).map(function(a){ return ' ou ' + a.caisse + ' de ' + qTxt(contenuAutre(a), c.u, f); }).join('');
+}
 function qCourt(q, f){ return q.u === 'colis' || !q.u ? nb(q.n) : qTxt(q.n, q.u, f); }
 function quiQuand(o){
   if(!o || !o.at) return '';
@@ -2319,6 +2411,12 @@ function renderSemaine(){
 /* À récolter, jour par jour (étape 13D) : les jours de récolte de cette semaine, avec les livraisons qu'on y
    récolte (à cocher, pour cette semaine seulement), la case « Chaque semaine », ce qu'il y a à récolter et sa liste. */
 function renderARecolter(prods, calc, cr){ $('#semRecList').innerHTML = aRecolterHtml(prods, calc, cr); }
+// Produit récolté dans sa propre caisse : « · récolte : 3 CB » (poids total divisé par le contenu de la caisse).
+function recolteTxt(tot, f){
+  var r = f.recolte_en, c = contenu(f), n = r && c ? +(c.u === 'kg' ? r.kg : r.par_colis) : 0;
+  if(!(n > 0) || !r.caisse || !(tot > EPS)) return '';
+  return ' · récolte : ' + Math.ceil(tot * c.n / n - 1e-6) + ' ' + r.caisse;
+}
 function aRecolterHtml(prods, calc, cr){
   var js = joursSemaine(), ou = {};
   js.forEach(function(j){ j.livraisons.forEach(function(c){ ou[c] = j.date; }); });
@@ -2338,7 +2436,7 @@ function aRecolterHtml(prods, calc, cr){
         var q = semLire('q/' + p.id + '/' + c.id), x = enColis(q, f);
         if(q && !isNaN(x) && x > EPS){ tot += x; det.push(nomC + ' ' + qCourt(q, f)); }
       });
-      if(tot > EPS || toutInconnu) lignes.push('<li data-pid="' + esc(p.id) + '"><span>' + miniHtml(f.nom) + esc(f.nom) + '</span><b>' + (tot > EPS ? esc(deux(tot, f)) : '') + (toutInconnu ? (tot > EPS ? ' + ' : '') + 'tout ce qui reste' : '') + '</b><small>' + esc(det.join(' · ')) + '</small></li>');
+      if(tot > EPS || toutInconnu) lignes.push('<li data-pid="' + esc(p.id) + '"><span>' + miniHtml(f.nom) + esc(f.nom) + '</span><b>' + (tot > EPS ? esc(deux(tot, f)) : '') + (toutInconnu ? (tot > EPS ? ' + ' : '') + 'tout ce qui reste' : '') + esc(recolteTxt(tot, f)) + '</b><small>' + esc(det.join(' · ')) + '</small></li>');
     });
     if(!g.j && !lignes.length) return;
     var j = g.j, titre = j ? majuscule(titreJour(j.date)) : 'Sans jour de récolte';
@@ -2630,7 +2728,7 @@ function poser(pid, k, val){
   if(val && k.indexOf('q/') === 0 && t && t.c === k.split('/')[1]) ch['tout/' + pid] = null;
   semEcrire(ch);
 }
-function produitDe(pid){ return semLire('produits/' + pid); }
+function produitDe(pid){ return complet(pid, semLire('produits/' + pid)); }
 
 // Choix de la semaine, au-dessus des trois pages de l'onglet.
 $('#semNav').addEventListener('click', function(e){
@@ -2784,7 +2882,7 @@ function retirer(pid){
 }
 function fiche(p){
   var o = {nom:p.produit || p.nom};
-  ['caisse', 'unite', 'kg', 'par_colis', 'type'].forEach(function(k){ if(p[k] !== undefined) o[k] = p[k]; });
+  ['caisse', 'unite', 'kg', 'par_colis', 'type', 'autres_colis', 'recolte_en'].forEach(function(k){ if(p[k] !== undefined) o[k] = p[k]; });
   return o;
 }
 // Reprendre la liste des produits (sans les quantités) de la semaine précédente.
@@ -2884,32 +2982,41 @@ function fusion(parts, f){
   if(!parts.every(function(q){ return (q.u || 'colis') === u; })){ parts.forEach(function(q){ n += enColis(q, f); }); return arrondi(n); }
   parts.forEach(function(q){ n += q.n; });
   n = arrondi(n);
-  return u === 'colis' ? n : qTxt(n, u, f);
+  return u === 'colis' ? n : qTxt(n, u, f);   // « 5 kg », « 6 bottes », « 2 CB » (autre conditionnement)
 }
 // Une ligne de la liste : total et contenu (kilos, unités) calculés, plus écrits à la main.
 function ligneCalculee(pid, f, circ){
-  var c = contenu(f), colis = 0, kg = 0, u = 0, tout = false;
+  var c = contenu(f), colis = 0, kg = 0, u = 0, tout = false, aut = {}, autres = autresDe(f);
   Object.keys(circ).forEach(function(k){
     var v = circ[k];
     if(typeof v === 'number'){ colis += v; return; }
     if(v === 'tout'){ tout = true; return; }
     var m = /^([\d,]+) (.+)$/.exec(v); if(!m) return;
     var n = parseFloat(m[1].replace(',', '.'));
-    if(m[2] === 'kg') kg += n; else u += n;
+    if(autreDe(f, m[2])) aut[m[2]] = (aut[m[2]] || 0) + n;
+    else if(m[2] === 'kg') kg += n; else u += n;
   });
   colis = arrondi(colis); kg = arrondi(kg); u = arrondi(u);
   var tot = [];
-  if(colis > EPS) tot.push(nb(colis) + ' colis');
+  // Un produit à plusieurs conditionnements dit sa caisse (« 3 PH + 1 CB ») au lieu de « colis ».
+  if(colis > EPS) tot.push(nb(colis) + ' ' + (autres.length && f.caisse ? f.caisse : 'colis'));
+  Object.keys(aut).forEach(function(k){ var x = arrondi(aut[k]); if(x > EPS) tot.push(nb(x) + ' ' + k); });
   if(kg > EPS) tot.push(nb(kg) + ' kg');
   if(u > EPS) tot.push(qTxt(u, 'u', f));
   var kgT = kg, uT = u, cont = [];
   if(c && c.u === 'kg') kgT += colis * c.n; else if(c && c.u === 'u') uT += colis * c.n;
+  Object.keys(aut).forEach(function(k){ var x = aut[k] * contenuAutre(autreDe(f, k)); if(c.u === 'kg') kgT += x; else uT += x; });
   if(kgT > EPS) cont.push(nb(arrondi(kgT)) + ' kg');
   if(uT > EPS) cont.push(qTxt(arrondi(uT), 'u', f));
   if(!c && colis > EPS) cont.push(nb(colis) + ' colis');
-  return {id:pid, produit:f.nom, caisse:f.caisse || null, condit:c ? qTxt(c.n, c.u, f) : (f.unite || ''), circ:circ,
+  var o = {id:pid, produit:f.nom, caisse:f.caisse || null, condit:c ? qTxt(c.n, c.u, f) : (f.unite || ''), circ:circ,
     total: tot.length ? tot.join(' + ') + (tout ? ' + tout le reste' : '') : (tout ? 'tout ce qu\'il y a' : ''),
     kg: cont.length ? cont.join(' + ') : (tout ? 'tout' : '')};
+  // Autres conditionnements et caisse de récolte : portés par la ligne (et donc par la liste figée).
+  if(autres.length) o.autres = autres.map(function(x){ var y = {caisse:x.caisse}; if(x.kg) y.kg = +x.kg; else y.par_colis = +x.par_colis; return y; });
+  var rec = f.recolte_en;
+  if(rec && rec.caisse && (+rec.kg > 0 || +rec.par_colis > 0)) o.recolte = rec.kg ? {caisse:rec.caisse, kg:+rec.kg} : {caisse:rec.caisse, par_colis:+rec.par_colis};
+  return o;
 }
 // La liste d'un jour de récolte : un circuit par débouché (son identifiant, comme les listes en fichier),
 // une ligne par produit qui a une quantité pour l'une des livraisons du jour. Le stock au magasin et le
