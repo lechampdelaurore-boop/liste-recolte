@@ -132,6 +132,38 @@ li.done .box{background:var(--accent);border-color:var(--accent)} li.done .box s
 .more{grid-column:3;justify-self:end;width:40px;height:40px;display:grid;place-items:center;border:var(--bw) solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);padding:0;cursor:pointer}
 .more svg{width:24px;height:24px;transition:transform .2s}
 .more[aria-expanded="true"] svg{transform:rotate(180deg)}
+/* Ordinateur avec souris (9/11, demande de François) : lignes compactes d'environ 48 px, poignée à gauche pour glisser
+   tout de suite, et boutons « tout en haut, monter, descendre, tout en bas » sur la ligne survolée. Le téléphone ne change pas. */
+.poignee,.bouger,.hint .pc{display:none}
+@media (min-width:1000px) and (hover:hover) and (pointer:fine){
+  .hint .tel{display:none} .hint .pc{display:inline}
+  li.item{grid-template-columns:auto auto minmax(9em,1fr) auto auto auto;grid-template-areas:"poi box main qty bou more";gap:4px 10px;padding:4px 8px 4px 4px;min-height:48px;box-sizing:border-box}
+  li.item .poignee{grid-area:poi}
+  li.item .box{grid-area:box;width:34px;height:34px;border-radius:8px}
+  li.item .box svg{width:22px;height:22px}
+  li.item .main{grid-area:main}
+  li.item .prod{font-size:1.05rem}
+  li.item .prod{line-height:1.1}
+  li.item .qty{grid-area:qty;max-width:22em;font-size:1rem;line-height:1.15}
+  li.item .qty small{font-size:.8rem;line-height:1.1}
+  li.item .bouger{grid-area:bou}
+  li.item .more{grid-area:more;width:32px;height:32px;border-radius:8px}
+  li.item .more svg{width:20px;height:20px}
+  li.item .detail,li.item .ecart,li.item .by,li.item .repart{grid-column:1 / -1}
+  li.item .by{padding-left:4px}
+  #todo li.item .poignee{display:grid;place-items:center;width:28px;height:34px;cursor:grab;color:var(--fg);border-radius:8px;touch-action:none}
+  #todo li.item .poignee svg{width:12px;height:20px;fill:currentColor}
+  #todo li.item .poignee:hover{background:var(--surface2)}
+  #todo li.item.dragging .poignee{cursor:grabbing}
+  #todo li.item .bouger{display:flex;gap:4px;visibility:hidden}
+  #todo li.item:hover .bouger,#todo li.item:focus-within .bouger{visibility:visible}
+  #todo li.item:hover{box-shadow:0 0 0 3px var(--accent),var(--ombre)}
+  .bouger button{width:34px;height:34px;display:grid;place-items:center;padding:0;border:var(--bw) solid var(--line);border-radius:8px;background:var(--surface);color:var(--fg);cursor:pointer}
+  .bouger button:hover{background:var(--fg);color:var(--bg)}
+  .bouger button:disabled{opacity:.3;cursor:default;background:var(--surface);color:var(--fg)}
+  .bouger svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+  #todo li.item.bouge{box-shadow:0 0 0 4px var(--accent),var(--ombre)}
+}
 .repart{grid-column:1 / 4;list-style:none;margin:0;padding:0;border-top:var(--bw) solid var(--line)}
 .repart li{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:8px 2px;border-top:1.5px solid var(--line)}
 .repart li:first-child{border-top:0}
@@ -515,7 +547,7 @@ dialog.big{max-width:min(460px,94vw);width:100%}
     <p class="crate-note" id="crateAlt" hidden></p>
   </details>
 
-  <p class="hint" id="dragHint">Appui long sur une ligne pour la déplacer.</p>
+  <p class="hint" id="dragHint"><span class="tel">Appui long sur une ligne pour la déplacer.</span><span class="pc">Pour ranger dans l'ordre de récolte : glissez une ligne par sa poignée (les six points à gauche), ou passez la souris sur la ligne pour ses boutons tout en haut, monter, descendre, tout en bas.</span></p>
   <ul class="list" id="todo"></ul>
 
   <details class="donesec" id="doneSec">
@@ -859,7 +891,23 @@ function repartHtml(it){
 }
 var CHECK = '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
 
-function itemHtml(it, done){
+// Ordinateur : poignée et boutons de tri (cachés sur le téléphone par la feuille de style).
+var POIGNEE = '<svg viewBox="0 0 12 20" aria-hidden="true"><circle cx="3" cy="3" r="2"/><circle cx="9" cy="3" r="2"/><circle cx="3" cy="10" r="2"/><circle cx="9" cy="10" r="2"/><circle cx="3" cy="17" r="2"/><circle cx="9" cy="17" r="2"/></svg>';
+var BOUGER = [
+  ['haut', 'Tout en haut', 'Mettre %s tout en haut', 'M5 4h14M12 20V9M6.5 14.5L12 9l5.5 5.5'],
+  ['monter', 'Monter d\'un cran', 'Monter %s d\'un cran', 'M6 15l6-6 6 6'],
+  ['descendre', 'Descendre d\'un cran', 'Descendre %s d\'un cran', 'M6 9l6 6 6-6'],
+  ['bas', 'Tout en bas', 'Mettre %s tout en bas', 'M5 20h14M12 4v11M6.5 9.5L12 15l5.5-5.5']
+];
+function bougerHtml(it, premier, dernier){
+  return '<span class="bouger">' + BOUGER.map(function(b){
+    var off = (premier && (b[0] === 'haut' || b[0] === 'monter')) || (dernier && (b[0] === 'bas' || b[0] === 'descendre'));
+    return '<button type="button" data-a="' + b[0] + '" title="' + esc(b[1]) + '" aria-label="' + esc(b[2].replace('%s', it.produit)) + '"' + (off ? ' disabled' : '') + '>' +
+      '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="' + b[3] + '"/></svg></button>';
+  }).join('') + '</span>';
+}
+
+function itemHtml(it, done, premier, dernier){
   var d = '';
   if(ui.view === 'detail'){
     var tags = [];
@@ -889,9 +937,10 @@ function itemHtml(it, done){
   var ec = ecarts && ecarts.lignes[it.id];
   var ecart = ec ? '<div class="ecart">' + esc(ec.retire ? 'Retiré de la semaine depuis la première coche.' : 'Changé dans la semaine : maintenant ' + ec.maintenant + '.') + '</div>' : '';
   return '<li class="item' + (done ? ' done' : '') + '" data-id="' + it.id + '">' +
+    (done ? '' : '<span class="poignee" title="Glisser pour déplacer">' + POIGNEE + '</span>') +
     '<button class="box" type="button" aria-label="' + (done ? 'Décocher ' : 'Cocher ') + esc(it.produit) + '">' + CHECK + '</button>' +
     '<div class="main"><div class="prod">' + esc(it.produit) + '</div>' + (MONTRER_LIEU && it.ou ? '<div class="ou">' + esc(it.ou) + '</div>' : '') + '</div>' +
-    '<div class="qty">' + qtyHtml(it) + '</div>' + d + ecart + by + more + '</li>';
+    '<div class="qty">' + qtyHtml(it) + '</div>' + (done ? '' : bougerHtml(it, premier, dernier)) + d + ecart + by + more + '</li>';
 }
 
 // Titre de chaque page, sous le bandeau.
@@ -938,7 +987,7 @@ function render(){
   var todo = o.filter(function(it){ return !isDone(it.id); });
   var done = o.filter(function(it){ return isDone(it.id); });
   done.sort(function(a, b){ return (mirror.done[b.id].at || 0) - (mirror.done[a.id].at || 0); });
-  $('#todo').innerHTML = todo.length ? todo.map(function(it){ return itemHtml(it, false); }).join('') :
+  $('#todo').innerHTML = todo.length ? todo.map(function(it, i){ return itemHtml(it, false, i === 0, i === todo.length - 1); }).join('') :
     (o.length ? '' : '<li class="empty">Rien pour ce filtre.</li>');
   $('#done').innerHTML = done.map(function(it){ return itemHtml(it, true); }).join('');
   $('#doneCount').textContent = done.length;
@@ -1140,6 +1189,8 @@ document.addEventListener('click', function(e){
   if(c){ prepToggle('prepClient/' + c.dataset.client); return; }
   var p = e.target.closest('li.pitem');   // toute la ligne se touche (gants)
   if(p){ prepToggle('prep/' + p.dataset.k); return; }
+  var mv = e.target.closest('#todo li.item .bouger button');
+  if(mv){ if(!mv.disabled) bouger(mv.closest('li').dataset.id, mv.dataset.a); return; }
   var m = e.target.closest('li.item .more');
   if(m){ var id = m.closest('li').dataset.id; repOpen[id] = !repOpen[id]; render(); return; }
   var b = e.target.closest('.box'); if(!b) return;
@@ -1177,7 +1228,7 @@ function startDrag(li, y){
 function beginPress(target, x, y){
   if(drag || press) return;
   var li = target.closest('#todo li.item');
-  if(!li || target.closest('.box, .more')) return;
+  if(!li || target.closest('.box, .more, .bouger')) return;
   li.classList.add('pressing');
   press = {li:li, x:x, y:y, timer:setTimeout(function(){ var p = press; press = null; if(p) startDrag(p.li, p.y); }, LONG)};
 }
@@ -1194,6 +1245,7 @@ function movePointer(x, y){
 // Doigt
 document.addEventListener('touchstart', function(e){
   if(e.touches.length !== 1){ cancelPress(); return; }
+  if(saisirPoignee(e.target, e.touches[0].clientY)) return;
   beginPress(e.target, e.touches[0].clientX, e.touches[0].clientY);
 }, {passive:true});
 document.addEventListener('touchmove', function(e){
@@ -1206,7 +1258,18 @@ document.addEventListener('touchcancel', function(){ cancelPress(); endDrag(); }
 document.addEventListener('contextmenu', function(e){ if(e.target.closest('li.item')) e.preventDefault(); });
 
 // Souris (ordinateur)
-document.addEventListener('pointerdown', function(e){ if(e.pointerType === 'mouse' && e.button === 0) beginPress(e.target, e.clientX, e.clientY); });
+document.addEventListener('pointerdown', function(e){
+  if(e.pointerType !== 'mouse' || e.button !== 0) return;
+  if(saisirPoignee(e.target, e.clientY)){ e.preventDefault(); return; }
+  beginPress(e.target, e.clientX, e.clientY);
+});
+// Ordinateur : la poignée décolle la ligne tout de suite, sans appui long (elle n'existe pas sur le téléphone).
+function saisirPoignee(target, y){
+  var p = target.closest && target.closest('#todo li.item .poignee');
+  if(!p || drag) return false;
+  cancelPress(); startDrag(p.closest('li'), y);
+  return true;
+}
 document.addEventListener('pointermove', function(e){ if(e.pointerType === 'mouse') movePointer(e.clientX, e.clientY); });
 document.addEventListener('pointerup', function(e){ if(e.pointerType === 'mouse'){ cancelPress(); endDrag(); } });
 
@@ -1235,14 +1298,46 @@ function endDrag(){
   ul.insertBefore(li, drag.ph); drag.ph.remove();
   li.classList.remove('dragging'); li.style.cssText = '';
   drag = null;
-  // Nouvel ordre : on ne déplace que la ligne glissée, en la plaçant à côté de sa voisine visible.
-  var vis = Array.prototype.map.call(ul.querySelectorAll('li.item'), function(n){ return n.dataset.id; });
-  var id = li.dataset.id, k = vis.indexOf(id);
+  ranger(li.dataset.id, idsAFaire());
+}
+function idsAFaire(){ return Array.prototype.map.call(document.querySelectorAll('#todo li.item'), function(n){ return n.dataset.id; }); }
+// Nouvel ordre : on ne déplace que la ligne « id », en la plaçant à côté de sa voisine dans « vis »
+// (les lignes affichées, dans l'ordre voulu) ; les lignes cachées par un filtre ne bougent pas.
+function ranger(id, vis){
+  var k = vis.indexOf(id);
   var full = order().filter(function(x){ return x !== id; });
   if(k < vis.length - 1) full.splice(full.indexOf(vis[k + 1]), 0, id);
   else if(k > 0) full.splice(full.indexOf(vis[k - 1]) + 1, 0, id);
   else full.push(id);
-  write('order', full);
+  if(full.join() !== order().join()) write('order', full);
+}
+// Boutons de l'ordinateur : tout en haut, monter, descendre, tout en bas (de toute la liste, filtres compris
+// pour « tout en haut » et « tout en bas »). Après « monter » ou « descendre », la page défile pour que la ligne
+// reste sous la souris : on peut cliquer plusieurs fois de suite sans viser à nouveau.
+function bouger(id, a){
+  var vis = idsAFaire(), k = vis.indexOf(id);
+  var li = document.querySelector('#todo li.item[data-id="' + CSS.escape(id) + '"]');
+  if(k < 0 || !li) return;
+  var avant = li.getBoundingClientRect().top;
+  if(a === 'haut' || a === 'bas'){
+    var full = order().filter(function(x){ return x !== id; });
+    if(a === 'haut') full.unshift(id); else full.push(id);
+    if(full.join() !== order().join()) write('order', full);
+  } else {
+    var j = a === 'monter' ? k - 1 : k + 1;
+    if(j < 0 || j >= vis.length) return;
+    vis.splice(k, 1); vis.splice(j, 0, id);
+    ranger(id, vis);
+  }
+  var n = document.querySelector('#todo li.item[data-id="' + CSS.escape(id) + '"]');
+  if(!n) return;
+  if(a === 'monter' || a === 'descendre'){
+    scrollBy(0, n.getBoundingClientRect().top - avant);
+    var b = n.querySelector('.bouger [data-a="' + a + '"]');
+    if(b && !b.disabled) b.focus({preventScroll:true});
+  }
+  n.classList.add('bouge');
+  setTimeout(function(){ n.classList.remove('bouge'); }, 1200);
 }
 
 /* ---------- Semaine : répartition de la semaine entre les créneaux de vente (étape 13A) ---------- */
