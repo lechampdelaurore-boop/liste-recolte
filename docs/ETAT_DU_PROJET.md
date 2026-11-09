@@ -2,7 +2,9 @@
 
 ## Où on en est
 
-*Au 8 novembre 2026, soir. Source : lecture du dépôt et demandes de François du 4/11 au 8/11.*
+*Au 9 novembre 2026, matin. Source : lecture du dépôt et demandes de François du 4/11 au 9/11.*
+
+- **Flèches du clavier dans la grille « Répartir » (9/11, matin)**, demande de François : sur ordinateur, gauche et droite passent à la case d'à côté (quand le curseur est au bord du texte ou que tout est sélectionné), haut et bas à la ligne du dessus ou du dessous (déjà là depuis le 6/11) ; colonnes masquées par le filtre sautées ; le menu d'unité garde ses flèches et le curseur y reste. Vérifié : `tests/fleches.cjs` (22 sur 22), les huit autres tests verts. **Non vérifié en réel** : le vrai ordinateur de François.
 
 - **Filtre par jour de récolte et impression (8/11, 23 h 45)**, demande de François : en haut de Répartir et Cumul, une case par jour de récolte (toutes cochées au départ) ; décocher un jour masque ses colonnes, le reste compte toujours tout ; bouton « Imprimer » (A4 paysage, tableau tel que filtré, couleurs gardées). Vérifié : `tests/filtre.cjs` (25 sur 25, PDF compris), les sept autres tests verts. **Non vérifié en réel** : une vraie imprimante, l'impression depuis un vrai téléphone.
 

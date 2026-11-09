@@ -176,7 +176,7 @@ Le code de ce dépôt est publié sous la licence **PolyForm Noncommercial 1.0.0
 | `magasin.html` | Page du magasin (étape 13C) : saisie du stock avec le compte du magasin. Autonome, même charte. |
 | `sw.js` | Hors ligne : la page et la liste passent par le réseau, sinon la dernière copie. Changer `CACHE` à chaque modification de l'appli. Ne met jamais la base Firebase en cache. |
 | `manifest.webmanifest`, `icons/` | Installation sur l'écran d'accueil. |
-| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`), débouchés et livraisons (`debouches.cjs`), connexion par compte (`connexion.cjs`), listes calculées depuis la semaine (`listes-calculees.cjs`), couleur des débouchés (`couleurs.cjs`), filtre par jour de récolte et impression (`filtre.cjs`) ; règles de la base sur l'émulateur officiel de Firebase (`regles.cjs`). |
+| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`), débouchés et livraisons (`debouches.cjs`), connexion par compte (`connexion.cjs`), listes calculées depuis la semaine (`listes-calculees.cjs`), couleur des débouchés (`couleurs.cjs`), filtre par jour de récolte et impression (`filtre.cjs`), flèches du clavier dans la grille (`fleches.cjs`) ; règles de la base sur l'émulateur officiel de Firebase (`regles.cjs`). |
 | `docs/` | Format des listes, fonctionnement de la base partagée. |
 | `LICENSE` | Licence PolyForm Noncommercial 1.0.0 : usage non commercial seulement. |
 | `AGENTS.md` | Consignes pour les agents IA qui modifient ce dépôt (`CLAUDE.md` y renvoie). |
@@ -195,11 +195,14 @@ node tests/listes-calculees.cjs
 node tests/magasin.cjs
 node tests/couleurs.cjs
 node tests/filtre.cjs
+node tests/fleches.cjs
 ```
 
 `tests/couleurs.cjs` vérifie la couleur des débouchés avec un téléphone et un ordinateur : palette lisible sur fond blanc (contraste d'au moins 7), une couleur différente pour chaque débouché de départ, une fiche gardée dans la base avant les couleurs qui reprend celles du départ (et la première couleur libre pour un débouché inconnu du départ), rien d'écrit avant un choix, choix partagé et gardé, les autres débouchés qui gardent la leur, nouveau débouché avec une couleur libre, et dans la page « Répartir » (grille, fiches du téléphone, page Cumul) titre, chiffre et unité de chaque débouché dans sa couleur.
 
 `tests/filtre.cjs` vérifie le filtre par jour de récolte et l'impression avec un téléphone et un ordinateur : une case par jour de récolte de la semaine (et une pour les livraisons sans jour), toutes cochées au départ, assez grandes pour le doigt ; un jour décoché masque ses colonnes dans Répartir (fiches et grille) et Cumul, et le stock d'un débouché dont toutes les livraisons sont masquées ; reste inchangé, note des colonnes masquées, rien d'écrit dans la base, choix propre à chaque appareil et gardé au rechargement ; bouton « Imprimer » : feuille qui suit le filtre, titre et récoltes imprimées, seul le tableau à l'impression, couleurs gardées, PDF en paysage.
+
+`tests/fleches.cjs` vérifie les flèches du clavier dans la grille « Répartir » de l'ordinateur : gauche et droite passent à la case d'à côté quand le curseur est au bord du texte (sinon il bouge dans la case), rien au bout de la ligne, Maj + flèche sélectionne ; ce qu'on tape est enregistré en changeant de case ; haut et bas restent dans la colonne ; les colonnes masquées par le filtre sont sautées ; le menu d'unité garde ses flèches et le curseur y reste. Données factices seulement.
 
 `tests/regles.cjs` demande en plus l'émulateur officiel de Firebase (`npm install --no-save firebase-tools`, Java), lancé à part : voir l'en-tête du fichier. Sans émulateur, il dit « NON LANCÉ ».
 
