@@ -1,0 +1,9 @@
+# Dessins des espèces (Ouvre ta ferme)
+
+`plants.svg` contient les 183 dessins d'espèces d'**Ouvre ta ferme** (https://www.ouvretaferme.org), un `<symbol>` par espèce (`<symbol id="carotte" viewBox="0 0 100 100">`, l'identifiant est le nom de l'espèce en minuscules, sans accents, avec des tirets).
+
+- **Source** : fichier `production/plant/static/image/plants.svg` du dépôt public https://github.com/ouvretaferme/ouvretaferme-public (branche `main`), le même que celui servi par https://www.ouvretaferme.org/static/production/plant/image/plants.svg (183 symboles, mêmes identifiants, vérifié le 09/11/2026).
+- **Copie** : téléchargée une seule fois le 09/11/2026, **sans aucune modification** (empreinte SHA-256 `f3d25f1a1ed46bcb147469e03b621a00b3b617437342a57a2adba7d6ebb16546`).
+- **Auteurs et licence** : © les auteurs d'Ouvre ta ferme. Le dépôt d'Ouvre ta ferme est publié sous la **licence publique générale GNU Affero, version 3 ou ultérieure** (AGPL-3.0), dont le texte est recopié à côté : [`LICENSE-AGPL-3.0.txt`](LICENSE-AGPL-3.0.txt). Ce dossier `especes/` reste sous cette licence : la licence PolyForm Noncommercial du reste du dépôt **ne s'applique pas** à ces dessins.
+- **Usage dans l'appli** : `index.html` et `magasin.html` affichent le dessin de l'espèce devant le nom d'un produit (`<svg><use href="especes/plants.svg#carotte"/></svg>`). Le fichier est lu sur notre propre site (Ouvre ta ferme n'autorise pas sa lecture depuis un autre site) et gardé sur le téléphone pour le mode hors ligne.
+- **Mettre à jour** : retélécharger le fichier une fois (jamais plus de 4 requêtes par seconde vers Ouvre ta ferme), le remplacer tel quel, recopier la liste des identifiants dans `ESPECES` (`index.html` et `magasin.html`), mettre à jour l'empreinte ci-dessus, changer `CACHE` dans `sw.js` et lancer `node tests/miniatures.cjs`.

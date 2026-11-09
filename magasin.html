@@ -51,6 +51,8 @@ dialog.big{max-width:min(460px,94vw)}
 .liste{display:grid;gap:10px}
 .p{display:grid;gap:6px;padding:10px 12px}
 .p-nom{font-weight:800}
+/* Miniature de l'espèce (dessin d'Ouvre ta ferme) devant le nom d'un produit */
+.mini{display:inline-block;width:1.6em;height:1.6em;vertical-align:middle;margin:-.3em .4em -.2em 0;flex:none}
 .p-nom small{font-weight:600;font-size:.85rem}
 .ctl{display:grid;grid-template-columns:52px minmax(0,1fr) auto 52px;gap:6px;align-items:center}
 .ctl button{min-height:52px;border:var(--bw) solid var(--line);border-radius:10px;background:var(--surface);font-weight:900;cursor:pointer;padding:0 12px}
@@ -161,6 +163,26 @@ function ls(k, v){ try{ if(v === undefined){ var x = localStorage.getItem(k); re
 function esc(s){ return String(s).replace(/[&<>"']/g, function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 function sansAccent(s){ return s.normalize('NFD').replace(/[̀-ͯ]/g, ''); }
 function pidDe(nom){ return sansAccent(nom).toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
+// Miniatures des espèces (dessins d'Ouvre ta ferme, fichier especes/plants.svg, licence AGPL-3.0 : voir especes/LISEZMOI.md).
+// Un produit prend le dessin de son espèce : nom en minuscules, sans accents, avec tirets, en retirant les mots de la fin
+// jusqu'à trouver une espèce (« Carotte (botte) » → carotte, « Chou romanesco » → chou-romanesco), plus quelques noms
+// courants qu'Ouvre ta ferme écrit autrement (ESPECE_AUSSI). Pas d'espèce trouvée : pas de dessin.
+var ESPECES = 'abricot achillee-millefeuille agastache ail amarante anemone aneth arroche artichaut asperge aubergine avoine basilic betterave ble blette bleuet boite-oeufs bourrache calendula camomille campanule capucine cardon carotte cassis celeri-branche celeri-couper celeri-rave celosie cerfeuil cerise champignon-de-paris chanvre chicoree-frisee chicoree-sauvage chicoree-scarole chou-blanc chou-brocoli chou-de-bruxelles chou-de-milan chou-fleur chou-kale chou-pak-choi chou-pe-tsai chou-pointu chou-rave chou-romanesco chou-rouge chrysantheme ciboule-de-chine ciboulette claytone-cuba coing concombre consoude coquelicot coriandre cornichon cosmos courge courge-bleue-de-hongrie courge-butternut courge-potimarron courge-potiron courge-spaghetti courgette cresson curcuma dahlia delphinium digitale echalote endive engrais-vert epinard estragon eucalyptus fenouil feve feverole figue fraise framboise gingembre gombo groseille haricot hibiscus hysope immortelle jus-de-tomate kaki kiwano kiwi laitue lavande lin liveche lupin luzerne mache mais marguerite marjolaine melisse melon menthe mesclun millet mirabelle mizuna monarde moutarde muflier mure myrtille narcisse navet nigelle noix oca-du-perou oignon orge origan oseille panais pasteque patate-douce patisson peche perilla persil phacelie physalis piment pivoine pleurote poire poire-de-terre poireau pois pois-de-senteur poivron pomme pomme-de-terre prune radis-botte radis-rave raifort reine-marguerite renoncule rhubarbe romarin roquette-cultivee rudbeckia rutabaga safran sarrasin sarriette sauge scabieuse seigle shiitake soja sorgho statice sureau thym tomate tomate-ananas tomate-cerise tomate-coeur-boeuf tomate-noire-crimee tomate-rose-berne tomate-zebree topinambour tournesol tulipe verveine-officinale vesce vigne zinnia'.split(' ');
+var ESPECE_AUSSI = {'bette':'blette', 'aillet':'ail', 'ail-nouveau':'ail', 'chou-chinois':'chou-pe-tsai', 'chou-frise':'chou-de-milan', 'chou-vert':'chou-blanc', 'chou-cabus':'chou-blanc', 'colrave':'chou-rave', 'petit-pois':'pois', 'petits-pois':'pois', 'rabiole':'navet', 'radis':'radis-rave', 'roquette':'roquette-cultivee', 'salade':'laitue', 'batavia':'laitue', 'feuille-de-chene':'laitue', 'romaine':'laitue', 'cebette':'oignon', 'echalion':'echalote', 'potimarron':'courge-potimarron', 'butternut':'courge-butternut', 'potiron':'courge-potiron'};
+var especeVue = {};
+function especeDe(nom){
+  var cle = pidDe(String(nom || ''));
+  if(!(cle in especeVue)){
+    var m = cle.split('-'), r = '';
+    for(var k = m.length; k > 0 && !r; k--){ var c = m.slice(0, k).join('-'); r = ESPECE_AUSSI[c] || (ESPECES.indexOf(c) >= 0 ? c : ''); }
+    especeVue[cle] = r;
+  }
+  return especeVue[cle];
+}
+function miniHtml(nom){
+  var e = especeDe(nom);
+  return e ? '<svg class="mini" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="especes/plants.svg#' + e + '"/></svg>' : '';
+}
 function jourIso(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 function lundiDe(d){ d = new Date(d.getFullYear(), d.getMonth(), d.getDate()); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return jourIso(d); }
 function deIso(s){ var p = s.split('-'); return new Date(+p[0], p[1] - 1, +p[2]); }
@@ -516,7 +538,7 @@ function ouvrirAjout(){
   function liste(){
     var t = sansAccent(q.value.trim().toLowerCase()), deja = produitsSemaine().map(function(p){ return p.id; });
     var l = produits().filter(function(p){ return !p.masque && deja.indexOf(p.id) < 0 && sansAccent(p.f.nom.toLowerCase()).indexOf(t) >= 0; });
-    $('#addList').innerHTML = l.length ? l.map(function(p){ return '<li><button type="button" data-pid="' + esc(p.id) + '"><span>' + esc(p.f.nom) + '</span><small>' + esc(colisTxt(p.f)) + '</small></button></li>'; }).join('') : '<li class="vide">Aucun produit trouvé.</li>';
+    $('#addList').innerHTML = l.length ? l.map(function(p){ return '<li><button type="button" data-pid="' + esc(p.id) + '"><span>' + miniHtml(p.f.nom) + esc(p.f.nom) + '</span><small>' + esc(colisTxt(p.f)) + '</small></button></li>'; }).join('') : '<li class="vide">Aucun produit trouvé.</li>';
   }
   q.value = ''; liste();
   q.oninput = liste;
@@ -536,7 +558,7 @@ function uniteDe(pid, f){ var q = data[pid], us = unitesDe(f); return q && q.u ?
 function ligneHtml(p){
   var f = p.f, q = data[p.id], av = avant[p.id], u = uniteDe(p.id, f), us = unitesDe(f), err = erreurs[p.id];
   var h = '<div class="card p' + (q ? ' fait' : '') + '" data-pid="' + esc(p.id) + '">' +
-    '<div class="p-top"><div class="p-nom">' + esc(f.nom) + ' <small>' + esc(colisTxt(f)) + '</small></div>' +
+    '<div class="p-top"><div class="p-nom">' + miniHtml(f.nom) + esc(f.nom) + ' <small>' + esc(colisTxt(f)) + '</small></div>' +
     '<button type="button" class="p-x" data-a="retirer" aria-label="' + esc('Retirer ' + f.nom + ' de la semaine') + '">×</button></div>' +
     '<div class="ctl"><button type="button" data-a="moins" aria-label="' + esc('Moins, ' + f.nom) + '">−</button>' +
     '<input type="text" inputmode="decimal" enterkeyhint="done" value="' + (q ? esc(nb(q.n)) : '') + '" placeholder="?" aria-label="' + esc('Stock de ' + f.nom) + '">' +

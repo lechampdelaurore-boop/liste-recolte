@@ -121,6 +121,8 @@ li.ph{border:3px dashed var(--accent);border-radius:var(--radius);background:tra
 li.done .box{background:var(--accent);border-color:var(--accent)} li.done .box svg{opacity:1;color:var(--accent-fg)}
 .main{min-width:0}
 .prod{font-weight:800;font-size:1.15rem;line-height:1.15}
+/* Miniature de l'espèce (dessin d'Ouvre ta ferme) devant le nom d'un produit */
+.mini{display:inline-block;width:1.6em;height:1.6em;vertical-align:middle;margin:-.3em .4em -.2em 0;flex:none}
 .ou{color:var(--muted);font-size:.92rem;margin-top:2px}
 .qty{text-align:right;font-weight:900;font-variant-numeric:tabular-nums;max-width:9.5em;font-size:1.1rem}
 .qty small{display:block;font-weight:600;color:var(--muted);font-size:.85rem}
@@ -990,7 +992,7 @@ function itemHtml(it, done, premier, dernier){
   return '<li class="item' + (done ? ' done' : '') + '" data-id="' + it.id + '">' +
     (done ? '' : '<span class="poignee" title="Glisser pour déplacer">' + POIGNEE + '</span>') +
     '<button class="box" type="button" aria-label="' + (done ? 'Décocher ' : 'Cocher ') + esc(it.produit) + '">' + CHECK + '</button>' +
-    '<div class="main"><div class="prod">' + esc(it.produit) + '</div>' + (MONTRER_LIEU && it.ou ? '<div class="ou">' + esc(it.ou) + '</div>' : '') + '</div>' +
+    '<div class="main"><div class="prod">' + miniHtml(it.produit) + esc(it.produit) + '</div>' + (MONTRER_LIEU && it.ou ? '<div class="ou">' + esc(it.ou) + '</div>' : '') + '</div>' +
     '<div class="qty">' + qtyHtml(it) + '</div>' + (done ? '' : bougerHtml(it, premier, dernier)) + d + ecart + by + more + '</li>';
 }
 
@@ -1082,7 +1084,7 @@ function prepLineHtml(l, byClient){
   var info = prepInfo(l.k), name = byClient ? l.it.produit : l.ci.nom;
   return '<li class="pitem' + (info ? ' done' : '') + '" data-k="' + esc(l.k) + '">' +
     '<button class="box" type="button" aria-label="' + (info ? 'Décocher ' : 'Cocher ') + esc(l.it.produit + ' pour ' + l.ci.nom) + '">' + CHECK + '</button>' +
-    '<div class="main"><div class="prod">' + esc(name) + '</div>' + (byClient ? recBadge(l.it) : '') + '</div>' +
+    '<div class="main"><div class="prod">' + (byClient ? miniHtml(name) : '') + esc(name) + '</div>' + (byClient ? recBadge(l.it) : '') + '</div>' +
     '<div class="qty">' + circQtyHtml(l.it, l.ci.id) + '</div>' +
     (info ? '<div class="by">Préparé' + (info.by ? ' par ' + esc(info.by) : '') + heure(info) + '</div>' : '') + '</li>';
 }
@@ -1114,7 +1116,7 @@ function renderPrep(){
       return {ready:!!info, html:'<section class="card grp' + (info ? ' ready' : '') + '" data-circ="' + esc(g.key) + '">' + head + '<ul class="plist">' + g.lines.map(function(l){ return prepLineHtml(l, true); }).join('') + '</ul></section>'};
     }
     var it = byId[g.key];
-    head = '<div class="grp-head nobox"><div><div class="grp-name">' + esc(it.produit) + '</div>' + recBadge(it) +
+    head = '<div class="grp-head nobox"><div><div class="grp-name">' + miniHtml(it.produit) + esc(it.produit) + '</div>' + recBadge(it) +
       '<div class="grp-sum">' + countTxt(n, t) + '</div></div></div>';
     return {ready:false, html:'<section class="card grp" data-item="' + esc(it.id) + '">' + head + '<ul class="plist">' + g.lines.map(function(l){ return prepLineHtml(l, false); }).join('') + '</ul></section>'};
   }
@@ -2131,6 +2133,26 @@ function canon(o){
   return JSON.stringify(o);
 }
 function pidDe(nom){ return nom.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, ''); }
+// Miniatures des espèces (dessins d'Ouvre ta ferme, fichier especes/plants.svg, licence AGPL-3.0 : voir especes/LISEZMOI.md).
+// Un produit prend le dessin de son espèce : nom en minuscules, sans accents, avec tirets, en retirant les mots de la fin
+// jusqu'à trouver une espèce (« Carotte (botte) » → carotte, « Chou romanesco » → chou-romanesco), plus quelques noms
+// courants qu'Ouvre ta ferme écrit autrement (ESPECE_AUSSI). Pas d'espèce trouvée : pas de dessin.
+var ESPECES = 'abricot achillee-millefeuille agastache ail amarante anemone aneth arroche artichaut asperge aubergine avoine basilic betterave ble blette bleuet boite-oeufs bourrache calendula camomille campanule capucine cardon carotte cassis celeri-branche celeri-couper celeri-rave celosie cerfeuil cerise champignon-de-paris chanvre chicoree-frisee chicoree-sauvage chicoree-scarole chou-blanc chou-brocoli chou-de-bruxelles chou-de-milan chou-fleur chou-kale chou-pak-choi chou-pe-tsai chou-pointu chou-rave chou-romanesco chou-rouge chrysantheme ciboule-de-chine ciboulette claytone-cuba coing concombre consoude coquelicot coriandre cornichon cosmos courge courge-bleue-de-hongrie courge-butternut courge-potimarron courge-potiron courge-spaghetti courgette cresson curcuma dahlia delphinium digitale echalote endive engrais-vert epinard estragon eucalyptus fenouil feve feverole figue fraise framboise gingembre gombo groseille haricot hibiscus hysope immortelle jus-de-tomate kaki kiwano kiwi laitue lavande lin liveche lupin luzerne mache mais marguerite marjolaine melisse melon menthe mesclun millet mirabelle mizuna monarde moutarde muflier mure myrtille narcisse navet nigelle noix oca-du-perou oignon orge origan oseille panais pasteque patate-douce patisson peche perilla persil phacelie physalis piment pivoine pleurote poire poire-de-terre poireau pois pois-de-senteur poivron pomme pomme-de-terre prune radis-botte radis-rave raifort reine-marguerite renoncule rhubarbe romarin roquette-cultivee rudbeckia rutabaga safran sarrasin sarriette sauge scabieuse seigle shiitake soja sorgho statice sureau thym tomate tomate-ananas tomate-cerise tomate-coeur-boeuf tomate-noire-crimee tomate-rose-berne tomate-zebree topinambour tournesol tulipe verveine-officinale vesce vigne zinnia'.split(' ');
+var ESPECE_AUSSI = {'bette':'blette', 'aillet':'ail', 'ail-nouveau':'ail', 'chou-chinois':'chou-pe-tsai', 'chou-frise':'chou-de-milan', 'chou-vert':'chou-blanc', 'chou-cabus':'chou-blanc', 'colrave':'chou-rave', 'petit-pois':'pois', 'petits-pois':'pois', 'rabiole':'navet', 'radis':'radis-rave', 'roquette':'roquette-cultivee', 'salade':'laitue', 'batavia':'laitue', 'feuille-de-chene':'laitue', 'romaine':'laitue', 'cebette':'oignon', 'echalion':'echalote', 'potimarron':'courge-potimarron', 'butternut':'courge-butternut', 'potiron':'courge-potiron'};
+var especeVue = {};
+function especeDe(nom){
+  var cle = pidDe(String(nom || ''));
+  if(!(cle in especeVue)){
+    var m = cle.split('-'), r = '';
+    for(var k = m.length; k > 0 && !r; k--){ var c = m.slice(0, k).join('-'); r = ESPECE_AUSSI[c] || (ESPECES.indexOf(c) >= 0 ? c : ''); }
+    especeVue[cle] = r;
+  }
+  return especeVue[cle];
+}
+function miniHtml(nom){
+  var e = especeDe(nom);
+  return e ? '<svg class="mini" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="especes/plants.svg#' + e + '"/></svg>' : '';
+}
 function contenu(f){ return f.kg ? {u:'kg', n:+f.kg} : (f.par_colis ? {u:'u', n:+f.par_colis} : null); }
 // Autres conditionnements possibles d'un produit (référentiel « autres_colis ») : leur unité est le code de leur
 // caisse (« CB » : caisse bleue). Seulement ceux dont le contenu est dans la même unité que le colis principal.
@@ -2414,7 +2436,7 @@ function aRecolterHtml(prods, calc, cr){
         var q = semLire('q/' + p.id + '/' + c.id), x = enColis(q, f);
         if(q && !isNaN(x) && x > EPS){ tot += x; det.push(nomC + ' ' + qCourt(q, f)); }
       });
-      if(tot > EPS || toutInconnu) lignes.push('<li data-pid="' + esc(p.id) + '"><span>' + esc(f.nom) + '</span><b>' + (tot > EPS ? esc(deux(tot, f)) : '') + (toutInconnu ? (tot > EPS ? ' + ' : '') + 'tout ce qui reste' : '') + esc(recolteTxt(tot, f)) + '</b><small>' + esc(det.join(' · ')) + '</small></li>');
+      if(tot > EPS || toutInconnu) lignes.push('<li data-pid="' + esc(p.id) + '"><span>' + miniHtml(f.nom) + esc(f.nom) + '</span><b>' + (tot > EPS ? esc(deux(tot, f)) : '') + (toutInconnu ? (tot > EPS ? ' + ' : '') + 'tout ce qui reste' : '') + esc(recolteTxt(tot, f)) + '</b><small>' + esc(det.join(' · ')) + '</small></li>');
     });
     if(!g.j && !lignes.length) return;
     var j = g.j, titre = j ? majuscule(titreJour(j.date)) : 'Sans jour de récolte';
@@ -2458,7 +2480,7 @@ function stockHtml(prods, calc, cr){
         var q = semLire('q/' + p.id + '/' + c.id); return q ? (c.court || c.nom) + ' ' + qCourt(q, f) : '';
       }).filter(Boolean);
       h += '<div class="card stk-l" data-pid="' + esc(p.id) + '">' +
-        ligneHtml(p.id, f, 'stock/' + x.id, esc(f.nom) + ' <small>' + esc(colisTxt(f)) + '</small>', stockVu(p.id, x.id),
+        ligneHtml(p.id, f, 'stock/' + x.id, miniHtml(f.nom) + esc(f.nom) + ' <small>' + esc(colisTxt(f)) + '</small>', stockVu(p.id, x.id),
           {cls:'stock', aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?', note:[livs.length ? (prevu.length ? 'Prévu cette semaine : ' + prevu.join(', ') : 'Rien de prévu cette semaine') : '', stockVu(p.id, x.id) ? '' : avantTxt(p.id, f, x.id)].filter(Boolean).join(' · ')}) + '</div>';
     });
     h += '</div>';
@@ -2482,7 +2504,7 @@ function horsHtml(x, prods){
   l.sort(function(a, b){ return nomProduit(a.pid).localeCompare(nomProduit(b.pid), 'fr'); });
   return '<div class="card mag-hors"><h3 class="mag-qui">Compté par le magasin, pas dans votre semaine</h3><ul class="mag-l">' + l.map(function(o){
     var f = ficheDe(o.pid), ok = REF && (REF.produits || []).some(function(p){ return pidDe(p.produit) === o.pid; });
-    return '<li data-hors="' + esc(o.pid) + '"><span><b>' + esc(nomProduit(o.pid)) + '</b> : ' + esc(qTxt(o.m.n, o.m.u, f) + ' · ' + (o.avant ? 'semaine d\'avant, ' + quiQuandDate(o.m) : quiQuand(o.m))) + '</span>' +
+    return '<li data-hors="' + esc(o.pid) + '"><span><b>' + miniHtml(nomProduit(o.pid)) + esc(nomProduit(o.pid)) + '</b> : ' + esc(qTxt(o.m.n, o.m.u, f) + ' · ' + (o.avant ? 'semaine d\'avant, ' + quiQuandDate(o.m) : quiQuand(o.m))) + '</span>' +
       (ok ? ' <button type="button" class="sem-act" data-a="ajouter-produit" data-p="' + esc(o.pid) + '">Ajouter à la semaine</button>' : '') + '</li>';
   }).join('') + '</ul></div>';
 }
@@ -2558,7 +2580,7 @@ function grilleHtml(prods, calc, cr){
     '<th><span class="visually-hidden">Retirer</span></th></tr></thead><tbody>';
   prods.forEach(function(p){
     var pid = p.id, f = p.f, r = calc[pid];
-    h += '<tr data-pid="' + esc(pid) + '"><td class="g-prod">' + esc(f.nom) + '<small>' + esc(colisTxt(f)) + '</small></td>' +
+    h += '<tr data-pid="' + esc(pid) + '"><td class="g-prod">' + miniHtml(f.nom) + esc(f.nom) + '<small>' + esc(colisTxt(f)) + '</small></td>' +
       '<td class="g-dispo">' + caseHtml(pid, f, 'dispo', semLire('dispo/' + pid), {aria:'Disponible, ' + f.nom}) + '</td>';
     cols.forEach(function(o){
       var c = o.c, x = o.s;
@@ -2620,7 +2642,7 @@ function carteHtml(pid, f, r, cr){
     if(q) resume.push((c.court || c.nom) + ' ' + qCourt(q, f));
   });
   var h = '<section class="card sp e-' + r.etat + '" data-pid="' + esc(pid) + '">' +
-    '<button type="button" class="sp-head" aria-expanded="' + ouvert + '"><span><span class="sp-nom">' + esc(f.nom) + '</span><span class="sp-colis">' + esc(colisTxt(f)) + '</span></span>' + ARROW_SEM +
+    '<button type="button" class="sp-head" aria-expanded="' + ouvert + '"><span><span class="sp-nom">' + miniHtml(f.nom) + esc(f.nom) + '</span><span class="sp-colis">' + esc(colisTxt(f)) + '</span></span>' + ARROW_SEM +
     '<span class="reste ' + r.etat + '">' + esc(etiquette(r, f)) + '</span>' +
     '<span class="sp-resume">' + esc(resume.join(' · ')) + '</span></button>';
   if(!ouvert) return h + '</section>';
@@ -2675,7 +2697,7 @@ function tableHtml(prods, calc, cr){
     reports.map(function(c){ var a = cr.filter(function(x){ return x.id === c.reprend; })[0]; return '<th class="rep dc"' + dc(c.circuit) + '>' + esc('Reste ' + (a ? a.court || a.nom : '') + ' → ' + (c.court || c.nom)) + '</th>'; }).join('') + '</tr></thead><tbody>';
   prods.forEach(function(p){
     var r = calc[p.id], f = p.f, d = semLire('dispo/' + p.id);
-    h += '<tr data-pid="' + esc(p.id) + '"><td>' + esc(f.nom) + '</td><td>' + (d ? esc(qCourt(d, f)) : '') + '</td>' + cols.map(function(o){
+    h += '<tr data-pid="' + esc(p.id) + '"><td>' + miniHtml(f.nom) + esc(f.nom) + '</td><td>' + (d ? esc(qCourt(d, f)) : '') + '</td>' + cols.map(function(o){
       var c = o.c;
       if(o.s){ var qs = stockVu(p.id, o.s.id); return '<td class="stk dc"' + dc(o.s.id) + '>' + (qs ? esc(qCourt(qs, f)) + (qs.at ? '<small class="g-qui">' + esc(quiCourt(qs)) + '</small>' : '') : '') + '</td>'; }
       if(r.toutC === c.id) return '<td class="dc"' + dc(c.circuit) + '>tout</td>';
@@ -2889,7 +2911,7 @@ function ouvrirAjout(){
     var t = sansAccent(q.value.trim().toLowerCase()), deja = semLire('produits') || {};
     var l = (REF.produits || []).filter(function(p){ return !p.masque && !deja[pidDe(p.produit)] && sansAccent(p.produit.toLowerCase()).indexOf(t) >= 0; });
     $('#addList').innerHTML = l.length ? l.map(function(p){
-      return '<li><button type="button" class="sem-act" data-nom="' + esc(p.produit) + '"><span>' + esc(p.produit) + '</span><small>' + esc(colisTxt(fiche(p))) + '</small></button></li>';
+      return '<li><button type="button" class="sem-act" data-nom="' + esc(p.produit) + '"><span>' + miniHtml(p.produit) + esc(p.produit) + '</span><small>' + esc(colisTxt(fiche(p))) + '</small></button></li>';
     }).join('') : '<li class="empty">Aucun produit trouvé.</li>';
   }
   q.value = ''; liste();
