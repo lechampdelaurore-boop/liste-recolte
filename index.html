@@ -367,8 +367,14 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 .rc-vide{padding:16px}
 .rc-jours{display:grid;gap:12px}
 .rc-jour{padding:0;display:grid;overflow:hidden}
-.rc-jour h3{margin:0;font-size:1.15rem;font-weight:900;background:var(--leaf);border-bottom:var(--bw) solid var(--line);padding:10px 12px}
+.rc-jour h3{margin:0;font-size:1.15rem;font-weight:900;background:var(--leaf)}
+.rc-jour.rc-ouvert h3{border-bottom:var(--bw) solid var(--line)}
+.rc-tete{display:flex;align-items:center;gap:10px;width:100%;min-height:56px;text-align:left;border:0;background:transparent;color:inherit;font:inherit;padding:10px 12px;cursor:pointer}
+.rc-titre{flex:1 1 auto;min-width:0}
 .rc-jour h3 small{display:block;font-size:.85rem;font-weight:600;color:var(--muted)}
+.rc-jour h3 small.rc-combien{font-weight:800;color:var(--fg)}
+.rc-tete .arrow{background:#fff}
+.rc-tete[aria-expanded="true"] .arrow svg{transform:rotate(180deg)}
 .rc-jour li{padding:4px 0;border-top:1.5px solid var(--line)}
 .rc-jour li:first-child{border-top:0}
 .rc-jour ul{list-style:none;margin:0;padding:0;display:grid;gap:4px}
@@ -376,7 +382,7 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 .rc-jour li small{grid-column:1 / 3;font-weight:600;color:var(--muted)}
 .rc-jour li b{text-align:right;font-variant-numeric:tabular-nums}
 @media (min-width:1000px){.rc-jours{grid-template-columns:repeat(auto-fit,minmax(340px,1fr));align-items:start}}
-.rc-pied{display:grid;gap:8px;justify-items:start}
+.rc-pied{display:grid;gap:8px;justify-items:start;margin-top:14px}
 .rc-jour>ul{padding:6px 12px 10px}
 .rc-jour>.sr-eq{padding:10px 12px;margin:0}
 .db-ret{padding:12px}
@@ -489,8 +495,12 @@ dialog.big{max-width:min(460px,94vw);width:100%}
 .rc-ctl label.dj small{font-weight:600}
 .rc-ctl .rc-chaque{justify-self:start;border-radius:12px}
 .rc-actions{display:flex;flex-wrap:wrap;gap:8px;padding:10px 12px;border-top:var(--bw) solid var(--line)}
-.rc-ajout{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
-.rc-ajout select{min-height:48px;border:var(--bw) solid var(--line);border-radius:12px;padding:8px 10px;font-weight:800;background:#fff}
+.rc-haut{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-bottom:12px}
+.rc-plein{margin:0;flex:1 1 100%}
+.rc-menu{display:grid;gap:10px;margin-bottom:12px;padding:12px;border-width:3px}
+.rc-q{margin:0;font-weight:900;font-size:1.1rem}
+.rc-choix{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
+.rc-choix .sem-act{text-align:left;padding:10px 12px}
 </style>
 </head>
 <body>
@@ -2460,7 +2470,11 @@ function renderSemaine(){
 }
 
 /* À récolter, jour par jour (étape 13D) : les jours de récolte de cette semaine, avec les livraisons qu'on y
-   récolte (à cocher, pour cette semaine seulement), la case « Chaque semaine », ce qu'il y a à récolter et sa liste. */
+   récolte (à cocher, pour cette semaine seulement), la case « Chaque semaine », ce qu'il y a à récolter et sa liste.
+   Demande de François du 9/11 : les jours sont repliés (une ligne par jour, une flèche déplie son détail), les boutons
+   « Nouveau jour de récolte » et « Régler les jours habituels » sont tout en haut, et un petit menu demande quel jour
+   créer. Ce qui est déplié et le menu ouvert ne valent que sur cet appareil, le temps de la visite (rien d'écrit). */
+var rcOuvert = {}, rcMenu = false;
 function renderARecolter(prods, calc, cr){ $('#semRecList').innerHTML = aRecolterHtml(prods, calc, cr); }
 // Produit récolté dans sa propre caisse : « · récolte : 3 CB » (poids total divisé par le contenu de la caisse).
 function recolteTxt(tot, f){
@@ -2473,7 +2487,17 @@ function aRecolterHtml(prods, calc, cr){
   js.forEach(function(j){ j.livraisons.forEach(function(c){ ou[c] = j.date; }); });
   var groupes = js.map(function(j){ return {j:j, cs:cr.filter(function(c){ return j.livraisons.indexOf(c.id) >= 0; })}; });
   groupes.push({j:null, cs:cr.filter(function(c){ return !ou[c.id]; })});
-  var h = '<div class="rc-jours">';
+  // En haut : créer un jour (le menu demande lequel, parmi les jours de la semaine qui n'en ont pas) et les réglages.
+  var pris = js.map(function(j){ return j.date; }), libres = JOURS.map(dateDu).filter(function(d){ return pris.indexOf(d) < 0; });
+  if(!libres.length) rcMenu = false;
+  var h = '<div class="rc-haut">' +
+    (libres.length ? '<button type="button" class="sem-add" data-a="ajout-menu" aria-expanded="' + rcMenu + '" aria-controls="rcMenu">＋ Nouveau jour de récolte</button>' : '') +
+    '<button type="button" class="sem-act" data-a="debouches" data-reg="recoltes">Régler les jours habituels</button>' +
+    (libres.length ? '' : '<p class="hint rc-plein">Chaque jour de la semaine a déjà son jour de récolte.</p>') + '</div>';
+  if(rcMenu) h += '<div class="card rc-menu" id="rcMenu" role="group" aria-labelledby="rcMenuQ"><p class="rc-q" id="rcMenuQ">Quel jour de récolte créer ?</p>' +
+    '<div class="rc-choix">' + libres.map(function(d){ return '<button type="button" class="sem-act" data-a="ajouter-jour" data-date="' + d + '">' + esc(majuscule(titreJour(d))) + '</button>'; }).join('') + '</div>' +
+    '<button type="button" class="sem-act db-petit" data-a="ajout-menu">Annuler</button></div>';
+  h += '<div class="rc-jours">';
   groupes.forEach(function(g){
     var lignes = [];
     prods.forEach(function(p){
@@ -2490,9 +2514,13 @@ function aRecolterHtml(prods, calc, cr){
       if(tot > EPS || toutInconnu) lignes.push('<li data-pid="' + esc(p.id) + '"><span>' + miniHtml(f.nom) + esc(f.nom) + '</span><b>' + (tot > EPS ? esc(deux(tot, f)) : '') + (toutInconnu ? (tot > EPS ? ' + ' : '') + 'tout ce qui reste' : '') + esc(recolteTxt(tot, f)) + '</b><small>' + esc(det.join(' · ')) + '</small></li>');
     });
     if(!g.j && !lignes.length) return;
-    var j = g.j, titre = j ? majuscule(titreJour(j.date)) : 'Sans jour de récolte';
-    h += '<section class="card rc-jour" data-r="' + esc(j ? j.hab || '' : '') + '" data-date="' + esc(j ? j.date : '') + '"><h3>' + esc(titre) +
-      '<small>' + esc((j ? (j.chaque ? 'Chaque semaine · ' : 'Cette semaine seulement · ') : '') + (g.cs.length ? g.cs.map(nomLivraison).join(', ') : 'aucune livraison')) + '</small></h3>';
+    var j = g.j, cle = j ? j.date : 'sans', ouvert = !!rcOuvert[cle], titre = j ? majuscule(titreJour(j.date)) : 'Sans jour de récolte';
+    var n = lignes.length, combien = n ? n + ' produit' + (n > 1 ? 's' : '') + ' à récolter' : 'Rien à récolter';
+    h += '<section class="card rc-jour' + (ouvert ? ' rc-ouvert' : '') + '" data-r="' + esc(j ? j.hab || '' : '') + '" data-date="' + esc(j ? j.date : '') + '">' +
+      '<h3><button type="button" class="rc-tete" data-a="rc-plier" data-k="' + esc(cle) + '" aria-expanded="' + ouvert + '">' +
+      '<span class="rc-titre">' + esc(titre) + '<small>' + esc((j ? (j.chaque ? 'Chaque semaine · ' : 'Cette semaine seulement · ') : '') + (g.cs.length ? g.cs.map(nomLivraison).join(', ') : 'aucune livraison')) + '</small>' +
+      '<small class="rc-combien">' + esc(combien) + '</small></span>' + ARROW_SEM + '</button></h3>';
+    if(!ouvert){ h += '</section>'; return; }
     if(j) h += '<div class="rc-ctl"><label class="dj rc-chaque"><input type="checkbox" data-a="chaque" data-date="' + j.date + '"' + (j.chaque ? ' checked' : '') + '><span>Chaque semaine</span></label>' +
       '<div class="rj-livs" role="group" aria-label="' + esc('Livraisons récoltées le ' + titreJour(j.date)) + '">' + cr.filter(function(c){ return !c.retire || j.livraisons.indexOf(c.id) >= 0; }).map(function(c){
         var coche = j.livraisons.indexOf(c.id) >= 0, autre = !coche && ou[c.id];
@@ -2504,12 +2532,8 @@ function aRecolterHtml(prods, calc, cr){
     h += '</section>';
   });
   h += '</div>';
-  var pris = js.map(function(j){ return j.date; }), libres = JOURS.map(dateDu).filter(function(d){ return pris.indexOf(d) < 0; });
   return h + '<div class="rc-pied">' +
-    (libres.length ? '<div class="rc-ajout"><select id="ajJour" aria-label="Jour de récolte à ajouter">' + libres.map(function(d){ return '<option value="' + d + '">' + esc(majuscule(titreJour(d))) + '</option>'; }).join('') + '</select>' +
-      '<button type="button" class="sem-act" data-a="ajouter-jour">＋ Ajouter un jour de récolte</button></div>' : '') +
-    '<p class="hint">Chaque jour de récolte regroupe les livraisons qu\'on récolte ce jour-là et donne sa liste dans l\'onglet Récolte. Une livraison n\'est récoltée qu\'un jour : la cocher ailleurs la déplace. Les cases cochées ici ne valent que pour cette semaine ; « Chaque semaine » crée le jour tout seul dans les semaines suivantes.</p>' +
-    '<button type="button" class="sem-act" data-a="debouches" data-reg="recoltes">Régler les jours habituels</button></div>';
+    '<p class="hint">Chaque jour de récolte regroupe les livraisons qu\'on récolte ce jour-là et donne sa liste dans l\'onglet Récolte. La flèche d\'un jour montre son détail. Une livraison n\'est récoltée qu\'un jour : la cocher ailleurs la déplace. Les cases cochées ici ne valent que pour cette semaine ; « Chaque semaine » crée le jour tout seul dans les semaines suivantes.</p></div>';
 }
 function majuscule(t){ return t.charAt(0).toUpperCase() + t.slice(1); }
 
@@ -2866,7 +2890,9 @@ $('#semView').addEventListener('click', function(e){
   if(a === 'filtre-tout'){ ui.semMasque = []; ui.semMasqueD = []; saveUi(); render(); return; }
   if(a === 'ajouter'){ ouvrirAjout(); return; }
   if(a === 'voir-jour'){ ui.jour = b.dataset.date; ui.jourLe = jourIso(new Date()); ui.circ = ''; ui.view = 'recolte'; saveUi(); render(); scrollTo(0, 0); return; }
-  if(a === 'ajouter-jour'){ var aj = $('#ajJour'); if(aj && aj.value) ajouterJour(aj.value); return; }
+  if(a === 'ajout-menu'){ rcMenu = !rcMenu; render(); var bm = $(rcMenu ? '#rcMenu button' : '[data-a="ajout-menu"]'); if(bm) bm.focus(); return; }
+  if(a === 'ajouter-jour'){ var dj = b.dataset.date; rcMenu = false; rcOuvert[dj] = true; ajouterJour(dj); return; }
+  if(a === 'rc-plier'){ rcOuvert[b.dataset.k] = !rcOuvert[b.dataset.k]; render(); var bt = $('#semRecList [data-a="rc-plier"][data-k="' + b.dataset.k + '"]'); if(bt) bt.focus(); return; }
   if(a === 'retirer-jour'){ retirerJour(b.dataset.date); return; }
   if(a === 'debouches'){ ui.view = 'reglages'; if(b.dataset.reg) ui.regPage = b.dataset.reg; saveUi(); render(); scrollTo(0, 0); return; }
   if(a === 'reprendre'){ avecNom(reprendre); return; }
