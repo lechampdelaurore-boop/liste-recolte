@@ -498,6 +498,23 @@ dialog.big{max-width:min(460px,94vw);width:100%}
 .rc-q{margin:0;font-weight:900;font-size:1.1rem}
 .rc-choix{display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:8px}
 .rc-choix .sem-act{text-align:left;padding:10px 12px}
+/* Historique (étape 14) : ouvert depuis l'onglet Semaine, lecture seule. */
+.hi-entree{display:flex;justify-content:flex-end}
+.hi-entree[hidden],#histView[hidden]{display:none}
+.hi-entree .sem-act,.hi-haut .sem-act{display:inline-flex;align-items:center;gap:8px}
+.hi-ico{width:22px;height:22px;flex:none;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+@media (min-width:1000px){.hi-entree{max-width:620px}}
+#histView{display:grid;gap:12px;max-width:900px}
+.hi-haut{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.hi-semaines{display:grid;gap:12px}
+.hi-jour{display:grid;gap:6px;padding:10px 12px;border-top:var(--bw) solid var(--line)}
+.rc-ouvert>.hi-jour:nth-child(2){border-top:0}
+.hi-jour h4{margin:0;font-size:1.1rem;font-weight:900}
+.hi-jour p{margin:0}
+.hi-jour .hi-res{font-weight:800}
+.hi-jour .hint{color:var(--fg);font-weight:600}
+.hi-jour .sem-act{justify-self:start}
+.hi-vide{padding:10px 12px;margin:0;font-weight:700}
 </style>
 </head>
 <body>
@@ -527,6 +544,10 @@ dialog.big{max-width:min(460px,94vw);width:100%}
     <button type="button" class="sem-btn" data-a="semPrec" aria-label="Semaine précédente">‹</button>
     <div class="sem-titre"><b id="semTitre"></b><span><span id="semQuand"></span> <span id="semJusque"></span></span></div>
     <button type="button" class="sem-btn" data-a="semSuiv" aria-label="Semaine suivante">›</button>
+  </div>
+  <!-- Historique (étape 14) : toutes les semaines passées, ce qui a été récolté jour par jour. Lecture seule. -->
+  <div class="hi-entree" id="hiEntree" hidden>
+    <button type="button" class="sem-act" data-a="historique"><svg class="hi-ico" viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12a8.5 8.5 0 1 0 2.5-6"/><path d="M3 4v4h4"/><path d="M12 7.5V12l3 2"/></svg><span>Historique des semaines</span></button>
   </div>
 
   <!-- Récolte et Préparation : la semaine choisie dans l'onglet Semaine, et le menu de ses jours de récolte (étape 13D). -->
@@ -640,6 +661,7 @@ dialog.big{max-width:min(460px,94vw);width:100%}
   </div>
 
   <div id="debView" hidden></div>
+  <div id="histView" hidden></div>
 
   <footer>
     <p class="note" id="noShare" hidden>Le partage n'est pas encore activé : les coches et l'ordre restent sur ce téléphone.</p>
@@ -718,7 +740,7 @@ if(ui.debouches){ ui.view = 'reglages'; delete ui.debouches; }
 if(ui.semPage === 'tableau') ui.semPage = 'cumul';
 // L'onglet « Détail » (caché le 4/11/2026) est supprimé depuis le 9/11/2026, demande de François : la flèche sous
 // chaque produit et l'onglet Préparation le remplacent. Un téléphone resté dessus rouvre sur Récolte (voir render).
-var VUES = ['semaine', 'recolte', 'prep', 'reglages'];
+var VUES = ['semaine', 'recolte', 'prep', 'reglages', 'historique'];
 var me = ls('recolte.qui');
 var pending = [];
 var MKEY;
@@ -1138,17 +1160,18 @@ function enTete(){
   var v = ui.view, t = list ? list.titre : 'Récolte', sous = list ? list.pour || '' : '';
   if(v === 'prep'){ t = 'Préparation des commandes'; sous = list ? list.titre : ''; }
   else if(v === 'semaine'){ t = 'Semaine'; sous = ''; }
+  else if(v === 'historique'){ t = 'Historique'; sous = 'Les semaines passées : ce qui a été récolté, jour par jour.'; }
   else if(v === 'reglages'){ t = 'Réglages'; sous = CLE ? 'Débouchés, livraisons, jours de récolte et compte.' : 'Débouchés, livraisons et jours de récolte.'; }
   $('#titre').textContent = t; $('#pour').textContent = sous;
 }
 function render(){
   if(VUES.indexOf(ui.view) < 0){ ui.view = 'recolte'; saveUi(); }
   document.querySelectorAll('#tabs button[data-view]').forEach(function(b){
-    var on = b.dataset.view === ui.view;
+    var on = b.dataset.view === ui.view || (ui.view === 'historique' && b.dataset.view === 'semaine');   // l'historique s'ouvre depuis la Semaine
     b.setAttribute('aria-pressed', String(on));
     if(on) b.setAttribute('aria-current', 'page'); else b.removeAttribute('aria-current');
   });
-  var prep = ui.view === 'prep', semV = ui.view === 'semaine', regV = ui.view === 'reglages', autre = semV || regV;
+  var prep = ui.view === 'prep', semV = ui.view === 'semaine', regV = ui.view === 'reglages', histV = ui.view === 'historique', autre = semV || regV || histV;
   // Récolte et Préparation : la liste du jour de récolte choisi dans la semaine (ou un message s'il n'y en a pas).
   if(!autre) choisirListe();
   var sans = !autre && (!list || !!vide);
@@ -1161,6 +1184,7 @@ function render(){
   $('#zones').hidden = !MONTRER_LIEU || autre || sans;
   $('#semSub').hidden = !semV; $('#regSub').hidden = !regV;
   $('#semView').hidden = !semV; $('#semNav').hidden = !semV; $('#debView').hidden = !regV;
+  $('#hiEntree').hidden = !semV; $('#histView').hidden = !histV;
   $('.controls').hidden = !document.querySelector('.controls > :not([hidden])');
   document.body.classList.toggle('large', autre && PC.matches);
   document.querySelectorAll('#zones .chip').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.z === ui.zone)); });
@@ -1168,7 +1192,7 @@ function render(){
   $('#who').textContent = me ? '👤 ' + me : '👤 Qui es-tu ?';
   if(sans || !list){
     $('#prog').hidden = true;
-    if(regV) renderReglages(); else if(semV) renderSemaine();
+    if(regV) renderReglages(); else if(semV) renderSemaine(); else if(histV) renderHisto();
     return;
   }
   var o = order().map(function(id){ return byId[id]; }).filter(visible);
@@ -1189,6 +1213,7 @@ function render(){
   if(autre) $('#prog').hidden = true;
   if(regV) renderReglages();
   else if(semV) renderSemaine();
+  else if(histV) renderHisto();
 }
 function renderReglages(){
   var rp = ui.regPage === 'recoltes' || (ui.regPage === 'compte' && CLE) ? ui.regPage : 'debouches';
@@ -3717,6 +3742,168 @@ function diagnostiquer(){
   dernierDiag = Date.now();
   dbFetch(lid ? '/listes/' + lid : '/listes/reglages/debouches', {cache:'no-store'}, 'shallow=true').catch(function(){});
 }
+
+/* ---------- Historique (étape 14, 9/11/2026) ----------
+   François : « Il y a déjà un historique avec toutes les récoltes passées ? ». Page « Historique », ouverte depuis
+   l'onglet Semaine : une ligne par semaine, la plus récente en haut, repliée ; sa flèche déplie ses jours de récolte,
+   avec ce qui a été coché (produit, quantité de la liste, qui et à quelle heure), ce qui ne l'a pas été, la
+   préparation, et deux boutons pour rouvrir la liste du jour (onglet Récolte) ou la répartition de la semaine.
+   LECTURE SEULE : rien n'est jamais écrit dans la base, tout y est déjà gardé (listes/<date> pour les coches et la
+   liste figée, listes/semaines/<lundi> pour la répartition). Les noms des semaines et des jours viennent d'une lecture
+   « shallow » (les noms seulement, sans le contenu) ; le détail d'une semaine n'est lu qu'au moment où on la déplie.
+   Dernière version lue gardée sur le téléphone (recolte.histo, recolte.histo.<date>) pour l'ouvrir sans réseau.
+   Les quantités sont celles de la liste du jour : l'appli ne note que la coche, pas la quantité réellement récoltée. */
+var histo = {index:ls('recolte.histo'), etat:'', ouvert:{}, jours:{}, sem:{}};
+function estDate(k){ return /^\d{4}-\d{2}-\d{2}$/.test(k); }
+function finSemaine(w){ var d = deIso(w); d.setDate(d.getDate() + 6); return jourIso(d); }
+function histoEntrer(){
+  if(histo.etat !== 'charge') histo.etat = '';
+  Object.keys(histo.sem).forEach(function(w){ if(histo.sem[w] !== 'charge') delete histo.sem[w]; });
+  ui.view = 'historique'; saveUi(); render(); scrollTo(0, 0);
+}
+function lireNoms(chemin){
+  return dbFetch(chemin, {cache:'no-store'}, 'shallow=true').then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); });
+}
+function histoCharger(){
+  if(histo.etat || !dbPret()) return;
+  histo.etat = 'charge';
+  Promise.all([lireNoms('/listes'), lireNoms('/listes/semaines')]).then(function(v){
+    histo.index = {jours:Object.keys(v[0] || {}).filter(estDate).sort(), semaines:Object.keys(v[1] || {}).filter(estDate).sort(), at:Date.now()};
+    ls('recolte.histo', histo.index); histo.etat = 'ok';
+  }, function(){ histo.etat = 'err'; }).then(function(){ if(ui.view === 'historique') render(); });
+}
+// Ce qu'on garde d'un jour (sans « maj », qui ne sert qu'à l'envoi).
+function histoGarde(v){ v = v || {}; return {fige:v.fige || null, done:v.done || {}, prep:v.prep || {}, prepClient:v.prepClient || {}}; }
+function histoNoeud(d){
+  if(lid === d) return mirror;   // le jour ouvert dans l'onglet Récolte : ses coches en direct
+  return histo.jours[d] || ls('recolte.histo.' + d) || ls('recolte.liste.' + d);
+}
+function histoJoursDe(w){
+  var fin = finSemaine(w), js = ((histo.index && histo.index.jours) || []).filter(function(d){ return d >= w && d <= fin; });
+  // Jour ouvert dans l'onglet Récolte et coché depuis la dernière lecture des noms.
+  if(lid && estDate(lid) && lid >= w && lid <= fin && js.indexOf(lid) < 0 && (mirror.fige || Object.keys(mirror.done || {}).length)) js = js.concat([lid]).sort();
+  return js;
+}
+function histoOuvrirSemaine(w){
+  if(histo.sem[w] || !dbPret()) return;
+  var js = histoJoursDe(w).filter(function(d){ return d !== lid; });
+  histo.sem[w] = 'charge';
+  Promise.all(js.map(function(d){
+    return dbFetch('/listes/' + d, {cache:'no-store'}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+      .then(function(v){ histo.jours[d] = histoGarde(v); ls('recolte.histo.' + d, histo.jours[d]); });
+  })).then(function(){ histo.sem[w] = 'ok'; }, function(){ histo.sem[w] = 'err'; }).then(function(){ if(ui.view === 'historique') render(); });
+}
+function hm(at){ return new Date(at).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}); }
+function quandCoche(info, d){
+  if(!info || !info.at) return info && info.by ? info.by : '';
+  var jour = jourIso(new Date(info.at)) === d ? '' : new Date(info.at).toLocaleDateString('fr-FR', {weekday:'long', day:'numeric'}) + ' ';
+  return (info.by ? info.by + ', ' : '') + jour + 'à ' + hm(info.at);
+}
+function totalTxt(t){
+  var p = [];
+  if(t.kg > 0.05) p.push(kgTxt(t.kg) + ' kg');
+  Object.keys(t.u).forEach(function(k){ var n = Math.round(t.u[k] * 10) / 10; if(n > 0) p.push(fr(n) + ' ' + unitName(k, n)); });
+  return p.join(' + ');
+}
+function ajouterQ(t, it){ var q = itemQty(it); t.kg += q.kg; Object.keys(q.u).forEach(function(k){ t.u[k] = (t.u[k] || 0) + q.u[k]; }); }
+// Un jour de récolte tel qu'il est gardé : ses coches, et sa liste comme dans l'onglet Récolte (la liste en fichier, faite
+// avant 13D, l'emporte pour sa date ; sinon la liste figée à la première coche).
+function histoJour(d){
+  var n = histoNoeud(d); if(!n) return null;
+  var l = fichierDe(d) || (n.fige ? deFige(n.fige) : null);
+  var items = l ? tableau(l.items) : [], parId = {}, done = n.done || {}, prep = n.prep || {}, pc = n.prepClient || {};
+  items.forEach(function(it){ parId[it.id] = it; });
+  var faits = Object.keys(done).filter(function(k){ return done[k]; }).map(function(k){ return {it:parId[k] || {id:k, produit:nomProduit(k), circ:{}}, info:done[k]}; });
+  faits.sort(function(a, b){ return (a.info.at || 0) - (b.info.at || 0); });
+  var tot = {kg:0, u:{}}, qui = [];
+  faits.forEach(function(f){ ajouterQ(tot, f.it); if(f.info.by && qui.indexOf(f.info.by) < 0) qui.push(f.info.by); });
+  var heures = faits.map(function(f){ return f.info.at; }).filter(Boolean);
+  var circs = l ? tableau(l.circuits) : [], lignes = 0, prets = 0;
+  items.forEach(function(it){
+    circs.forEach(function(ci){
+      var v = it.circ && it.circ[ci.id];
+      if(v === undefined || v === null || v === 0 || v === '') return;
+      lignes++; if(prep[ci.id] && prep[ci.id][it.id]) prets++;
+    });
+  });
+  return {date:d, liste:!!l, faits:faits, restes:items.filter(function(it){ return !done[it.id]; }), nb:items.length, tot:tot, qui:qui,
+    debut:heures.length ? Math.min.apply(null, heures) : 0, fin:heures.length ? Math.max.apply(null, heures) : 0, lignes:lignes, prets:prets,
+    clients:circs.filter(function(ci){ return pc[ci.id]; }).map(function(ci){ return ci.nom; })};
+}
+function etListe(a){ return a.length > 1 ? a.slice(0, -1).join(', ') + ' et ' + a[a.length - 1] : a.join(''); }
+function histoJourHtml(r){
+  var h = '<div class="hi-jour" data-date="' + r.date + '"><h4>' + esc(majuscule(titreJour(r.date))) + '</h4>';
+  var n = r.faits.length;
+  h += '<p class="hi-res">' + (n ? n + ' produit' + (n > 1 ? 's' : '') + ' récolté' + (n > 1 ? 's' : '') + (r.liste ? ' sur ' + r.nb : '') : 'Rien de coché') +
+    (totalTxt(r.tot) ? ' · ' + esc(totalTxt(r.tot)) : '') + '</p>';
+  if(n) h += '<p class="hint">Coché par ' + esc(etListe(r.qui) || '?') + (r.debut ? ', ' + (r.debut === r.fin ? 'à ' + hm(r.debut) : 'de ' + hm(r.debut) + ' à ' + hm(r.fin)) : '') + '.</p>' +
+    '<ul>' + r.faits.map(function(f){
+      var it = f.it, q = it.total || '', k = it.kg && it.kg !== it.total ? it.kg : '';
+      return '<li data-pid="' + esc(it.id) + '"><span>' + miniHtml(it.produit) + esc(it.produit) + '</span><b>' + esc(q) + '</b><small>' + esc((k ? k + ' · ' : '') + quandCoche(f.info, r.date)) + '</small></li>';
+    }).join('') + '</ul>';
+  if(r.restes.length) h += '<p class="hint"><b>Pas coché :</b> ' + esc(r.restes.map(function(it){ return it.produit; }).join(', ')) + '.</p>';
+  if(r.lignes) h += '<p class="hint">Préparation : ' + r.prets + ' ligne' + (r.prets > 1 ? 's' : '') + ' sur ' + r.lignes +
+    (r.clients.length ? ' · commande' + (r.clients.length > 1 ? 's' : '') + ' prête' + (r.clients.length > 1 ? 's' : '') + ' : ' + esc(r.clients.join(', ')) : '') + '.</p>';
+  return h + '<button type="button" class="sem-act db-petit" data-a="hi-jour" data-date="' + r.date + '">Ouvrir la liste de ce jour</button></div>';
+}
+function histoSemaineHtml(w, cette){
+  var d = deIso(w), ouvert = !!histo.ouvert[w], js = histoJoursDe(w);
+  var titre = 'Semaine du ' + d.toLocaleDateString('fr-FR', d.getFullYear() === new Date().getFullYear() ? {day:'numeric', month:'long'} : {day:'numeric', month:'long', year:'numeric'});
+  var quand = w === cette ? 'Cette semaine · ' : w === decaler(cette, -1) ? 'Semaine dernière · ' : '';
+  var rs = js.map(histoJour), connus = rs.filter(Boolean), tot = {kg:0, u:{}}, nf = 0;
+  connus.forEach(function(r){ nf += r.faits.length; r.faits.forEach(function(f){ ajouterQ(tot, f.it); }); });
+  var combien = js.length && connus.length === js.length ? (nf ? nf + ' produit' + (nf > 1 ? 's' : '') + ' récolté' + (nf > 1 ? 's' : '') : 'Rien de coché') + (totalTxt(tot) ? ' · ' + totalTxt(tot) : '') : '';
+  var h = '<section class="card rc-jour' + (ouvert ? ' rc-ouvert' : '') + '" data-w="' + w + '"><h3><button type="button" class="rc-tete" data-a="hi-plier" data-w="' + w + '" aria-expanded="' + ouvert + '">' +
+    '<span class="rc-titre">' + esc(titre) + '<small>' + esc(quand + (js.length ? 'Récolte cochée : ' + js.map(function(x){ return deIso(x).toLocaleDateString('fr-FR', {weekday:'long', day:'numeric'}); }).join(', ') : 'Aucune récolte cochée')) + '</small>' +
+    (combien ? '<small class="rc-combien">' + esc(combien) + '</small>' : '') + '</span>' + ARROW_SEM + '</button></h3>';
+  if(!ouvert) return h + '</section>';
+  var manque = rs.some(function(r){ return !r; });
+  if(manque && histo.sem[w] === 'charge') h += '<p class="hi-vide">Chargement…</p>';
+  else if(manque) h += '<p class="hi-vide">Pas de réseau : ' + (connus.length ? 'certains jours de cette semaine n\'ont' : 'cette semaine n\'a') + ' pas encore été ouverts sur ce téléphone.</p>';
+  h += connus.map(histoJourHtml).join('');
+  if(!js.length) h += '<p class="hi-vide">Aucune coche de récolte cette semaine.</p>';
+  return h + '<div class="rc-actions"><button type="button" class="sem-add" data-a="hi-semaine" data-w="' + w + '">Voir la répartition de cette semaine</button></div></section>';
+}
+function renderHisto(){
+  histoCharger();
+  var h = '<div class="hi-haut"><button type="button" class="sem-act" data-a="hi-retour">‹ Retour à la semaine</button></div>', idx = histo.index;
+  if(!DB){ $('#histView').innerHTML = h + '<p class="card empty">Le partage n\'est pas activé : l\'historique est gardé dans la base partagée.</p>'; return; }
+  if(!idx){
+    $('#histView').innerHTML = h + (histo.etat === 'err' ? '<section class="card boite"><p>Impossible de lire l\'historique. Vérifie la connexion.</p><button type="button" class="sem-act" data-a="hi-relire">Réessayer</button></section>' :
+      '<p class="card empty">' + (CLE && !compte ? 'Pas connecté.' : 'Chargement de l\'historique…') + '</p>');
+    return;
+  }
+  if(histo.etat === 'err') h += '<section class="card boite jaune"><p>Pas de réseau : voici l\'historique gardé sur ce téléphone (lu le ' + esc(new Date(idx.at).toLocaleDateString('fr-FR', {day:'numeric', month:'long'}) + ' à ' + hm(idx.at)) + ').</p><button type="button" class="sem-act" data-a="hi-relire">Réessayer</button></section>';
+  var cette = lundiDe(new Date()), ws = {};
+  idx.semaines.forEach(function(w){ if(w <= cette) ws[w] = 1; });
+  idx.jours.forEach(function(d){ var w = lundiDe(deIso(d)); if(w <= cette) ws[w] = 1; });
+  if(lid && estDate(lid) && lundiDe(deIso(lid)) <= cette && histoJoursDe(lundiDe(deIso(lid))).length) ws[lundiDe(deIso(lid))] = 1;
+  var liste = Object.keys(ws).sort().reverse();
+  liste.forEach(function(w){ if(histo.ouvert[w]) histoOuvrirSemaine(w); });
+  h += liste.length ? '<div class="hi-semaines">' + liste.map(function(w){ return histoSemaineHtml(w, cette); }).join('') + '</div>' :
+    '<p class="card empty">Aucune semaine enregistrée pour l\'instant.</p>';
+  h += '<p class="hint">Toutes les semaines enregistrées, la plus récente en haut. La flèche d\'une semaine montre ses jours de récolte : ce qui a été coché, par qui et à quelle heure, ce qui ne l\'a pas été, et la préparation. Les quantités sont celles de la liste du jour (l\'appli note la coche, pas le poids réellement récolté). Rien ne se modifie ici : « Ouvrir la liste de ce jour » et « Voir la répartition » rouvrent les pages habituelles.</p>';
+  $('#histView').innerHTML = h;
+}
+function allerSemaine(w){ ui.semaine = w; ui.semaineLe = jourIso(new Date()); }
+$('#hiEntree').addEventListener('click', function(e){ if(e.target.closest('[data-a="historique"]')) histoEntrer(); });
+$('#histView').addEventListener('click', function(e){
+  e.stopPropagation(); // ni coche ni geste de la liste de récolte ici
+  var b = e.target.closest('[data-a]'); if(!b) return;
+  var a = b.dataset.a;
+  if(a === 'hi-retour'){ ui.view = 'semaine'; saveUi(); render(); scrollTo(0, 0); return; }
+  if(a === 'hi-relire'){ histo.etat = ''; histo.sem = {}; render(); return; }
+  if(a === 'hi-plier'){
+    var w = b.dataset.w; histo.ouvert[w] = !histo.ouvert[w]; render();
+    var bt = $('#histView [data-a="hi-plier"][data-w="' + w + '"]'); if(bt) bt.focus();
+    return;
+  }
+  if(a === 'hi-semaine'){ allerSemaine(b.dataset.w); ui.view = 'semaine'; ui.semPage = 'cumul'; semErr = {}; saveUi(); render(); scrollTo(0, 0); return; }
+  if(a === 'hi-jour'){
+    var d = b.dataset.date; allerSemaine(lundiDe(deIso(d)));
+    ui.jour = d; ui.jourLe = jourIso(new Date()); ui.circ = ''; ui.view = 'recolte'; saveUi(); render(); scrollTo(0, 0);
+  }
+});
 
 /* ---------- Compte (Firebase Authentication, par son API web, sans bibliothèque) ---------- */
 // Le compte est gardé sur le téléphone (clé recolte.compte) : identifiant, numéro du compte (uid),

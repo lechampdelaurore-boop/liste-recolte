@@ -62,6 +62,10 @@ Les répartitions sont rangées **sous `listes/`** (dans `listes/semaines/`) par
 
 Pour la liste de récolte, seuls l'ordre, les coches et (depuis l'étape 13D) la liste figée sont dans la base. Les coches de préparation (`prep`, `prepClient`) sont à part des coches de récolte (`done`) : l'une ne modifie jamais l'autre. Depuis l'étape 13D, les produits et quantités d'une liste sont **calculés depuis la semaine** (`listes/semaines/<lundi>`) : la liste d'un jour de récolte a pour identifiant sa date (`listes/2026-11-11`). Tant que personne n'a coché, rien n'est écrit pour elle ; la première coche écrit aussi `fige` (la liste telle qu'elle était) et, si le jour vient d'un jour habituel, `recoltes/<date>` dans la semaine (le jour existe alors « en dur »). Les listes faites à la main avant 13D restent dans `listes/*.json` sur GitHub et l'emportent pour leur date.
 
+## Historique (étape 14, depuis le 09/11/2026)
+
+La page « Historique » (ouverte depuis l'onglet Semaine) **ne fait que lire** : rien n'est ajouté à la base, tout y est déjà (coches et liste figée dans `listes/<date>`, répartition dans `listes/semaines/<lundi>`). À l'ouverture, deux lectures « shallow » (les noms seulement, sans le contenu) : `listes` (les jours de récolte qui ont des coches) et `listes/semaines` (les semaines). Une semaine dépliée lit ses jours `listes/<date>`. Copies sur le téléphone pour le hors-ligne : `recolte.histo` (les noms) et `recolte.histo.<date>` (liste figée et coches du jour, sans `maj`). Les règles de la base n'ont pas changé (tout est sous `listes`, lu par le profil « ferme »). **Ne jamais supprimer de jours ni de semaines passés** : c'est l'historique.
+
 ## Comment l'appli s'en sert
 
 - **Lecture en temps réel** : `EventSource` sur `<base>/listes/<id>.json` (flux REST de Firebase, événements `put` et `patch`).

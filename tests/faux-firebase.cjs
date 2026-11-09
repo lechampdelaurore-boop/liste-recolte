@@ -1,5 +1,5 @@
 // Faux serveur Firebase Realtime Database (API REST + flux temps réel), pour les tests.
-// Gère GET en text/event-stream (événement « put ») ou en JSON, PUT, DELETE et PATCH (écriture de plusieurs
+// Gère GET en text/event-stream (événement « put ») ou en JSON (avec « shallow=true »), PUT, DELETE et PATCH (écriture de plusieurs
 // chemins d'un coup, événement « patch »). Données en mémoire. couperFlux() ferme les flux ouverts (coupure réseau).
 // Option { comptes: { cle } } (étape 5) : imite aussi Firebase Authentication (connexion par identifiant et mot de
 // passe, renouvellement du jeton) et les règles de docs/regles-base/fermees.json : sans jeton valable, ou sans
@@ -85,8 +85,12 @@ module.exports = function fauxFirebase(port, options = {}) {
     const non = refus(url, p, q.method, corpsLu);
     if (non) return json(r, 401, { error: non });
     if (q.method === 'GET' && !String(q.headers.accept || '').includes('text/event-stream')) {
+      serveur.lectures.push(p.join('/') + (url.searchParams.get('shallow') === 'true' ? '?shallow' : ''));
       r.writeHead(200, { 'Content-Type': 'application/json' });
-      return r.end(JSON.stringify(lire(p)));
+      // « shallow=true » (comme la vraie base) : les noms des enfants seulement, chacun à true ; une valeur simple telle quelle.
+      const v = lire(p);
+      if (url.searchParams.get('shallow') === 'true' && v && typeof v === 'object') return r.end(JSON.stringify(Object.fromEntries(Object.keys(v).map((k) => [k, true]))));
+      return r.end(JSON.stringify(v));
     }
     if (q.method === 'GET') {
       r.writeHead(200, { 'Content-Type': 'text/event-stream' });
@@ -125,6 +129,7 @@ module.exports = function fauxFirebase(port, options = {}) {
   serveur.couperFlux = () => { for (const a of abonnes.splice(0)) a.r.destroy(); };
   // Comptes (option comptes) : créer, donner un profil, faire expirer tous les jetons, supprimer.
   serveur.renouvellements = 0;
+  serveur.lectures = []; // chaque lecture simple (hors flux) : « chemin » ou « chemin?shallow »
   serveur.journal = journal;
   serveur.creerCompte = (email, mdp) => { const uid = 'u' + hasard().slice(0, 10); utilisateurs[email.toLowerCase()] = { mdp, uid }; return uid; };
   serveur.profil = (uid, v) => ecrire(['profils', uid], v);
