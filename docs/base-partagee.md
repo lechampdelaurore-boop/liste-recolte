@@ -38,6 +38,7 @@ listes/
       maj/…                                                      // heure de chaque action, comme pour les listes
   reglages/                                   // réglages partagés (depuis le 08/11/2026, étape 13B)
     debouches: {"debouches":[ … ], "recoltes":[ … ], "rec":true, "by":"François", "at":…}   // débouchés, livraisons et jours de récolte habituels (recoltes[].chaque : « Chaque semaine », absent = oui ; debouches[].couleur : couleur de la palette de l'appli, absente = celle du départ ou la première libre)
+    ordre: {"ids":["carotte-lavee","poireau",…], "by":"Aurore", "at":…}   // ordre de récolte habituel (depuis le 09/11/2026), écrit seulement par le bouton « Enregistrer cet ordre »
 profils/                                      // étape 5 : écrit par François dans la console, jamais par l'appli
   <uid du compte>: "ferme"                    // ce compte lit et écrit tout « listes »
   <uid du magasin>: "magasin:ta"              // étape 13C : ce compte n'a accès qu'à magasins/ta (Très Allier)
@@ -54,6 +55,8 @@ magasins/                                     // étape 13C : écrit par le maga
 La ferme ne recopie jamais le stock du magasin dans sa semaine : l'onglet Semaine lit `magasins/<débouché>/semaines/<lundi>` (et la semaine d'avant, pour l'aide) et montre, dans la case « Stock chez … », la saisie la plus récente des deux. Si la ferme vide une case que le magasin a remplie, elle écrit `listes/semaines/<lundi>/stock/<pid>/<débouché>` = `{"vide":true,"by":…,"at":…}`. **Ne pas supprimer `magasins`** : c'est le stock et le journal du magasin.
 
 `listes/reglages/debouches` n'existe qu'après la première modification dans l'écran « Débouchés et livraisons » ; avant, l'appli prend `referentiel/debouches.json`. Chaque modification réécrit la fiche entière, avec le prénom et l'heure ; la dernière modification l'emporte. Un débouché ou une livraison retiré y reste, marqué `"archive": true`. **Ne pas supprimer `listes/reglages`** : ce sont les débouchés de la ferme. Aucune liste de récolte ne s'appelle `reglages`.
+
+`listes/reglages/ordre` (depuis le 09/11/2026) : l'ordre de récolte habituel de la ferme, une suite d'identifiants de produits. Il n'existe qu'après le premier clic sur « Enregistrer cet ordre » (onglet Récolte) ; chaque clic le réécrit en entier, avec le prénom et l'heure, et le dernier l'emporte. Il ne sert qu'à l'affichage : un jour de récolte qui n'a pas encore d'`order` à lui s'ouvre dans cet ordre (les produits absents de l'ordre habituel à la fin) ; un jour qui a son `order` le garde. L'appli ne recopie jamais l'ordre habituel dans une liste. Les règles de la base n'ont pas changé : il est sous `listes`, ouvert au seul profil « ferme ».
 
 Les répartitions sont rangées **sous `listes/`** (dans `listes/semaines/`) parce que les règles de la base n'ouvrent que `listes` : un autre emplacement demanderait de changer les règles de Firebase, réservé à François. Aucune liste de récolte ne s'appelle `semaines`, les deux ne se mélangent pas. **Ne pas supprimer `listes/semaines`** en vidant une semaine de récolte : ce sont les répartitions gardées pour l'historique.
 

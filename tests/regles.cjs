@@ -70,6 +70,8 @@ const compte = async (email, mdp) => {
   verifie(r.s === 200 && r.j.dispo.bette.n === 3, 'compte de la ferme : lecture d\'une semaine');
   r = await appel('listes/reglages/debouches', f.idToken, { method: 'PUT', body: '{"at":3}' });
   verifie(r.s === 200, 'compte de la ferme : réglages des débouchés réécrits (PUT)');
+  r = await appel('listes/reglages/ordre', f.idToken, { method: 'PUT', body: '{"ids":["carotte","poireau"],"by":"Aurore","at":4}' });
+  verifie(r.s === 200, 'compte de la ferme : ordre de récolte habituel enregistré (PUT, 9/11), sans changer les règles');
   r = await appel('profils/' + e.localId, f.idToken, { method: 'PUT', body: '"ferme"' });
   verifie(r.s === 401, 'compte de la ferme : ne peut pas donner de profil (seule la console le peut)');
   r = await appel('magasin', f.idToken);
@@ -85,6 +87,8 @@ const compte = async (email, mdp) => {
   verifie(r.s === 401, 'magasin : il ne lit pas le profil d\'un autre compte');
   r = await appel('listes', m.idToken); const r2 = await appel('listes/semaines/2026-11-02', m.idToken); const r3 = await appel('listes/reglages/debouches', m.idToken);
   verifie(r.s === 401 && r2.s === 401 && r3.s === 401, 'magasin : listes, semaines et débouchés refusés');
+  const ro1 = await appel('listes/reglages/ordre', m.idToken), ro2 = await ecrit('listes/reglages/ordre', { ids: ['x'], by: 'Igor', at: 9 }, m.idToken, 'PUT');
+  verifie(ro1.s === 401 && ro2.s === 401, 'magasin : l\'ordre de récolte habituel lui est fermé (lecture et écriture)');
   r = await ecrit('listes/2026-11-04', { 'done/radis': { by: 'Igor', at: 5 } });
   verifie(r.s === 401, 'magasin : écriture dans les listes refusée');
   r = await ecrit('magasins/ta', { ['semaines/' + W + '/carotte-lavee']: { n: 12, u: 'kg', by: 'Igor', at: 10 }, ['journal/' + W + '/10-abcde']: { pid: 'carotte-lavee', n: 12, u: 'kg', by: 'Igor', at: 10 } });
