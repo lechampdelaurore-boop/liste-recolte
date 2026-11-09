@@ -31,6 +31,7 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 | **Puces de circuit** (Très Allier, Marché ven., Panier adéquat, Élie, Locavore, Auvabio 03, Ferme Deschamps, Panier La Magic) | N'affiche que les produits de ce circuit, avec la quantité de ce circuit seulement. Pratique pour préparer une commande. |
 | **Petite flèche en bas à droite d'un produit** (onglet Récolte) | Déplie la répartition du produit par client : le colis (ex. « GH de 5 kg »), puis pour chaque client le nombre de colis (colis bois compris) et le poids ou le nombre d'unités correspondant. Toucher à nouveau pour replier. Ouvert ou fermé sur ce téléphone seulement. Remplace l'onglet Détail, caché depuis le 04/11/2026 (`MONTRER_DETAIL` dans `index.html`, à passer à `true` pour le remettre). |
 | **Appui long sur une ligne** (0,45 s, sans bouger) | La ligne se décolle (petite vibration) ; la glisser à sa place. Un geste rapide fait défiler la page normalement, sans rien déplacer. L'ordre est le même sur les deux téléphones. |
+| **Sur ordinateur (fenêtre d'au moins 1000 px, souris) : poignée et boutons de tri** | Lignes compactes (environ 48 px). La poignée (six points, à gauche) décolle la ligne tout de suite, sans appui long. Au survol d'une ligne, quatre boutons : tout en haut, monter d'un cran, descendre d'un cran, tout en bas ; après monter ou descendre, la ligne reste sous la souris pour cliquer encore. Le téléphone ne change pas. |
 | **Case à cocher** | La ligne part dans « Récoltes déjà effectuées », avec le prénom et l'heure. |
 | **Récoltes déjà effectuées ›** (en bas) | Déroule la liste de ce qui est fait. Toucher la case d'une ligne pour la décocher. |
 | **Récolté … %** (barre en haut de la liste) | Avance à chaque coche, sur les deux téléphones : kilos et unités additionnés (voir [Barre de progression](#barre-de-progression)). La petite flèche vers le bas déplie le détail : une barre pour les unités (bottes, bouquets, pièces…), une barre pour les kilos, avec ce qui reste. |
@@ -181,7 +182,7 @@ Le code de ce dépôt est publié sous la licence **PolyForm Noncommercial 1.0.0
 | `magasin.html` | Page du magasin (étape 13C) : saisie du stock avec le compte du magasin. Autonome, même charte. |
 | `sw.js` | Hors ligne : la page et la liste passent par le réseau, sinon la dernière copie. Changer `CACHE` à chaque modification de l'appli. Ne met jamais la base Firebase en cache. |
 | `manifest.webmanifest`, `icons/` | Installation sur l'écran d'accueil. |
-| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`), débouchés et livraisons (`debouches.cjs`), connexion par compte (`connexion.cjs`), listes calculées depuis la semaine (`listes-calculees.cjs`), couleur des débouchés (`couleurs.cjs`), filtre par jour de récolte et impression (`filtre.cjs`), flèches du clavier dans la grille (`fleches.cjs`), aromatiques (`aromatiques.cjs`), miniatures des légumes (`miniatures.cjs`) ; règles de la base sur l'émulateur officiel de Firebase (`regles.cjs`). |
+| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`), débouchés et livraisons (`debouches.cjs`), connexion par compte (`connexion.cjs`), listes calculées depuis la semaine (`listes-calculees.cjs`), couleur des débouchés (`couleurs.cjs`), filtre par jour de récolte et impression (`filtre.cjs`), flèches du clavier dans la grille (`fleches.cjs`), tri de l'onglet Récolte sur ordinateur (`tri-ordinateur.cjs`), aromatiques (`aromatiques.cjs`), miniatures des légumes (`miniatures.cjs`) ; règles de la base sur l'émulateur officiel de Firebase (`regles.cjs`). |
 | `docs/` | Format des listes, fonctionnement de la base partagée. |
 | `LICENSE` | Licence PolyForm Noncommercial 1.0.0 : usage non commercial seulement. |
 | `AGENTS.md` | Consignes pour les agents IA qui modifient ce dépôt (`CLAUDE.md` y renvoie). |
@@ -202,6 +203,7 @@ node tests/couleurs.cjs
 node tests/filtre.cjs
 node tests/fleches.cjs
 node tests/aromatiques.cjs
+node tests/tri-ordinateur.cjs
 node tests/miniatures.cjs
 ```
 
@@ -210,6 +212,8 @@ node tests/miniatures.cjs
 `tests/filtre.cjs` vérifie le filtre par jour de récolte et l'impression avec un téléphone et un ordinateur : une case par jour de récolte de la semaine (et une pour les livraisons sans jour), toutes cochées au départ, assez grandes pour le doigt ; un jour décoché masque ses colonnes dans Répartir (fiches et grille) et Cumul, et le stock d'un débouché dont toutes les livraisons sont masquées ; reste inchangé, note des colonnes masquées, rien d'écrit dans la base, choix propre à chaque appareil et gardé au rechargement ; bouton « Imprimer » : feuille qui suit le filtre, titre et récoltes imprimées, seul le tableau à l'impression, couleurs gardées, PDF en paysage.
 
 `tests/fleches.cjs` vérifie les flèches du clavier dans la grille « Répartir » de l'ordinateur : gauche et droite passent à la case d'à côté quand le curseur est au bord du texte (sinon il bouge dans la case), rien au bout de la ligne, Maj + flèche sélectionne ; ce qu'on tape est enregistré en changeant de case ; haut et bas restent dans la colonne ; les colonnes masquées par le filtre sont sautées ; le menu d'unité garde ses flèches et le curseur y reste. Données factices seulement.
+
+`tests/tri-ordinateur.cjs` vérifie le tri de l'onglet Récolte sur ordinateur (fenêtre de 1366 × 768 avec souris) : lignes d'environ 48 px, poignée à gauche, boutons de tri visibles au survol seulement et désactivés aux bouts, tout en haut et tout en bas, monter et descendre plusieurs fois sans bouger la souris (la ligne reste dessous), glisser par la poignée sans attendre, ordre enregistré et reçu par un second ordinateur, filtre de circuit, accès au clavier ; puis qu'un téléphone et une fenêtre de 900 px gardent l'affichage du téléphone (lignes hautes, appui long, ni poignée ni boutons).
 
 `tests/regles.cjs` demande en plus l'émulateur officiel de Firebase (`npm install --no-save firebase-tools`, Java), lancé à part : voir l'en-tête du fichier. Sans émulateur, il dit « NON LANCÉ ».
 
