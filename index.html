@@ -48,7 +48,6 @@ button,select,input{font:inherit;color:inherit}
 .tabs button span{max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .tabs svg{width:28px;height:28px;fill:none;stroke:currentColor;stroke-width:2.3;stroke-linecap:round;stroke-linejoin:round}
 .tabs button[aria-pressed="true"]{background:var(--accent);color:#fff}
-.tabs button[hidden]{display:none}
 @media (min-width:1000px){
   body{padding-bottom:0}
   .tabs{position:static;border-top:0;border-bottom:3px solid var(--line);padding:0}
@@ -129,11 +128,6 @@ li.done .box{background:var(--accent);border-color:var(--accent)} li.done .box s
 .ou{color:var(--muted);font-size:.92rem;margin-top:2px}
 .qty{text-align:right;font-weight:900;font-variant-numeric:tabular-nums;max-width:9.5em;font-size:1.1rem}
 .qty small{display:block;font-weight:600;color:var(--muted);font-size:.85rem}
-.detail{grid-column:2 / 4;display:flex;flex-wrap:wrap;gap:6px;font-size:.85rem}
-.tag{border-radius:6px;padding:2px 7px;border:1.5px solid var(--line);font-weight:600}
-.tag.c{font-weight:800;border-color:currentColor}
-.tag.c[data-c="PB"]{color:var(--pb)} .tag.c[data-c="PH"]{color:var(--ph)} .tag.c[data-c="GB"]{color:var(--gb)} .tag.c[data-c="GH"]{color:var(--gh)}
-.tag.alt{border-style:dashed;font-weight:800}
 .more{grid-column:3;justify-self:end;width:40px;height:40px;display:grid;place-items:center;border:var(--bw) solid var(--line);border-radius:10px;background:var(--surface);color:var(--fg);padding:0;cursor:pointer}
 .more svg{width:24px;height:24px;transition:transform .2s}
 .more[aria-expanded="true"] svg{transform:rotate(180deg)}
@@ -154,7 +148,7 @@ li.done .box{background:var(--accent);border-color:var(--accent)} li.done .box s
   li.item .bouger{grid-area:bou}
   li.item .more{grid-area:more;width:32px;height:32px;border-radius:8px}
   li.item .more svg{width:20px;height:20px}
-  li.item .detail,li.item .ecart,li.item .by,li.item .repart{grid-column:1 / -1}
+  li.item .ecart,li.item .by,li.item .repart{grid-column:1 / -1}
   li.item .by{padding-left:4px}
   #todo li.item .poignee{display:grid;place-items:center;width:28px;height:34px;cursor:grab;color:var(--fg);border-radius:8px;touch-action:none}
   #todo li.item .poignee svg{width:12px;height:20px;fill:currentColor}
@@ -518,7 +512,6 @@ dialog.big{max-width:min(460px,94vw);width:100%}
   <div class="tabs-in">
     <button type="button" data-view="semaine" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4M7.5 14h3M13.5 14h3M7.5 17.5h3"/></svg><span>Semaine</span></button>
     <button type="button" data-view="recolte" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 10h19l-2.2 10.5H4.7z"/><path d="M8 14v3.5M12 14v3.5M16 14v3.5"/><path d="M12 10c-.6-3.4.6-6 3.8-7.5-.3 3.6-1.7 6-3.8 7.5zM11.5 10C9.3 8.4 7.8 6.6 7.3 4c2.9.7 4.1 2.9 4.2 6z"/></svg><span>Récolte</span></button>
-    <button type="button" data-view="detail" aria-pressed="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 6h13M8 12h13M8 18h13M3.5 6h.01M3.5 12h.01M3.5 18h.01"/></svg><span>Détail</span></button>
     <button type="button" data-view="prep" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5L12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5L12 12l9-4.5M12 12v9"/></svg><span>Préparation</span></button>
     <button type="button" data-view="reglages" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M19 6h1M4 12h3M13 12h7M4 18h11M21 18h-1"/><circle cx="16" cy="6" r="2.5"/><circle cx="10" cy="12" r="2.5"/><circle cx="17.5" cy="18" r="2.5"/></svg><span>Réglages</span></button>
   </div>
@@ -703,10 +696,6 @@ var DOMAINE_COMPTES = 'ferme.invalid';
    Il était recopié à la main depuis l'assolement, pas relié à Ouvre ta ferme. Les données restent
    dans les listes ; passer à true pour le réafficher. */
 var MONTRER_LIEU = false;
-/* Onglet « Détail » (caisse, conditionnement et part de chaque circuit) : caché pour l'instant,
-   demande de François du 4/11/2026, l'onglet Préparation le remplace. Le code reste ;
-   passer à true pour le remettre. */
-var MONTRER_DETAIL = false;
 var CRATES = [['PB','Petite basse'],['PH','Petite haute'],['GB','Grande basse'],['GH','Grande haute']];
 // Les caisses de la ferme viennent du référentiel (« caisses » : code → nom) ; CRATES sert tant qu'il n'est pas chargé.
 function caisses(){
@@ -727,7 +716,9 @@ var ui = Object.assign({view:'recolte', zone:'', circ:'', perCirc:true, cratesOp
 if(ui.debouches){ ui.view = 'reglages'; delete ui.debouches; }
 // La page « Tableau » de la Semaine s'appelle « Cumul » depuis le 8/11 (mot de la ferme).
 if(ui.semPage === 'tableau') ui.semPage = 'cumul';
-var VUES = ['semaine', 'recolte', 'detail', 'prep', 'reglages'];
+// L'onglet « Détail » (caché le 4/11/2026) est supprimé depuis le 9/11/2026, demande de François : la flèche sous
+// chaque produit et l'onglet Préparation le remplacent. Un téléphone resté dessus rouvre sur Récolte (voir render).
+var VUES = ['semaine', 'recolte', 'prep', 'reglages'];
 var me = ls('recolte.qui');
 var pending = [];
 var MKEY;
@@ -1120,25 +1111,9 @@ function bougerHtml(it, premier, dernier){
 }
 
 function itemHtml(it, done, premier, dernier, coche){
-  var d = '';
-  if(ui.view === 'detail'){
-    var tags = [];
-    if(it.caisse) tags.push('<span class="tag c" data-c="' + it.caisse + '">' + it.caisse + ' · ' + esc(it.condit) + '</span>');
-    else tags.push('<span class="tag">' + esc(it.condit) + '</span>');
-    list.circuits.forEach(function(ci){
-      var v = it.circ[ci.id];
-      if(v === undefined || v === 0) return;
-      tags.push('<span class="tag' + (typeof v === 'number' && altName(ci.id, it.caisse) ? ' alt' : '') + '">' + esc(ci.court) + ' : ' + esc(circLabel(ci, v, it)) + '</span>');
-    });
-    if(MONTRER_LIEU) tags.push('<span class="tag">' + esc(it.zone) + '</span>');
-    d = '<div class="detail">' + tags.join('') + '</div>';
-  }
-  var more = '';
-  if(ui.view !== 'detail'){
-    var open = !!repOpen[it.id];
-    more = '<button class="more" type="button" aria-expanded="' + open + '" aria-label="' + (open ? 'Cacher' : 'Voir') + ' la répartition par client de ' + esc(it.produit) + '">' + ARROW + '</button>' +
-      (open ? repartHtml(it) : '');
-  }
+  var open = !!repOpen[it.id];
+  var more = '<button class="more" type="button" aria-expanded="' + open + '" aria-label="' + (open ? 'Cacher' : 'Voir') + ' la répartition par client de ' + esc(it.produit) + '">' + ARROW + '</button>' +
+    (open ? repartHtml(it) : '');
   var by = '';
   if(done){
     var info = mirror.done[it.id];
@@ -1155,7 +1130,7 @@ function itemHtml(it, done, premier, dernier, coche){
     (done ? '' : '<span class="poignee" title="Glisser pour déplacer">' + POIGNEE + '</span>') +
     '<button class="box" type="button" aria-label="' + (done || coche ? 'Décocher ' : 'Cocher ') + esc(it.produit) + '">' + CHECK + '</button>' +
     '<div class="main"><div class="prod">' + miniHtml(it.produit) + esc(it.produit) + '</div>' + (MONTRER_LIEU && it.ou ? '<div class="ou">' + esc(it.ou) + '</div>' : '') + '</div>' +
-    '<div class="qty">' + qtyHtml(it) + '</div>' + (done ? '' : bougerHtml(it, premier, dernier)) + d + ecart + by + more + '</li>';
+    '<div class="qty">' + qtyHtml(it) + '</div>' + (done ? '' : bougerHtml(it, premier, dernier)) + ecart + by + more + '</li>';
 }
 
 // Titre de chaque page, sous le bandeau.
@@ -1167,9 +1142,7 @@ function enTete(){
   $('#titre').textContent = t; $('#pour').textContent = sous;
 }
 function render(){
-  if(!MONTRER_DETAIL && ui.view === 'detail'){ ui.view = 'recolte'; saveUi(); }
-  if(VUES.indexOf(ui.view) < 0) ui.view = 'recolte';
-  $('#tabs button[data-view="detail"]').hidden = !MONTRER_DETAIL;
+  if(VUES.indexOf(ui.view) < 0){ ui.view = 'recolte'; saveUi(); }
   document.querySelectorAll('#tabs button[data-view]').forEach(function(b){
     var on = b.dataset.view === ui.view;
     b.setAttribute('aria-pressed', String(on));

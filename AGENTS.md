@@ -50,7 +50,7 @@ Appli web statique « Liste de récolte » du Champ de l'Aurore (GAEC, Tronget, 
 - Charte « plein soleil » : fond blanc, texte noir, traits épais, pas de gris clair, aucun mode sombre. Glisser-déposer uniquement par appui long (0,45 s), sans poignée, sur le téléphone. Sur ordinateur (fenêtre d'au moins 1000 px et souris), l'onglet Récolte a des lignes compactes, une poignée et des boutons de tri au survol (demande de François du 09/11/2026) : ne rien changer au téléphone en y touchant.
 - Miniatures des légumes (9/11/2026) : tout nouvel endroit qui affiche le nom d'un produit met `miniHtml(nom)` devant `esc(nom)`. Les dessins sont ceux d'Ouvre ta ferme (`especes/plants.svg`, AGPL-3.0, copie sans modification : ne pas le retoucher, voir `especes/LISEZMOI.md`). Un nom qu'Ouvre ta ferme écrit autrement s'ajoute dans `ESPECE_AUSSI`, dans `index.html` **et** `magasin.html` (le test vérifie que les deux blocs sont identiques).
 - Zones : Tunnel, Plein champ, Stock, et seulement elles. Lieu des récoltes (zones et emplacements) masqué depuis le 04/11/2026 (`MONTRER_LIEU` dans `index.html`) : ne pas le réafficher sans l'accord de François.
-- Onglet Détail caché depuis le 04/11/2026 (`MONTRER_DETAIL` dans `index.html`), remplacé par la flèche de répartition par client sous chaque produit : ne pas le remettre sans l'accord de François.
+- Onglet Détail supprimé le 09/11/2026 (demande de François : « redondant maintenant et pas utile » ; il était caché depuis le 04/11/2026). La flèche de répartition par client sous chaque produit et l'onglet Préparation le remplacent : ne pas le recréer sans l'accord de François.
 
 ## Accord de François nécessaire
 
