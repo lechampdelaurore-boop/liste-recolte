@@ -4,6 +4,8 @@
 
 *Au 9 novembre 2026, matin. Source : lecture du dépôt et demandes de François du 4/11 au 9/11.*
 
+- **Tri de l'onglet Récolte sur ordinateur (9/11, matin)**, demande de François (propositions 1 et 2) : sur un ordinateur avec souris (fenêtre d'au moins 1000 px), lignes compactes d'environ 48 px, poignée à gauche pour glisser tout de suite, et au survol quatre boutons tout en haut, monter, descendre, tout en bas ; après monter ou descendre, la ligne reste sous la souris. Téléphone inchangé. Même donnée d'ordre qu'avant, rien de nouveau dans la base. Vérifié : `tests/tri-ordinateur.cjs` (34 sur 34), les dix autres tests verts, affichage du téléphone identique à `main` ligne à ligne. **Non vérifié en réel** : le vrai ordinateur de François (souris ou pavé tactile). L'« ordre habituel » (proposition 3, ne plus retrier chaque semaine) n'est pas demandé.
+
 - **Persil frisé, persil plat et thym ajoutés aux produits (9/11, matin)**, demande de François : conditionnés comme les aromatiques (petite basse, 6 bottes par colis), proposés dans « Ajouter un produit » (ferme et magasin). L'ancien « Persil frisé (bouquet) » n'est plus proposé mais reste lisible dans les semaines qui l'ont déjà ; « Reprendre la semaine précédente » le remplace par « Persil frisé ». Rien d'écrit dans la base. Vérifié : `tests/aromatiques.cjs` (20 sur 20), les neuf autres tests verts. **Non vérifié en réel** : le vrai téléphone.
 
 - **Flèches du clavier dans la grille « Répartir » (9/11, matin)**, demande de François : sur ordinateur, gauche et droite passent à la case d'à côté (quand le curseur est au bord du texte ou que tout est sélectionné), haut et bas à la ligne du dessus ou du dessous (déjà là depuis le 6/11) ; colonnes masquées par le filtre sautées ; le menu d'unité garde ses flèches et le curseur y reste. Vérifié : `tests/fleches.cjs` (22 sur 22), les huit autres tests verts. **Non vérifié en réel** : le vrai ordinateur de François.
@@ -63,7 +65,7 @@
 - Référentiel `referentiel/conditionnements.json` : 74 produits, type de caisse et contenu d'un colis ; colisages par circuit (colis bois).
 - Base partagée Firebase Realtime Database (europe-west1), appelée par l'API REST sans SDK ; adresse dans `config.js`. Règles : base fermée par des comptes depuis le 8/11 à 20 h 55 (`docs/regles-base/fermees-sans-magasin.json` en place ; `fermees.json`, qui ajoute le magasin, à publier par François). Connexion par compte (clé web dans `cle-web.js`). Détails : `docs/base-partagee.md`.
 - Barre de progression : lit le champ `kg` des lignes (kilos d'un côté, bottes, bouquets, pièces de l'autre).
-- Hors ligne : `sw.js` (page, référentiel et débouchés en cache), `CACHE` à `recolte-v34` ; liste, coches et actions en attente gardées dans le téléphone (`localStorage`).
+- Hors ligne : `sw.js` (page, référentiel et débouchés en cache), `CACHE` à `recolte-v37` ; liste, coches et actions en attente gardées dans le téléphone (`localStorage`).
 - Préparation de commandes : onglet « Préparation » ; coches dans la base sous `prep/<circuit>/<produit>` et `prepClient/<circuit>`.
 - Répartition de la semaine : onglet « Semaine » ; débouchés de départ dans `referentiel/debouches.json`, puis réglés dans l'appli, onglet « Réglages » (base : `listes/reglages/debouches`) ; données dans la base sous `listes/semaines/<lundi>` (voir `docs/base-partagee.md`).
 - Page du magasin : `magasin.html` (étape 13C), stock sous `magasins/<débouché>/` dans la base.
