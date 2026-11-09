@@ -2141,6 +2141,8 @@ function renderSemaine(){
     if(!pc || !actif.dataset.cell){ semAttente = true; return; }
     garde = {cell:actif.dataset.cell, v:actif.value, sale:actif.value !== actif.defaultValue, s:actif.selectionStart, e:actif.selectionEnd};
   }
+  // Menu d'unité de la grille : après un changement d'unité (souris ou flèches), on y remet le curseur.
+  if(pc && actif && actif.tagName === 'SELECT' && actif.dataset.cell && actif.closest('#semGrid')) garde = {cell:actif.dataset.cell, menu:true};
   semAttente = false;
   var d = deIso(id), now = lundiDe(new Date()), dim = deIso(id); dim.setDate(dim.getDate() + 6);
   $('#semTitre').textContent = 'Semaine du ' + d.toLocaleDateString('fr-FR', d.getFullYear() === new Date().getFullYear() ? {day:'numeric', month:'long'} : {day:'numeric', month:'long', year:'numeric'});
@@ -2187,8 +2189,9 @@ function renderSemaine(){
       return f ? '<p class="sr-err" role="alert">' + esc(f.nom + ', ' + (kk === 'dispo' ? 'disponible' : kk.indexOf('stock/') === 0 ? nomStock(kk.split('/')[1]) : nomCreneau(kk.split('/')[1])) + ' : ' + semErr[k]) + '</p>' : '';
     }).join('');
     if(garde){
-      var el = document.querySelector('#semGrid input[data-cell="' + garde.cell.replace(/"/g, '') + '"]');
-      if(el){ if(garde.sale) el.value = garde.v; el.focus(); try{ el.setSelectionRange(garde.s, garde.e); }catch(x){} }
+      var el = document.querySelector('#semGrid ' + (garde.menu ? 'select' : 'input') + '[data-cell="' + garde.cell.replace(/"/g, '') + '"]');
+      if(el && garde.menu) el.focus();
+      else if(el){ if(garde.sale) el.value = garde.v; el.focus(); try{ el.setSelectionRange(garde.s, garde.e); }catch(x){} }
     }
     return;
   }
@@ -2631,8 +2634,19 @@ $('#semView').addEventListener('keydown', function(e){
   var inp = e.target;
   if(inp.tagName !== 'INPUT' || inp.type !== 'text') return;
   if(!inp.dataset.cell){ if(e.key === 'Enter') inp.blur(); return; }
-  // Grille : Entrée ou flèches haut et bas = case du dessous ou du dessus ; Échap = annuler la saisie.
+  // Grille : Entrée ou flèches haut et bas = case du dessous ou du dessus (même colonne) ; Échap = annuler la saisie.
   if(e.key === 'Escape'){ inp.value = inp.defaultValue; inp.select(); e.preventDefault(); return; }
+  // Flèches gauche et droite = case d'à côté sur la même ligne, quand le curseur est déjà au bord du texte
+  // (ou que tout le texte est sélectionné, comme en arrivant dans une case) ; sinon elles déplacent le curseur.
+  // Les colonnes masquées par le filtre ne sont pas dans la grille : on passe à la case visible suivante.
+  if((e.key === 'ArrowLeft' || e.key === 'ArrowRight') && !e.shiftKey && !e.altKey && !e.ctrlKey && !e.metaKey){
+    var deb = inp.selectionStart, fin = inp.selectionEnd, n = inp.value.length, tout = deb === 0 && fin === n;
+    if(!(tout || (deb === fin && (e.key === 'ArrowLeft' ? deb === 0 : deb === n)))) return;
+    var ligne = Array.prototype.slice.call(inp.closest('tr').querySelectorAll('input[type="text"][data-cell]'));
+    var voisin = ligne[ligne.indexOf(inp) + (e.key === 'ArrowLeft' ? -1 : 1)];
+    if(voisin){ e.preventDefault(); voisin.focus(); }
+    return;
+  }
   var sens = (e.key === 'Enter' && !e.shiftKey) || e.key === 'ArrowDown' ? 1 : (e.key === 'Enter' && e.shiftKey) || e.key === 'ArrowUp' ? -1 : 0;
   if(!sens) return;
   e.preventDefault();
