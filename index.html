@@ -594,11 +594,11 @@ dialog.big{max-width:min(460px,94vw);width:100%}
   </details>
 
   <p class="hint" id="dragHint"><span class="tel">Appui long sur une ligne pour la déplacer.</span><span class="pc">Pour ranger dans l'ordre de récolte : glissez une ligne par sa poignée (les six points à gauche), ou passez la souris sur la ligne pour ses boutons tout en haut, monter, descendre, tout en bas.</span></p>
+  <ul class="list" id="todo"></ul>
   <div class="ordre-hab" id="ordreBox" hidden>
     <button type="button" class="sem-act" id="ordreBtn">Enregistrer cet ordre</button>
     <p class="hint" id="ordreInfo"></p>
   </div>
-  <ul class="list" id="todo"></ul>
 
   <details class="donesec" id="doneSec">
     <summary><span class="chev">›</span><span>Récoltes déjà effectuées (<span id="doneCount">0</span>)</span></summary>
@@ -887,7 +887,7 @@ function ordreConnecter(){
   flux.addEventListener('cancel', function(){ refusBase({}); });
 }
 function ordreRelancer(){ if(ordreH.es && ordreH.es.readyState === 2){ ordreH.es = null; ordreConnecter(); } ordreFlush(); }
-// Le bouton et sa phrase, sous le texte d'aide de l'onglet Récolte (téléphone et ordinateur).
+// Le bouton et sa phrase, en bas de la liste à récolter (téléphone et ordinateur) : le haut de la liste ne bouge pas.
 function renderOrdre(){
   var box = $('#ordreBox');
   if(!list || list.items.length < 2){ box.hidden = true; return; }
