@@ -2,7 +2,9 @@
 
 ## Où on en est
 
-*Au 9 novembre 2026, matin. Source : lecture du dépôt et demandes de François du 4/11 au 9/11.*
+*Au 9 novembre 2026, midi. Source : lecture du dépôt et demandes de François du 4/11 au 9/11.*
+
+- **Animation de la coche dans l'onglet Récolte (9/11, midi)**, demande de François (le chou vert coché par erreur) : la ligne cochée reste environ 3 secondes à sa place en vert plein, case qui grossit, puis glisse et part dans « Récoltes déjà effectuées ». Pas de texte, pas de confirmation ; un second toucher décoche ; la coche est enregistrée tout de suite. Vérifié : `tests/animation-coche.cjs` (22 sur 22), les treize autres tests verts. **Non vérifié en réel** : les vrais téléphones (durée assez longue ? lisible au soleil ?) et l'ordinateur.
 
 - **Bouton « Filtre » avec les débouchés (9/11, fin de matinée)**, demande de François : en haut de Répartir et Cumul, un bouton « Filtre » (à côté d'« Imprimer ») ouvre les jours de récolte et une case par débouché, toutes cochées au départ ; décocher un débouché (par exemple Panier La Magic, Panier adéquat, Élie) masque ses colonnes et son stock, à l'écran comme à l'impression. Affichage seulement : le reste compte tout, rien d'écrit dans la base ; choix gardé sur chaque appareil ; avertissement si un débouché masqué a des quantités. Vérifié : `tests/filtre.cjs` (44 sur 44, dont une autre ferme), les douze autres tests verts. **Non vérifié en réel** : le vrai téléphone et l'ordinateur de François.
 
@@ -72,7 +74,7 @@
 - Référentiel `referentiel/conditionnements.json` : 77 produits, type de caisse et contenu d'un colis (caisses PB, PH, GB, GH et CB ; autres conditionnements et caisse de récolte de la carotte lavée) ; colisages par circuit (colis bois).
 - Base partagée Firebase Realtime Database (europe-west1), appelée par l'API REST sans SDK ; adresse dans `config.js`. Règles : base fermée par des comptes depuis le 8/11 à 20 h 55 (`docs/regles-base/fermees-sans-magasin.json` en place ; `fermees.json`, qui ajoute le magasin, à publier par François). Connexion par compte (clé web dans `cle-web.js`). Détails : `docs/base-partagee.md`.
 - Barre de progression : lit le champ `kg` des lignes (kilos d'un côté, bottes, bouquets, pièces de l'autre).
-- Hors ligne : `sw.js` (page, référentiel et débouchés en cache), `CACHE` à `recolte-v41` ; liste, coches et actions en attente gardées dans le téléphone (`localStorage`).
+- Hors ligne : `sw.js` (page, référentiel et débouchés en cache), `CACHE` à `recolte-v42` ; liste, coches et actions en attente gardées dans le téléphone (`localStorage`).
 - Préparation de commandes : onglet « Préparation » ; coches dans la base sous `prep/<circuit>/<produit>` et `prepClient/<circuit>`.
 - Répartition de la semaine : onglet « Semaine » ; débouchés de départ dans `referentiel/debouches.json`, puis réglés dans l'appli, onglet « Réglages » (base : `listes/reglages/debouches`) ; données dans la base sous `listes/semaines/<lundi>` (voir `docs/base-partagee.md`).
 - Page du magasin : `magasin.html` (étape 13C), stock sous `magasins/<débouché>/` dans la base.
