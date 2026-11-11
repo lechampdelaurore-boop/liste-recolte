@@ -177,7 +177,11 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   verifie(await B.isVisible('#prepView') && !(await B.isVisible('#todo')) && await B.isVisible('#prepSort'), 'l\'onglet Préparation remplace la liste de récolte et montre le choix du tri');
   verifie((await B.getAttribute('[data-sort="client"]', 'aria-pressed')) === 'true', 'tri par client par défaut');
   const clients = await B.$$eval('#prepList section.grp', (e) => e.map((x) => x.dataset.circ));
-  verifie(clients.join() === 'ta,mk,ps,el,lv,av,fd,lm', 'un bloc par client, dans l\'ordre des circuits (obtenu ' + clients.join() + ')');
+  verifie(clients.join() === 'av,el,fd,lv,mk,ps,lm,ta', 'un bloc par client, par ordre alphabétique : Auvabio, Élie (accent compris), Ferme Deschamps, Locavore, Marché, Panier adéquat, Panier La Magic, Très Allier (obtenu ' + clients.join() + ')');
+  const fr = new Intl.Collator('fr', { sensitivity: 'base', numeric: true });
+  const enOrdre = (t) => t.every((x, i) => i === 0 || fr.compare(t[i - 1], x) <= 0);
+  const prodsClients = await B.$$eval('#prepList section.grp', (e) => e.map((s) => [...s.querySelectorAll('li.pitem .prod')].map((x) => x.textContent)));
+  verifie(prodsClients.length === 8 && prodsClients.every(enOrdre), 'dans chaque client, les produits sont par ordre alphabétique (Très Allier : ' + prodsClients[7].join(', ') + ')');
   const nLignes = await B.$$eval('#prepList li.pitem', (e) => e.length);
   verifie(nLignes === 38, 'une ligne par produit et par client : 38 lignes (obtenu ' + nLignes + ')');
   const ligne = (p, k) => p.$(`li.pitem[data-k="${k}"]`);
@@ -203,7 +207,9 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   // Tri par produit : cocher la bette de Locavore, la voir cochée chez François dans le tri par client
   await B.click('[data-sort="produit"]');
   const lignesBette = await B.$$eval('section[data-item="bette"] li.pitem .prod', (e) => e.map((x) => x.textContent));
-  verifie(lignesBette.join() === 'Très Allier,Marché ven.,Panier adéquat,Locavore', 'tri par produit : la bette a une ligne par client (obtenu ' + lignesBette.join() + ')');
+  verifie(lignesBette.join() === 'Locavore,Marché ven.,Panier adéquat,Très Allier', 'tri par produit : la bette a une ligne par client, clients par ordre alphabétique (obtenu ' + lignesBette.join() + ')');
+  const nomsProduits = await B.$$eval('#prepList section.grp .grp-name', (e) => e.map((x) => x.textContent));
+  verifie(nomsProduits.length > 5 && enOrdre(nomsProduits), 'tri par produit : produits par ordre alphabétique (obtenu ' + nomsProduits.join(', ') + ')');
   verifie((await B.textContent('section[data-item="bette"] .grp-head')).includes('Pas encore récolté'), 'tri par produit : l\'indicateur de récolte est sur le produit');
   verifie(!(await B.isVisible('#prepDoneSec')), 'tri par produit : pas de section « Commandes prêtes »');
   await (await ligne(B, 'lv/bette')).click();
@@ -212,7 +218,7 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   // Filtre de circuit dans la préparation
   await B.click('[data-c="fd"]');
   const fdPrep = await B.$$eval('#prepList li.pitem', (e) => e.map((x) => x.dataset.k));
-  verifie(fdPrep.join() === 'fd/persil,fd/carotte', 'filtre Ferme Deschamps : 2 lignes (obtenu ' + fdPrep.join() + ')');
+  verifie(fdPrep.join() === 'fd/carotte,fd/persil', 'filtre Ferme Deschamps : 2 lignes (obtenu ' + fdPrep.join() + ')');
   await B.click('[data-c=""]');
   // Les coches de préparation reviennent de la base après rechargement
   await B.reload(); await B.waitForSelector('li.pitem'); await B.waitForTimeout(500);

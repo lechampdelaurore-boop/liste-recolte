@@ -1252,6 +1252,8 @@ function prepLineHtml(l, byClient){
     '<div class="qty">' + circQtyHtml(l.it, l.ci.id) + '</div>' +
     (info ? '<div class="by">Préparé' + (info.by ? ' par ' + esc(info.by) : '') + heure(info) + '</div>' : '') + '</li>';
 }
+var ALPHA = typeof Intl !== 'undefined' && Intl.Collator ? new Intl.Collator('fr', {sensitivity:'base', numeric:true}) : null;
+function alpha(a, b){ a = String(a || ''); b = String(b || ''); return ALPHA ? ALPHA.compare(a, b) : a.localeCompare(b, 'fr'); }
 function countTxt(n, t){ return 'Préparé : ' + n + ' sur ' + t; }
 function renderPrep(){
   document.querySelectorAll('#prepSort button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.sort === ui.prepSort)); });
@@ -1262,8 +1264,12 @@ function renderPrep(){
     if(!gi[key]){ gi[key] = {key:key, lines:[]}; groups.push(gi[key]); }
     gi[key].lines.push(l);
   });
-  // Par client : dans l'ordre des circuits de la liste ; par produit : dans l'ordre de la récolte.
-  if(byClient) groups.sort(function(a, b){ return list.circuits.indexOf(circById[a.key]) - list.circuits.indexOf(circById[b.key]); });
+  // Ordre alphabétique français (demande de François du 11/11/2026), sans bouton de tri :
+  // les groupes (clients ou produits) et les lignes de chaque groupe.
+  function nomL(l){ return byClient ? l.it.produit : l.ci.nom; }
+  function nomG(g){ return byClient ? circById[g.key].nom : byId[g.key].produit; }
+  groups.forEach(function(g){ g.lines.sort(function(a, b){ return alpha(nomL(a), nomL(b)); }); });
+  groups.sort(function(a, b){ return alpha(nomG(a), nomG(b)); });
   var nDone = 0, ready = 0;
   function groupHtml(g){
     var n = g.lines.filter(function(l){ return prepInfo(l.k); }).length, t = g.lines.length, head;

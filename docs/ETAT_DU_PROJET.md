@@ -2,7 +2,9 @@
 
 ## Où on en est
 
-*Au 9 novembre 2026, début d'après-midi. Source : lecture du dépôt et demandes de François du 4/11 au 9/11.*
+*Au 11 novembre 2026, début d'après-midi. Source : lecture du dépôt et demandes de François du 4/11 au 11/11.*
+
+- **Préparation par ordre alphabétique (11/11)**, demande de François (« par défaut, ils doivent être par ordre alphabétique sans outil de tri ») : dans l'onglet Préparation, les clients (débouchés) et les produits sont rangés par ordre alphabétique, dans « Par client » comme dans « Par produit », lignes de chaque bloc comprises ; accents ignorés (« Élie » entre « Auvabio 03 » et « Ferme Deschamps »). Aucun bouton ajouté ; l'onglet Récolte garde son ordre. Rien d'écrit dans la base. Vérifié : `tests/deux-telephones.cjs` (85 sur 85), les seize autres tests verts. **Non vérifié en réel** : les vrais téléphones.
 
 - **Historique des récoltes (étape 14, 9/11, début d'après-midi)**, demande de François (« Il y a déjà un historique avec toutes les récoltes passées ? ») : dans l'onglet Semaine, un bouton « Historique des semaines » ouvre la liste de toutes les semaines enregistrées, la plus récente en haut, repliées. La flèche d'une semaine montre ses jours de récolte : produits cochés sur le total, kilos, qui a coché et à quelle heure (produit par produit), ce qui n'a pas été coché, la préparation ; deux boutons rouvrent la liste du jour (Récolte) et la répartition de la semaine (Cumul). **Lecture seule** : rien n'est écrit dans la base, aucune migration, règles inchangées (rien à faire dans la console). Les quantités sont celles de la liste du jour : l'appli ne note pas le poids réellement récolté. Vérifié : `tests/historique.cjs` (40 sur 40, téléphone, ordinateur, sans réseau, base identique du début à la fin), les seize autres tests verts. **Non vérifié en réel** : les vraies semaines de la ferme sur le vrai téléphone (combien de semaines, temps de chargement). Pas encore fait : ce qui a été vendu (l'appli ne le connaît pas), les totaux par produit sur plusieurs semaines, la prise de temps (étape 15).
 

@@ -2,6 +2,7 @@
 
 | Date | Décision |
 |---|---|
+| 11/11/2026 | Onglet Préparation : clients, produits et lignes toujours par ordre alphabétique français (accents ignorés), sans bouton de tri ni filtre. L'ordre de l'onglet Récolte n'est pas concerné. |
 | 03/11/2026 | Garder `liste-recolte` comme dépôt à part : le site en ligne et Cloudflare Pages y sont reliés. Les futurs outils iront dans `outils-de-la-ferme`. |
 | 03/11/2026 | Chaque liste de la semaine passe par une PR, plus d'envoi direct sur `main`. |
 | 03/11/2026 | `AGENTS.md` et les registres vivent dans `liste-recolte` ; `CLAUDE.md` renvoie vers `AGENTS.md`. |
