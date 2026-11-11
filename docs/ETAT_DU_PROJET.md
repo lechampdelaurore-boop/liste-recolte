@@ -2,7 +2,9 @@
 
 ## Où on en est
 
-*Au 11 novembre 2026, après-midi. Source : lecture du dépôt et demandes de François du 4/11 au 11/11.*
+*Au 11 novembre 2026, soir. Source : lecture du dépôt et demandes de François du 4/11 au 11/11.*
+
+- **Endives hors du total des caisses (11/11, soir)**, demande de François (les cagettes d'endives sont rangées là où on les récolte) : dans l'onglet Récolte, le cadre « Caisses » ne compte plus les caisses d'endives dans le total à emporter ; il les nomme dessous (« Pas comptées, caisses déjà sur place : Endive (3 PH). »). La ligne de l'endive garde sa quantité. Réglage par produit dans le référentiel (`caisses_sur_place`), mis sur l'endive. Rien dans la base. Vérifié : `tests/endives-sur-place.cjs` (14 sur 14, téléphone, ordinateur, autre ferme sans le réglage), les dix-sept autres tests verts (`deux-telephones` : 19 PH → 9 PH, les 10 PH d'endives de la liste du 4/11 retirés). **Non vérifié en réel** : le vrai téléphone.
 
 - **Numéros de semaine (11/11, après-midi)**, demande de François : partout où l'appli nomme une semaine (onglet Semaine, impression, Récolte, Préparation, historique, page du magasin), « Semaine 46 · du 9 novembre » au lieu de « Semaine du 9 novembre ». Numéro ISO (lundi au dimanche, semaine 1 = celle du premier jeudi de janvier). Affichage seulement, rien dans la base. Vérifié : les dix-sept tests verts, dont le numéro vérifié dans `semaine`, `historique`, `magasin`, `filtre` et `listes-calculees`. **Non vérifié en réel** : les vrais téléphones.
 

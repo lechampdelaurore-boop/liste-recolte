@@ -94,11 +94,12 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   const noms = await B.$$eval('.crate .nm', (e) => e.map((x) => x.textContent));
   verifie(noms.slice(4).join(',') === 'Petit colis bois,Moyen colis bois,Grand colis bois', 'les colis bois s\'ajoutent aux caisses (obtenu ' + noms.join(' / ') + ')');
   const caisses = await B.$$eval('.crate', (e) => e.map((x) => x.querySelector('b').textContent));
-  verifie(caisses.join(',') === '2,19,2,10,1,1,4', 'à remplir PB,PH,GB,GH,petit,moyen,grand bois = 2,19,2,10,1,1,4 (obtenu ' + caisses.join(',') + ')');
+  // Les 10 PH d'endives (caisses déjà sur place, 11/11/2026) ne sont plus comptés : 19 PH → 9 PH.
+  verifie(caisses.join(',') === '2,9,2,10,1,1,4', 'à remplir PB,PH,GB,GH,petit,moyen,grand bois = 2,9,2,10,1,1,4, sans les 10 PH d\'endives (obtenu ' + caisses.join(',') + ')');
   await B.click('#crates summary');
   await B.click('#perCirc');
   const regroupees = await B.$$eval('.crate', (e) => e.map((x) => x.querySelector('b').textContent));
-  verifie(regroupees.join(',') === '1,19,1,10,1,1,4', 'demi-colis regroupés = 1,19,1,10,1,1,4 (obtenu ' + regroupees.join(',') + ')');
+  verifie(regroupees.join(',') === '1,9,1,10,1,1,4', 'demi-colis regroupés = 1,9,1,10,1,1,4 (obtenu ' + regroupees.join(',') + ')');
   verifie((await B.textContent('#crateAlt')).includes('Panier adéquat, Locavore, Ferme Deschamps : PB → petit colis bois, PH → moyen colis bois, GB → grand colis bois, GH → grand colis bois'), 'le rappel du colisage bois est affiché');
 
   // 3 bis. Onglet Détail supprimé (caché le 4/11/2026, supprimé le 9/11/2026 à la demande de François)
