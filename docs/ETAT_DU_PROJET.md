@@ -2,7 +2,9 @@
 
 ## Où on en est
 
-*Au 11 novembre 2026, début d'après-midi. Source : lecture du dépôt et demandes de François du 4/11 au 11/11.*
+*Au 11 novembre 2026, après-midi. Source : lecture du dépôt et demandes de François du 4/11 au 11/11.*
+
+- **Numéros de semaine (11/11, après-midi)**, demande de François : partout où l'appli nomme une semaine (onglet Semaine, impression, Récolte, Préparation, historique, page du magasin), « Semaine 46 · du 9 novembre » au lieu de « Semaine du 9 novembre ». Numéro ISO (lundi au dimanche, semaine 1 = celle du premier jeudi de janvier). Affichage seulement, rien dans la base. Vérifié : les dix-sept tests verts, dont le numéro vérifié dans `semaine`, `historique`, `magasin`, `filtre` et `listes-calculees`. **Non vérifié en réel** : les vrais téléphones.
 
 - **Préparation par ordre alphabétique (11/11)**, demande de François (« par défaut, ils doivent être par ordre alphabétique sans outil de tri ») : dans l'onglet Préparation, les clients (débouchés) et les produits sont rangés par ordre alphabétique, dans « Par client » comme dans « Par produit », lignes de chaque bloc comprises ; accents ignorés (« Élie » entre « Auvabio 03 » et « Ferme Deschamps »). Aucun bouton ajouté ; l'onglet Récolte garde son ordre. Rien d'écrit dans la base. Vérifié : `tests/deux-telephones.cjs` (85 sur 85), les seize autres tests verts. **Non vérifié en réel** : les vrais téléphones.
 

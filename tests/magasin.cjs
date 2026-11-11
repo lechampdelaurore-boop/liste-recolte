@@ -39,6 +39,8 @@ let echecs = 0;
 function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); if (!cond) echecs++; }
 const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7 + 7 * decal); return d; };
+// Numéro de semaine ISO, calculé autrement que dans l'appli (jeudi de la semaine, en UTC), pour vérifier l'affichage.
+const numSemaine = (d) => { if (typeof d === 'string') { const p = d.split('-'); d = new Date(+p[0], p[1] - 1, +p[2]); } const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7)); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
 const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; while (Date.now() < fin) { if (await fn()) return true; await new Promise((x) => setTimeout(x, 150)); } return false; };
 
 (async () => {
@@ -112,7 +114,7 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   verifie((await M.textContent('#quiNom')) === 'Igor · changer', 'le prénom tapé « igor » devient « Igor », en haut de l\'écran (obtenu « ' + (await M.textContent('#quiNom')) + ' »)');
   await attendreQue(() => base.lire('magasins/ta/personnes/igor'));
   verifie((base.lire('magasins/ta/personnes/igor') || {}).nom === 'Igor', 'le prénom est gardé dans la liste des prénoms du magasin');
-  verifie((await M.textContent('#titre')) === 'Stock · Très Allier' && (await M.textContent('#navTxt')) === 'Semaine du lundi ' + lundi(0).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + 'Cette semaine', 'le magasin du compte (Très Allier) et la semaine en cours sont affichés, avec « Cette semaine » (obtenu « ' + (await M.textContent('#navTxt')) + ' »)');
+  verifie((await M.textContent('#titre')) === 'Stock · Très Allier' && (await M.textContent('#navTxt')) === 'Semaine ' + numSemaine(lundi(0)) + ' · du lundi ' + lundi(0).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + 'Cette semaine', 'le magasin du compte (Très Allier) et la semaine en cours sont affichés, avec « Cette semaine » (obtenu « ' + (await M.textContent('#navTxt')) + ' »)');
   verifie((await M.$$('#liste .p')).length === 0 && (await M.textContent('#liste')).includes('Aucun produit pour cette semaine'), 'au départ, la liste est vide : « Aucun produit pour cette semaine »');
   verifie(await M.isVisible('#reprendre'), 'le bouton « Reprendre les produits de la semaine d\'avant » est proposé (le poireau y était compté)');
   await capture(M, '3-liste-vide');
@@ -312,7 +314,7 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   refuser = true;
   await M.click('#nav [data-a="prec"]');
   await M.waitForTimeout(200);
-  verifie(dialogues[dialogues.length - 1] === 'Passer à la semaine du lundi ' + lundi(-1).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + ' ? Les saisies iront dans cette semaine-là.' && (await M.textContent('#navTxt')).endsWith('Cette semaine'), 'flèche ‹ : la page demande confirmation ; en refusant, on reste sur la semaine en cours (message « ' + dialogues[dialogues.length - 1] + ' »)');
+  verifie(dialogues[dialogues.length - 1] === 'Passer à la semaine ' + numSemaine(lundi(-1)) + ' (du lundi ' + lundi(-1).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + ') ? Les saisies iront dans cette semaine-là.' && (await M.textContent('#navTxt')).endsWith('Cette semaine'), 'flèche ‹ : la page demande confirmation ; en refusant, on reste sur la semaine en cours (message « ' + dialogues[dialogues.length - 1] + ' »)');
   refuser = false;
   await M.click('#nav [data-a="prec"]');
   await M.waitForFunction(() => document.querySelector('#navTxt').textContent.endsWith('Semaine passée'));

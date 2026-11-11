@@ -39,6 +39,8 @@ let echecs = 0;
 function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); if (!cond) echecs++; }
 const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7 + 7 * decal); return d; };
+// Numéro de semaine ISO, calculé autrement que dans l'appli (jeudi de la semaine, en UTC), pour vérifier l'affichage.
+const numSemaine = (d) => { if (typeof d === 'string') { const p = d.split('-'); d = new Date(+p[0], p[1] - 1, +p[2]); } const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7)); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
 
 
 
@@ -170,7 +172,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   const p1 = await titres(C, '#semPrint table');
   verifie(!p1.includes('TA mar') && !p1.includes('La Magic') && !p1.includes('Élie') && p1.includes('Locavore') && p1.includes('Stock Très Allier') && p1[0] === 'Produit', 'la feuille imprimée suit le filtre (obtenu ' + p1.join('|') + ')');
   const ent = await C.textContent('#semPrint');
-  verifie(ent.includes('Répartition · semaine du') && ent.includes('Récoltes : mercredi') && !ent.includes('Récoltes : lundi') && ent.includes('Débouchés masqués : Élie'), 'la feuille dit la semaine, les récoltes imprimées et les débouchés masqués');
+  verifie(ent.includes('Répartition · semaine ' + numSemaine(lundi(0)) + ' · du') && ent.includes('Récoltes : mercredi') && !ent.includes('Récoltes : lundi') && ent.includes('Débouchés masqués : Élie'), 'la feuille dit la semaine, les récoltes imprimées et les débouchés masqués');
   await C.emulateMedia({ media: 'print' });
   verifie(!(await C.isVisible('main.wrap')) && !(await C.isVisible('#tabs')) && (await C.isVisible('#semPrint table')), 'à l\'impression, seul le tableau sort (ni onglets ni boutons)');
   const coulLv = await C.$$eval('#semPrint thead th', (e) => { const x = e.filter((y) => y.textContent === 'Locavore')[0]; return x && getComputedStyle(x).color; });

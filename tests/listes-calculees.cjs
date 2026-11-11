@@ -120,7 +120,7 @@ const NON_COMPAREES = ['celeri-branche', 'persil', 'poireau'];
   const { p: A, ctx: ctxA } = await telephone('François');
   await A.waitForSelector('#videBox:not([hidden])');
   verifie((await texte(A, '#videBox')).startsWith('Le cumul de cette semaine est vide.') && !(await A.$('li.item')) && !(await visible(A, '#recJours')), 'semaine sans rien : Récolte dit « Le cumul de cette semaine est vide. », sans liste ni menu');
-  verifie((await texte(A, '#recSem')).startsWith('Semaine du ') && (await visible(A, '#recSem')), 'Récolte rappelle la semaine choisie (elle se choisit dans l\'onglet Semaine)');
+  verifie(/^Semaine \d+ · du /.test(await texte(A, '#recSem')) && (await visible(A, '#recSem')), 'Récolte rappelle la semaine choisie (elle se choisit dans l\'onglet Semaine)');
   await capture(A, '1-cumul-vide');
   await A.click('[data-view="prep"]');
   verifie((await texte(A, '#videBox')).startsWith('Le cumul de cette semaine est vide.') && !(await visible(A, '#prepList')), 'Préparation : même message');
@@ -281,7 +281,7 @@ const NON_COMPAREES = ['celeri-branche', 'persil', 'poireau'];
 
   // 8. La liste en fichier (4/11) l'emporte pour sa date
   await A.click('[data-sem="repartir"]');
-  for (let i = 0; i < 60 && (await texte(A, '#semTitre')) !== 'Semaine du 2 novembre' && (await texte(A, '#semTitre')) !== 'Semaine du 2 novembre 2026'; i++) await A.click('[data-a="semPrec"]');
+  for (let i = 0; i < 60 && (await texte(A, '#semTitre')) !== 'Semaine 45 · du 2 novembre' && (await texte(A, '#semTitre')) !== 'Semaine 45 · du 2 novembre 2026'; i++) await A.click('[data-a="semPrec"]');
   await A.click('[data-view="recolte"]');
   await A.waitForSelector('#recJours [data-jour="2026-11-04"]');
   await A.click('#recJours [data-jour="2026-11-04"]');
