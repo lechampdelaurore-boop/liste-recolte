@@ -2,6 +2,7 @@
 
 | Date | Décision |
 |---|---|
+| 11/11/2026 | **Caisses d'endives jamais comptées dans les caisses à emporter** (François : les cagettes des endives sont rangées là où on récolte les endives, donc ne pas les compter dans le total des caisses à charger dans la brouette). Choix de Claude sur délégation, à confirmer à l'essai : (1) **toutes les caisses d'endives** sont exclues, quel que soit leur type (la question colis bois ou petites hautes n'est pas tranchée, et ça ne change rien) ; (2) **un réglage par produit** dans le référentiel, `"caisses_sur_place": true`, mis sur l'endive, plutôt qu'un cas écrit en dur : une autre ferme, ou un autre produit, se règle pareil ; (3) la ligne de l'endive garde sa quantité (« 3 colis ») ; ses caisses sont seulement nommées sous le cadre « Caisses » (« Pas comptées, caisses déjà sur place : Endive (3 PH). ») ; (4) rien dans la base : le réglage est lu dans le référentiel à l'affichage, il vaut aussi pour les semaines et les listes déjà saisies. |
 | 11/11/2026 | Onglet Préparation : clients, produits et lignes toujours par ordre alphabétique français (accents ignorés), sans bouton de tri ni filtre. L'ordre de l'onglet Récolte n'est pas concerné. |
 | 03/11/2026 | Garder `liste-recolte` comme dépôt à part : le site en ligne et Cloudflare Pages y sont reliés. Les futurs outils iront dans `outils-de-la-ferme`. |
 | 03/11/2026 | Chaque liste de la semaine passe par une PR, plus d'envoi direct sur `main`. |

@@ -92,6 +92,7 @@ details[open]>summary .chev{transform:rotate(90deg)}
 .crate-opt{display:flex;gap:10px;align-items:flex-start;padding:0 14px 12px;font-size:.9rem;color:var(--muted)}
 .crate-opt input{width:24px;height:24px;flex:none;margin:0;accent-color:var(--accent)}
 .crate-note{padding:0 14px 12px;margin:0;font-size:.85rem;color:var(--muted)}
+.crate-place{font-size:1rem;font-weight:700;color:var(--fg)}
 .hint{margin:0;font-size:.85rem;color:var(--muted)}
 .ordre-hab{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
 .ordre-hab .hint{flex:1 1 16em;color:var(--fg);font-weight:600}
@@ -602,8 +603,9 @@ dialog.big{max-width:min(460px,94vw);width:100%}
   <details class="card crates" id="crates">
     <summary><span>Caisses <span class="crate-sum" id="crateSum"></span></span><span class="chev">›</span></summary>
     <div class="crate-grid" id="crateGrid"></div>
+    <p class="crate-note crate-place" id="cratePlace" hidden></p>
     <label class="crate-opt"><input type="checkbox" id="perCirc" checked> <span>Une caisse par circuit (un demi-colis pour Très Allier et un pour le marché = 2 caisses). Décoché : les demi-colis d'un même produit sont regroupés.</span></label>
-    <p class="crate-note">Une caisse par colis, d'après le code du cumul (PB, PH, GB, GH). Des kilos hors colis (« 1 colis + 5 kg ») prennent une caisse de plus. Les sachets Locavore, les bottes, les pièces et les tomates ne sont pas comptés. Un produit récolté dans sa propre caisse (par exemple la carotte lavée, en caisse bleue de 16 kg) est compté dans cette caisse, d'après son poids total, tous circuits ensemble.</p>
+    <p class="crate-note">Une caisse par colis, d'après le code du cumul (PB, PH, GB, GH). Des kilos hors colis (« 1 colis + 5 kg ») prennent une caisse de plus. Les sachets Locavore, les bottes, les pièces et les tomates ne sont pas comptés. Un produit récolté dans sa propre caisse (par exemple la carotte lavée, en caisse bleue de 16 kg) est compté dans cette caisse, d'après son poids total, tous circuits ensemble. Un produit dont les caisses sont déjà là où on le récolte (par exemple les endives) n'est pas compté.</p>
     <p class="crate-note" id="crateAlt" hidden></p>
   </details>
 
@@ -1302,10 +1304,19 @@ function renderPrep(){
     '. Toucher une ligne pour la cocher.';
 }
 
+// Produit dont les caisses sont déjà là où on le récolte (référentiel « caisses_sur_place », ex. les endives,
+// rangées sur le lieu de forçage) : ses caisses ne comptent pas dans le total à emporter, elles sont seulement
+// nommées sous le cadre. Réglage par produit, dans le référentiel de la ferme (demande de François du 11/11/2026).
+function surPlace(it){ return !!(refDe(it.id) || {}).caisses_sur_place; }
 function renderCrates(){
-  var tot = {}, rest = {};
+  var tot = {}, rest = {}, place = [];
   list.items.filter(visible).forEach(function(it){
     var c = itemCrates(it);
+    if(surPlace(it)){
+      var t = Object.keys(c).map(function(k){ return c[k] + ' ' + k; }).join(' + ');
+      if(t) place.push(it.produit + ' (' + t + ')');
+      return;
+    }
     Object.keys(c).forEach(function(k){
       tot[k] = (tot[k] || 0) + c[k];
       if(!isDone(it.id)) rest[k] = (rest[k] || 0) + c[k];
@@ -1330,6 +1341,8 @@ function renderCrates(){
   });
   $('#crateAlt').hidden = !notes.length;
   $('#crateAlt').textContent = notes.join(' ');
+  $('#cratePlace').hidden = !place.length;
+  $('#cratePlace').textContent = place.length ? 'Pas comptées, caisses déjà sur place : ' + place.join(', ') + '.' : '';
   $('#crateSum').textContent = '· ' + allR + (allR !== allT ? ' sur ' + allT : '') + ' à remplir';
 }
 
