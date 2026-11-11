@@ -76,7 +76,9 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   const livr = (d, l) => `${fiche(d)} .dl[data-l="${l}"]`;
   const jour = (d, l, j) => `${livr(d, l)} input[data-j="${j}"]`;
   const jours = (p, d, l) => p.$$eval(`${livr(d, l)} input[data-j]:checked`, (e) => e.map((x) => x.dataset.j));
-  const noms = (p) => p.$$eval('#debView .db-list section.db[data-d]', (e) => e.map((x) => x.querySelector('[data-f="nom"]').value));
+  const noms = (p) => p.$$eval('#debView .db-list section.db[data-d]', (e) => e.map((x) => x.querySelector('.db-tete .rc-titre').firstChild.textContent));
+  // Fiches repliées par défaut (demande de François du 10/11) : déplier toutes celles de l'écran avant de les modifier.
+  const deplier = async (p) => { const sel = '#debView .db-tete[aria-expanded="false"]'; while (await p.$(sel)) await p.click(sel); };
   const enTete = (p) => p.$$eval('#semTable thead th', (e) => e.map((x) => x.textContent.trim()));
   const reglages = () => base.lire('listes/reglages/debouches');
   const debDe = (id) => (reglages().debouches || []).filter((d) => d.id === id)[0];
@@ -89,6 +91,17 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await A.click('[data-view="reglages"]');
   await A.waitForSelector('#debView section.db');
   verifie(await A.isVisible('#debView') && !(await A.isVisible('#semView')) && (await A.getAttribute('[data-reg="debouches"]', 'aria-pressed')) === 'true', 'l\'onglet Réglages s\'ouvre sur « Débouchés et livraisons »');
+  // Fiches repliées (demande de François du 10/11) : une ligne par débouché, une flèche pour déplier son détail
+  const replies = await A.$$eval('#debView .db-list section.db[data-d]', (e) => e.map((x) => [x.querySelector('.db-tete').getAttribute('aria-expanded'), !!x.querySelector('[data-f="nom"]'), x.querySelector('.db-tete').textContent, Math.round(x.querySelector('.db-tete').getBoundingClientRect().height)]));
+  verifie(replies.length === 7 && replies.every((r) => r[0] === 'false' && !r[1]), 'au départ, les 7 débouchés sont repliés : pas de champ à remplir, juste leur ligne');
+  verifie(replies[0][2].includes('Très Allier') && replies[0][2].includes('Caisses plastique') && replies[0][2].includes('mardi, jeudi') && replies[2][2].includes('Colis bois') && replies[2][2].includes('mercredi début d\'après-midi'), 'la ligne repliée dit le colis et les livraisons (obtenu « ' + replies[0][2] + ' » ; « ' + replies[2][2] + ' »)');
+  verifie(replies.every((r) => r[3] >= 48) && (await A.$$('#debView .db-list section.db[data-d] .db-ordre [data-a="monter"]')).length === 7, 'ligne assez haute pour le doigt (' + Math.min(...replies.map((r) => r[3])) + ' px), ▲ ▼ restent sur la ligne repliée');
+  await capture(A, '0-debouches-replies');
+  await A.click(`${fiche('ta')} .db-tete`);
+  verifie((await A.getAttribute(`${fiche('ta')} .db-tete`, 'aria-expanded')) === 'true' && (await A.isVisible(`${fiche('ta')} [data-f="nom"]`)) && !(await A.$(`${fiche('lm')} [data-f="nom"]`)), 'la flèche de Très Allier déplie son détail, les autres restent repliés');
+  await A.click(`${fiche('ta')} .db-tete`);
+  verifie(!(await A.$(`${fiche('ta')} [data-f="nom"]`)) && reglages() === null, 'un second toucher le replie ; rien n\'est écrit dans la base');
+  await deplier(A);
 
   // 2. Les débouchés de départ, repris de referentiel/debouches.json
   const n0 = await noms(A);
@@ -216,6 +229,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await C.click('[data-a="semSuiv"]');
   await C.click('[data-view="reglages"]');
   await C.waitForSelector('#debView section.db');
+  await deplier(C);
   const largD = await C.evaluate(() => ({ cols: getComputedStyle(document.querySelector('#debView .db-list')).gridTemplateColumns.split(' ').length, page: document.documentElement.scrollWidth > innerWidth }));
   verifie(largD.cols === 2 && !largD.page, 'sur ordinateur, les fiches des débouchés sont sur deux colonnes, sans défilement de côté');
   await capture(C, '6-debouches-ordinateur');
@@ -238,6 +252,10 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   const rec = () => (reglages().recoltes || []).map((r) => r.jour + ':' + (r.livraisons || []).join(','));
   await A.click('[data-reg="recoltes"]');
   await A.waitForSelector(rj('lun'));
+  const rjReplies = await A.$$eval('#debView section.rj', (e) => e.map((x) => [x.querySelector('.db-tete').getAttribute('aria-expanded'), !!x.querySelector('select[data-rf="jour"]'), x.querySelector('.db-tete').textContent]));
+  verifie(rjReplies.length === 2 && rjReplies.every((r) => r[0] === 'false' && !r[1]) && rjReplies[0][2].includes('Lundi') && rjReplies[0][2].includes('Très Allier mardi, Panier La Magic'), 'jours de récolte habituels repliés au départ, une ligne par jour avec ses livraisons (obtenu « ' + rjReplies[0][2] + ' »)');
+  await capture(A, '0-jours-recolte-replies');
+  await deplier(A);
   verifie(!(await A.isVisible('#debView .db-list section.db[data-d]')), 'page « Jours de récolte » des Réglages : les fiches des débouchés n\'y sont pas');
   verifie((await A.inputValue(`${rj('lun')} select[data-rf="jour"]`)) === 'lundi' && (await coches(A, 'lun')).join() === 'ta-mar,lm', 'jour de récolte du lundi repris de l\'exemple de François : Très Allier mardi et Panier La Magic');
   verifie((await coches(A, 'mer')).sort().join() === 'av03,av63,lv,mk,ps,ta-jeu', 'mercredi : Panier adéquat, Locavore, Très Allier jeudi, Auvabio 03 et 63, marché de Tronget');
@@ -251,7 +269,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   verifie(rec().join(' ; ') === 'lundi:ta-mar,lm ; mercredi:ps,lv,ta-jeu,av03,av63,mk,ferme-deschamps', 'la cocher au mercredi la retire du lundi : une livraison n\'est récoltée qu\'un jour');
   await A.click('#debView [data-a="ajouterR"]');
   await attendre(A);
-  verifie(rec().length === 3 && (await A.inputValue(`${rj('mar')} select[data-rf="jour"]`)) === 'mardi', '« Ajouter un jour de récolte » : un mardi, vide');
+  verifie(rec().length === 3 && (await A.getAttribute(`${rj('mar')} .db-tete`, 'aria-expanded')) === 'true' && (await A.inputValue(`${rj('mar')} select[data-rf="jour"]`)) === 'mardi', '« Ajouter un jour de récolte » : un mardi, vide, déjà déplié');
   await A.selectOption(`${rj('mar')} select[data-rf="jour"]`, 'vendredi');
   await attendre(A, 300);
   await A.click(`${rj('mar')} input[data-c="ta-mar"]`);
@@ -343,6 +361,8 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
 
   // 14. Rechargement, retour à la semaine, rien d'autre de touché
   await A.reload(); await A.waitForSelector('#debView section.db');
+  verifie(!(await A.$('#debView .db-tete[aria-expanded="true"]')), 'après rechargement, les fiches sont de nouveau repliées');
+  await deplier(A);
   verifie((await A.inputValue(`${fiche('el')} [data-f="note"]`)) === 'Client individuel, commande par téléphone.' && (await jours(A, 'lv', 'lv')).join() === 'jeudi', 'après rechargement : écran des débouchés et modifications gardés');
   await A.click('[data-view="semaine"]');
   await A.waitForSelector('#semView section.sp', { timeout: 3000 }).catch(() => {});

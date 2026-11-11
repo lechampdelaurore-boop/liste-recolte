@@ -281,7 +281,15 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 .db label{display:grid;gap:4px;font-weight:800;font-size:.92rem}
 .db label small{font-weight:600;color:var(--muted)}
 .db input[type=text],.db select{min-height:44px;padding:6px 10px;border:var(--bw) solid var(--line);border-radius:10px;background:var(--bg);font:inherit;font-weight:700;min-width:0;width:100%}
-.db-head{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:8px;align-items:end}
+/* Fiches repliées (demande de François du 10/11) : une ligne par débouché ou par jour de récolte, flèche pour déplier. */
+.db-tl{display:flex;align-items:center;gap:8px}
+.db-tete{display:flex;align-items:center;gap:10px;flex:1 1 auto;min-width:0;min-height:56px;text-align:left;border:0;background:transparent;color:inherit;font:inherit;padding:2px 0;cursor:pointer}
+.db-tete .rc-titre{flex:1 1 auto;min-width:0;font-size:1.15rem;font-weight:900;overflow-wrap:anywhere}
+.db-tete small{display:block;font-size:.85rem;font-weight:600;color:var(--muted)}
+.db-tete .arrow{background:#fff}
+.db-tete[aria-expanded="true"] .arrow svg{transform:rotate(180deg)}
+.db.db-ouvert .db-tl{border-bottom:var(--bw) solid var(--line);padding-bottom:8px}
+.db[style] .db-tete .rc-titre{color:var(--dc)}
 .db-nom input{font-size:1.15rem;font-weight:900}
 .db-ordre{display:flex;gap:6px}
 .db-ordre .sem-btn{width:44px;height:44px;font-size:1rem}
@@ -2045,6 +2053,8 @@ function debFlush(){
 }
 
 /* Écran « Débouchés et livraisons » */
+// Fiches dépliées (débouchés, jours de récolte habituels) : sur cet appareil, le temps de la visite, rien d'écrit.
+var debOuvert = {}, recOuvert = {};
 function debIdLibre(base, pris){
   base = pidDe(base) || 'debouche';
   var id = base, n = 2;
@@ -2091,14 +2101,21 @@ function debouchesHtml(){
   // Deux pages : les débouchés (avec leurs livraisons), puis les jours de récolte.
   if(ui.regPage === 'recoltes') return recoltesHtml(liste) + by;
   var h = '<h2 class="db-h">Débouchés et livraisons</h2>' +
-    '<p class="hint">Chaque livraison est une colonne de la semaine, rangée par jour. Un changement vaut pour la semaine en cours et les suivantes ; les semaines passées gardent leurs colonnes. Rien n\'est effacé : un débouché retiré peut être remis.</p>' +
+    '<p class="hint">Chaque livraison est une colonne de la semaine, rangée par jour. La flèche d\'un débouché montre son détail. Un changement vaut pour la semaine en cours et les suivantes ; les semaines passées gardent leurs colonnes. Rien n\'est effacé : un débouché retiré peut être remis.</p>' +
     by + '<div class="db-list">';
   actifs.forEach(function(d, i){
     var lv = d.livraisons.filter(function(l){ return !l.archive; });
-    h += '<section class="card db" data-d="' + esc(d.id) + '" style="--dc:' + coul[d.id] + '">' +
-      '<div class="db-head"><label class="db-nom">Nom du débouché<input type="text" data-f="nom" value="' + esc(d.nom) + '" autocomplete="off"></label>' +
+    // Replié par défaut : nom, colis et livraisons sur une ligne ; ouvert de force s'il porte une erreur.
+    var ouvert = !!debOuvert[d.id] || Object.keys(debErr).some(function(k){ return k === d.id || k.indexOf(d.id + '|') === 0; });
+    var colisNom = (COLIS_TYPES.filter(function(c){ return c[0] === (d.colis || ''); })[0] || COLIS_TYPES[2])[1].replace(/ \(.*\)$/, '');
+    var resume = colisNom + ' · ' + (lv.length ? lv.map(function(l){ return (l.nom && l.nom !== d.nom ? l.nom + ' ' : '') + jourTxt(l); }).join(', ') : 'aucune livraison');
+    h += '<section class="card db' + (ouvert ? ' db-ouvert' : '') + '" data-d="' + esc(d.id) + '" style="--dc:' + coul[d.id] + '">' +
+      '<div class="db-tl"><button type="button" class="db-tete" data-a="db-plier" data-k="' + esc(d.id) + '" aria-expanded="' + ouvert + '">' +
+      '<span class="rc-titre">' + esc(d.nom) + '<small>' + esc(resume) + '</small></span>' + ARROW_SEM + '</button>' +
       '<span class="db-ordre"><button type="button" class="sem-btn" data-a="monter"' + (i ? '' : ' disabled') + ' aria-label="' + esc('Monter ' + d.nom) + '">▲</button>' +
-      '<button type="button" class="sem-btn" data-a="descendre"' + (i < actifs.length - 1 ? '' : ' disabled') + ' aria-label="' + esc('Descendre ' + d.nom) + '">▼</button></span></div>' +
+      '<button type="button" class="sem-btn" data-a="descendre"' + (i < actifs.length - 1 ? '' : ' disabled') + ' aria-label="' + esc('Descendre ' + d.nom) + '">▼</button></span></div>';
+    if(!ouvert){ h += '</section>'; return; }
+    h += '<label class="db-nom">Nom du débouché<input type="text" data-f="nom" value="' + esc(d.nom) + '" autocomplete="off"></label>' +
       (debErr[d.id] ? '<p class="sr-err" role="alert">' + esc(debErr[d.id]) + '</p>' : '') +
       '<div class="db-champs"><label>Colis<select data-f="colis">' + COLIS_TYPES.map(function(c){ return '<option value="' + c[0] + '"' + ((d.colis || '') === c[0] ? ' selected' : '') + '>' + esc(c[1]) + '</option>'; }).join('') + '</select></label>' +
       '<label>Remarque<input type="text" data-f="note" value="' + esc(d.note || '') + '" autocomplete="off"></label></div>' +
@@ -2130,11 +2147,16 @@ function recoltesHtml(liste){
   var cr = creneauxDe(liste, false), rec = recoltesListe(), ou = {};
   rec.forEach(function(r){ r.livraisons.forEach(function(id){ ou[id] = r.jour; }); });
   var h = '<h2 class="db-h" id="debRecoltes">Jours de récolte habituels</h2>' +
-    '<p class="hint">Pour chaque jour de récolte, cocher les livraisons qu\'on récolte ce jour-là. Une livraison n\'est récoltée qu\'un jour : la cocher ailleurs la déplace. Coché « Chaque semaine », le jour est créé tout seul dans chaque semaine, avec sa liste de récolte ; sinon, il sert de proposition quand on l\'ajoute à une semaine (onglet Semaine, page « À récolter »). Un changement ici vaut pour les semaines qui ne l\'ont pas changé elles-mêmes ; les semaines passées gardent leurs jours.</p><div class="db-list">';
+    '<p class="hint">Pour chaque jour de récolte, cocher les livraisons qu\'on récolte ce jour-là (la flèche d\'un jour montre son détail). Une livraison n\'est récoltée qu\'un jour : la cocher ailleurs la déplace. Coché « Chaque semaine », le jour est créé tout seul dans chaque semaine, avec sa liste de récolte ; sinon, il sert de proposition quand on l\'ajoute à une semaine (onglet Semaine, page « À récolter »). Un changement ici vaut pour les semaines qui ne l\'ont pas changé elles-mêmes ; les semaines passées gardent leurs jours.</p><div class="db-list">';
   rec.forEach(function(r){
-    var ji = JOURS.indexOf(r.jour), apres = [];
-    h += '<section class="card db rj" data-r="' + esc(r.id) + '"><div class="db-head"><label class="db-nom">Jour de récolte<select data-rf="jour">' +
-      JOURS.map(function(j){ return '<option value="' + j + '"' + (j === r.jour ? ' selected' : '') + '>' + j + '</option>'; }).join('') + '</select></label></div>' +
+    var ji = JOURS.indexOf(r.jour), apres = [], ouvert = !!recOuvert[r.id];
+    var noms = cr.filter(function(c){ return r.livraisons.indexOf(c.id) >= 0; }).map(nomLivraison);
+    h += '<section class="card db rj' + (ouvert ? ' db-ouvert' : '') + '" data-r="' + esc(r.id) + '">' +
+      '<div class="db-tl"><button type="button" class="db-tete" data-a="rj-plier" data-k="' + esc(r.id) + '" aria-expanded="' + ouvert + '">' +
+      '<span class="rc-titre">' + esc(majuscule(r.jour)) + '<small>' + esc((r.chaque ? 'Chaque semaine · ' : 'Pas chaque semaine · ') + (noms.length ? noms.join(', ') : 'aucune livraison')) + '</small></span>' + ARROW_SEM + '</button></div>';
+    if(!ouvert){ h += '</section>'; return; }
+    h += '<label class="db-nom">Jour de récolte<select data-rf="jour">' +
+      JOURS.map(function(j){ return '<option value="' + j + '"' + (j === r.jour ? ' selected' : '') + '>' + j + '</option>'; }).join('') + '</select></label>' +
       '<label class="dj db-stock"><input type="checkbox" data-rf="chaque"' + (r.chaque ? ' checked' : '') + '><span>Chaque semaine (créé tout seul dans chaque semaine)</span></label>' +
       '<div class="rj-livs" role="group" aria-label="' + esc('Livraisons récoltées le ' + r.jour) + '">' + cr.map(function(c){
         var coche = r.livraisons.indexOf(c.id) >= 0, autre = !coche && ou[c.id];
@@ -2186,11 +2208,18 @@ function debModifier(dId, lId, fn, cleErr){
 $('#debView').addEventListener('click', function(e){
   var b = e.target.closest('[data-a]'); if(!b) return;
   var a = b.dataset.a, boite = b.closest('[data-d]'), dId = boite && boite.dataset.d, lb = b.closest('[data-l]'), lId = lb && lb.dataset.l;
+  if(a === 'db-plier' || a === 'rj-plier'){
+    var ov = a === 'db-plier' ? debOuvert : recOuvert, k = b.dataset.k;
+    ov[k] = !ov[k]; render();
+    var bt = $('#debView [data-a="' + a + '"][data-k="' + k + '"]'); if(bt) bt.focus();
+    return;
+  }
   if(a === 'ajouterR'){
     recModifier(function(rec){
       var pris = rec.map(function(r){ return r.jour; }), j = JOURS.filter(function(x){ return pris.indexOf(x) < 0; })[0] || 'lundi';
       var ids = rec.map(function(r){ return r.id; }), id = j.slice(0, 3), n = 2;
       while(ids.indexOf(id) >= 0) id = j.slice(0, 3) + '-' + n++;
+      recOuvert[id] = true;
       rec.push({id:id, jour:j, livraisons:[]});
     });
     return;
@@ -2209,6 +2238,7 @@ $('#debView').addEventListener('click', function(e){
     avecNom(function(){
       var liste = debListe(), pris = idsPris(liste), id = debIdLibre(nom, pris);
       var cl = couleurs(liste), pr = liste.filter(function(x){ return !x.archive; }).map(function(x){ return cl[x.id]; });
+      debOuvert[id] = true;
       liste.push({id:id, nom:nom, colis:colis, couleur:couleurLibre(pr), livraisons:[{id:id, jours:js.slice().sort(function(a, b){ return rangJour([a]) - rangJour([b]); })}]});
       delete debErr.nouveau; ui.debJours = []; saveUi(); $('#debNom').value = ''; $('#debColis').value = 'plastique';
       debEcrire(liste);
