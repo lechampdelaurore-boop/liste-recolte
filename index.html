@@ -1616,6 +1616,8 @@ function chargerRef(){
 function jourIso(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 function deIso(s){ var p = s.split('-'); return new Date(+p[0], p[1] - 1, +p[2]); }
 function lundiDe(d){ d = new Date(d.getFullYear(), d.getMonth(), d.getDate()); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return jourIso(d); }
+// Numéro de semaine ISO (lundi au dimanche ; la semaine 1 est celle du premier jeudi de l'année). Affichage seulement.
+function numSem(iso){ var d = deIso(lundiDe(deIso(iso))); d.setDate(d.getDate() + 3); var j1 = new Date(d.getFullYear(), 0, 4); return 1 + Math.round(((d - j1) / 864e5 - 3 + (j1.getDay() + 6) % 7) / 7); }
 function decaler(id, n){ var d = deIso(id); d.setDate(d.getDate() + 7 * n); return jourIso(d); }
 // La semaine choisie reste d'un jour à l'autre, sauf une semaine passée choisie un autre jour : on revient
 // alors à la semaine en cours (le lundi matin, Récolte ouvre la nouvelle semaine, étape 13D).
@@ -2538,7 +2540,7 @@ function renderSemaine(){
   if(pc && actif && actif.tagName === 'SELECT' && actif.dataset.cell && actif.closest('#semGrid')) garde = {cell:actif.dataset.cell, menu:true};
   semAttente = false;
   var d = deIso(id), now = lundiDe(new Date()), dim = deIso(id); dim.setDate(dim.getDate() + 6);
-  $('#semTitre').textContent = 'Semaine du ' + d.toLocaleDateString('fr-FR', d.getFullYear() === new Date().getFullYear() ? {day:'numeric', month:'long'} : {day:'numeric', month:'long', year:'numeric'});
+  $('#semTitre').textContent = 'Semaine ' + numSem(id) + ' · du ' + d.toLocaleDateString('fr-FR', d.getFullYear() === new Date().getFullYear() ? {day:'numeric', month:'long'} : {day:'numeric', month:'long', year:'numeric'});
   $('#semJusque').textContent = 'jusqu\'au dimanche ' + dim.toLocaleDateString('fr-FR', d.getMonth() === dim.getMonth() ? {day:'numeric'} : {day:'numeric', month:'long'});
   $('#semQuand').textContent = id === now ? 'Cette semaine' : id === decaler(now, 1) ? 'Semaine prochaine' : id === decaler(now, -1) ? 'Semaine dernière' : '';
   $('#semNav').classList.toggle('pas-cette', id !== now);
@@ -2808,7 +2810,7 @@ function imprimerSemaine(){
   var debM = f ? f.debs.filter(function(x){ return f.masqueD.indexOf(x.id) >= 0; }).map(function(x){ return x.nom; }) : [];
   var jours = f && f.cles.length && !(f.cles.length === 1 && f.cles[0].k === 'sans');
   var d = deIso(sem.id), maintenant = new Date();
-  $('#semPrint').innerHTML = '<h1>Répartition · semaine du ' + esc(d.toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'})) + '</h1>' +
+  $('#semPrint').innerHTML = '<h1>Répartition · semaine ' + numSem(sem.id) + ' · du ' + esc(d.toLocaleDateString('fr-FR', {day:'numeric', month:'long', year:'numeric'})) + '</h1>' +
     '<p>' + esc((jours ? (rec.length ? 'Récoltes : ' + rec.join(', ') : 'Aucune récolte cochée') + ' · ' : '') +
       (debM.length ? 'Débouchés masqués : ' + debM.join(', ') + ' · ' : '') +
       (f && (f.masque.length || f.masqueD.length) ? 'le reste compte toutes les livraisons · ' : '') +
@@ -3410,7 +3412,7 @@ function renderRecNav(autre){
   var nav = $('#recNav'), vb = $('#videBox'), eb = $('#ecartsBox');
   if(autre || demande){ nav.hidden = vb.hidden = eb.hidden = true; vb.innerHTML = eb.innerHTML = ''; return; }
   var d = sem.id ? deIso(sem.id) : null, auj = jourIso(new Date());
-  $('#recSem').textContent = d ? 'Semaine du ' + d.toLocaleDateString('fr-FR', {day:'numeric', month:'long'}) + ' · elle se choisit dans l\'onglet Semaine' : '';
+  $('#recSem').textContent = d ? 'Semaine ' + numSem(sem.id) + ' · du ' + d.toLocaleDateString('fr-FR', {day:'numeric', month:'long'}) + ' · elle se choisit dans l\'onglet Semaine' : '';
   var aFichier = joursSem.some(function(x){ return fichiers[x.date]; });
   var menu = joursSem.length && !(vide && vide.cas === 'cumul' && !aFichier);
   $('#recJours').hidden = !menu;
@@ -3430,7 +3432,7 @@ function videHtml(v){
   if(v.cas === 'erreur') return '<p class="card empty">Impossible de charger les débouchés et les produits. Vérifie la connexion.</p>';
   var lundi = deIso(sem.id).toLocaleDateString('fr-FR', {day:'numeric', month:'long'});
   if(v.cas === 'cumul') return '<section class="card boite"><p class="grand">Le cumul de cette semaine est vide.</p>' +
-    '<p>Rien n\'est encore réparti pour la semaine du ' + esc(lundi) + '. La liste de récolte se remplit toute seule depuis l\'onglet Semaine.</p>' +
+    '<p>Rien n\'est encore réparti pour la semaine ' + numSem(sem.id) + ' (du ' + esc(lundi) + '). La liste de récolte se remplit toute seule depuis l\'onglet Semaine.</p>' +
     '<button type="button" class="sem-add" data-a="aller-semaine" data-page="repartir">Remplir la semaine</button></section>';
   if(v.cas === 'jours') return '<section class="card boite"><p class="grand">Aucun jour de récolte cette semaine.</p>' +
     '<p>Le cumul a des quantités, mais aucun jour de récolte n\'est prévu. En ajouter un dans l\'onglet Semaine, page « À récolter ».</p>' +
@@ -3854,7 +3856,7 @@ function histoJourHtml(r){
 }
 function histoSemaineHtml(w, cette){
   var d = deIso(w), ouvert = !!histo.ouvert[w], js = histoJoursDe(w);
-  var titre = 'Semaine du ' + d.toLocaleDateString('fr-FR', d.getFullYear() === new Date().getFullYear() ? {day:'numeric', month:'long'} : {day:'numeric', month:'long', year:'numeric'});
+  var titre = 'Semaine ' + numSem(w) + ' · du ' + d.toLocaleDateString('fr-FR', d.getFullYear() === new Date().getFullYear() ? {day:'numeric', month:'long'} : {day:'numeric', month:'long', year:'numeric'});
   var quand = w === cette ? 'Cette semaine · ' : w === decaler(cette, -1) ? 'Semaine dernière · ' : '';
   var rs = js.map(histoJour), connus = rs.filter(Boolean), tot = {kg:0, u:{}}, nf = 0;
   connus.forEach(function(r){ nf += r.faits.length; r.faits.forEach(function(f){ ajouterQ(tot, f.it); }); });

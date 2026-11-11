@@ -35,6 +35,8 @@ let echecs = 0;
 function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); if (!cond) echecs++; }
 const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7 + 7 * decal); return d; };
+// Numéro de semaine ISO, calculé autrement que dans l'appli (jeudi de la semaine, en UTC), pour vérifier l'affichage.
+const numSemaine = (d) => { if (typeof d === 'string') { const p = d.split('-'); d = new Date(+p[0], p[1] - 1, +p[2]); } const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7)); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
 
 (async () => {
   const site = await serveurSite();
@@ -82,6 +84,11 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   verifie(await A.isVisible('#semView') && !(await A.isVisible('#todo')) && !(await A.isVisible('#crates')) && !(await A.isVisible('#circs')), 'l\'onglet Semaine remplace la liste, les caisses et les filtres de circuit');
   const titre = await A.textContent('#semTitre');
   verifie(titre.includes(lundi(0).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })) && (await A.textContent('#semQuand')) === 'Cette semaine', 's\'ouvre sur la semaine en cours (obtenu « ' + titre + ' »)');
+  verifie(titre.startsWith('Semaine ' + numSemaine(lundi(0)) + ' · du '), 'le titre donne le numéro de la semaine, « Semaine ' + numSemaine(lundi(0)) + ' », puis la date (obtenu « ' + titre + ' »)');
+  await A.click('[data-a="semSuiv"]'); await attendre(A);
+  const titreSuiv = await A.textContent('#semTitre');
+  verifie(titreSuiv.startsWith('Semaine ' + numSemaine(lundi(1)) + ' · du '), 'la semaine suivante a son numéro (obtenu « ' + titreSuiv + ' »)');
+  await A.click('[data-a="semPrec"]'); await attendre(A);
   verifie((await A.isVisible('#semVide')) && (await A.$$('section.sp')).length === 0, 'semaine vide au départ');
   await capture(A, '1-semaine-vide');
 

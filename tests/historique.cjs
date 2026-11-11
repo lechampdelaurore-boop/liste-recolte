@@ -39,6 +39,8 @@ let echecs = 0;
 function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); if (!cond) echecs++; }
 const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7 + 7 * decal); return iso(d); };
+// Numéro de semaine ISO, calculé autrement que dans l'appli (jeudi de la semaine, en UTC), pour vérifier l'affichage.
+const numSemaine = (d) => { if (typeof d === 'string') { const p = d.split('-'); d = new Date(+p[0], p[1] - 1, +p[2]); } const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7)); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
 const plus = (id, n) => { const p = id.split('-'); const d = new Date(+p[0], p[1] - 1, +p[2]); d.setDate(d.getDate() + n); return iso(d); };
 const heure = (id, h, m) => { const p = id.split('-'); return new Date(+p[0], p[1] - 1, +p[2], h, m).getTime(); };
 const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
@@ -119,6 +121,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   const l1 = net(await T.textContent(carte(W1) + ' h3')), l2 = net(await T.textContent(carte(W2) + ' h3'));
   const nomJ1 = new Date(heure(J1, 12, 0)).toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric' });
   verifie(l1.includes('Récolte cochée : ' + nomJ1), 'ligne de la semaine du ' + W1 + ' : « Récolte cochée : ' + nomJ1 + ' » (obtenu « ' + l1 + ' »)');
+  verifie(l1.includes('Semaine ' + numSemaine(W1) + ' · du ') && l2.includes('Semaine ' + numSemaine(W2) + ' · du '), 'chaque semaine de l\'historique donne son numéro, « Semaine ' + numSemaine(W1) + ' » et « Semaine ' + numSemaine(W2) + ' » (obtenu « ' + l1 + ' »)');
   verifie(l2.includes('Aucune récolte cochée'), 'ligne de la semaine du ' + W2 + ' : « Aucune récolte cochée » (obtenu « ' + l2 + ' »)');
   const lus = base.lectures.slice();
   verifie(lus.includes('listes?shallow') && lus.includes('listes/semaines?shallow') && !lus.some((x) => /^listes\/\d{4}-/.test(x)), 'à l\'ouverture, seuls les noms des jours et des semaines sont lus (lectures : ' + lus.join(', ') + ')');
@@ -177,7 +180,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   await T.waitForSelector('#semTab table');
   await T.waitForTimeout(300);
   const titreS = net(await T.textContent('#semTitre'));
-  const attenduS = 'Semaine du ' + new Date(heure(W1, 12, 0)).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+  const attenduS = 'Semaine ' + numSemaine(W1) + ' · du ' + new Date(heure(W1, 12, 0)).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
   verifie(titreS === attenduS && (await T.getAttribute('[data-sem="cumul"]', 'aria-pressed')) === 'true', 'onglet Semaine, page Cumul, ' + attenduS + ' (obtenu « ' + titreS + ' »)');
   verifie(net(await T.textContent('#semTable')).includes('Poireau'), 'le cumul de cette semaine-là s\'affiche');
   await T.click('#hiEntree [data-a="historique"]');

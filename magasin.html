@@ -188,6 +188,8 @@ function miniHtml(nom){
 function jourIso(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 function lundiDe(d){ d = new Date(d.getFullYear(), d.getMonth(), d.getDate()); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return jourIso(d); }
 function deIso(s){ var p = s.split('-'); return new Date(+p[0], p[1] - 1, +p[2]); }
+// Numéro de semaine ISO (lundi au dimanche ; la semaine 1 est celle du premier jeudi de l'année). Affichage seulement.
+function numSem(iso){ var d = deIso(lundiDe(deIso(iso))); d.setDate(d.getDate() + 3); var j1 = new Date(d.getFullYear(), 0, 4); return 1 + Math.round(((d - j1) / 864e5 - 3 + (j1.getDay() + 6) % 7) / 7); }
 function decaler(id, n){ var d = deIso(id); d.setDate(d.getDate() + 7 * n); return jourIso(d); }
 
 /* ---------- Produits et unités (mêmes règles que l'onglet Semaine de la liste de récolte) ---------- */
@@ -454,7 +456,7 @@ function allerA(sem){
   pending.forEach(function(p){ if(p.w === w) data = setAt(data, p.pid, p.val); });
   recu = false; erreurs = {}; ouvrir(true); render();
 }
-function texteSemaine(sem){ return 'semaine du lundi ' + deIso(sem).toLocaleDateString('fr-FR', {day:'numeric', month:'long'}); }
+function texteSemaine(sem){ return 'semaine ' + numSem(sem) + ' (du lundi ' + deIso(sem).toLocaleDateString('fr-FR', {day:'numeric', month:'long'}) + ')'; }
 // Changer de semaine : toujours confirmé (demande de François du 8/11).
 $('#nav').addEventListener('click', function(e){
   var b = e.target.closest('[data-a]'); if(!b || !did) return;
@@ -574,7 +576,7 @@ function ligneHtml(p){
 function render(){
   majStatut();
   var d0 = deIso(w);
-  $('#semaine').textContent = 'Semaine du lundi ' + d0.toLocaleDateString('fr-FR', {day:'numeric', month:'long'}) + (did ? ' · ' + nomMagasin() : '');
+  $('#semaine').textContent = 'Semaine ' + numSem(w) + ' · du lundi ' + d0.toLocaleDateString('fr-FR', {day:'numeric', month:'long'}) + (did ? ' · ' + nomMagasin() : '');
   $('#titre').textContent = did ? 'Stock · ' + nomMagasin() : 'Stock du magasin';
   $('#qui').hidden = !did || !!refuse;
   $('#quiNom').textContent = qui ? qui + ' · changer' : 'Votre prénom ?';
@@ -584,7 +586,7 @@ function render(){
   $('#msg').innerHTML = msg;
   var pret = !!(compte && did && !refuse && REF);
   $('#actions').hidden = !pret; $('#nav').hidden = !pret; $('#semaine').hidden = pret;
-  $('#navTxt').innerHTML = 'Semaine du lundi ' + esc(d0.toLocaleDateString('fr-FR', {day:'numeric', month:'long'})) + '<small>' + (w === courante ? 'Cette semaine' : w < courante ? 'Semaine passée' : 'Semaine à venir') + '</small>';
+  $('#navTxt').innerHTML = 'Semaine ' + numSem(w) + ' · du lundi ' + esc(d0.toLocaleDateString('fr-FR', {day:'numeric', month:'long'})) + '<small>' + (w === courante ? 'Cette semaine' : w < courante ? 'Semaine passée' : 'Semaine à venir') + '</small>';
   $('#aide').hidden = !!refuse;
   if(!pret){ $('#liste').innerHTML = compte && !refuse ? '<p class="vide">Chargement…</p>' : ''; return; }
   // Ne pas redessiner sous le doigt pendant une saisie : on redessine en quittant la case.
