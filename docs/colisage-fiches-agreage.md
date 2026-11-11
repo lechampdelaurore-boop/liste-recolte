@@ -136,6 +136,7 @@ Message dicté ; les trois mots douteux (« le rebranch », « la tête douce »
 | Oignon en botte | Grande basse (GB) | Rien à changer |
 | Patate douce | Petite haute (PH), 6 kg | Rien à changer |
 | Bouquets de persil frisé | Par 6 | Fait le 6/11 (10 bouquets → 6) |
+| Céleri-branche en bouquet (11/11, nouveau produit, absent des fiches Auvabio) | Par 10 en grande basse (GB) pour les caisses plastiques ; grand colis bois pour les débouchés en colis bois | Ajouté le 11/11, à côté du céleri-branche au kilo (inchangé) |
 
 ## Écarts avec la fiche des prix (PR #15, `docs/tableau-cumul.md`)
 
