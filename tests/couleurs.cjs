@@ -83,12 +83,15 @@ const BLEU = '#0b3d91', FRAMBOISE = '#a0105c', VERT = '#0a5a1c', VIOLET = '#5e1a
   const capture = async (p, nom) => { if (CAPTURES) await p.screenshot({ path: path.join(CAPTURES, nom + '.png'), fullPage: true }); };
   const attendre = (p, ms) => p.waitForTimeout(ms || 600);
   const fiche = (d) => `#debView section.db[data-d="${d}"]`;
+  // Fiches repliées par défaut (demande de François du 10/11) : les déplier pour voir les couleurs.
+  const deplier = async (p) => { const sel = '#debView .db-tete[aria-expanded="false"]'; while (await p.$(sel)) await p.click(sel); };
   const coche = (p, d) => p.$eval(`${fiche(d)} input[data-f="couleur"]:checked`, (e) => e.value).catch(() => null);
   const debDe = (id) => (base.lire('listes/reglages/debouches').debouches || []).filter((d) => d.id === id)[0];
 
   // 1. La palette
   await A.click('[data-view="reglages"]');
   await A.waitForSelector('#debView section.db');
+  await deplier(A);
   const palette = await A.$$eval(`${fiche('ta')} label.dc-c`, (e) => e.map((x) => [x.querySelector('input').value, x.textContent.trim()]));
   verifie(palette.length >= 8 && palette.every((x) => contraste(x[0]) >= 7), 'palette de ' + palette.length + ' couleurs, toutes au moins 7 fois plus contrastées que le fond blanc (plus faible : ' + Math.min(...palette.map((x) => contraste(x[0]))).toFixed(1) + ')');
   verifie(palette.every((x) => x[0] !== '#ffffff') && new Set(palette.map((x) => x[0])).size === palette.length, 'pas de blanc, pas de doublon');
@@ -153,6 +156,7 @@ const BLEU = '#0b3d91', FRAMBOISE = '#a0105c', VERT = '#0a5a1c', VIOLET = '#5e1a
   await A.reload();
   await A.click('[data-view="reglages"]');
   await A.waitForSelector('#debView section.db');
+  await deplier(A);
   verifie((await coche(A, 'lv')) === VIOLET && (await coche(A, 'ta')) === BLEU, 'après rechargement, Locavore reste violet et Très Allier bleu');
 
   verifie(erreurs.length === 0, 'aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));
