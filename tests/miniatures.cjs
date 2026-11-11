@@ -45,7 +45,7 @@ const ATTENDU = {
   'Ail sec': 'ail', 'Aillet': 'ail', 'Aromatiques': 'persil', 'Aubergine Violette': 'aubergine',
   'Bette': 'blette', 'Bette mini (pied)': 'blette', 'Bette multicolore (bouquet)': 'blette',
   'Betterave Rouge': 'betterave', 'Betterave Rouge (botte)': 'betterave', 'Betterave Rouge cuite sous vide': 'betterave',
-  'Carotte (botte)': 'carotte', 'Carotte lavée': 'carotte', 'Céleri-branche': 'celeri-branche', 'Céleri-rave': 'celeri-rave',
+  'Carotte (botte)': 'carotte', 'Carotte lavée': 'carotte', 'Céleri-branche': 'celeri-branche', 'Céleri-branche en bouquet': 'celeri-branche', 'Céleri-rave': 'celeri-rave',
   'Chou brocoli': 'chou-brocoli', 'Chou chinois': 'chou-pe-tsai', 'Chou fleur': 'chou-fleur', 'Chou Frisé': 'chou-de-milan',
   'Chou Kale': 'chou-kale', 'Chou Pointu': 'chou-pointu', 'Chou romanesco': 'chou-romanesco', 'Chou Rouge': 'chou-rouge',
   'Chou Vert': 'chou-blanc', 'Chou-rave vert (Colrave)': 'chou-rave', 'Chou-rave violet (Colrave)': 'chou-rave',
@@ -237,7 +237,7 @@ const resume = (l) => l.map((x) => x.nom.split('\n')[0].slice(0, 30) + '→' + (
   await M.waitForSelector('#addDlg[open]');
   const magAjout = await minis(M, '#addList button');
   const magSans = magAjout.filter((x) => !x.espece).map((x) => x.nom.split('\n')[0]);
-  verifie(magAjout.length === 75 && magAjout.every((x) => x.espece && x.dessine), 'magasin, « Ajouter un produit » : les 75 produits ont leur dessin (obtenu ' + magAjout.length + (magSans.length ? ', sans dessin : ' + magSans.join(', ') : '') + ')');
+  verifie(magAjout.length === 76 && magAjout.every((x) => x.espece && x.dessine), 'magasin, « Ajouter un produit » : les 76 produits ont leur dessin (obtenu ' + magAjout.length + (magSans.length ? ', sans dessin : ' + magSans.join(', ') : '') + ')');
   await M.fill('#addQ', 'salade');
   await M.waitForTimeout(200);
   await capture(M, '8-magasin-ajouter');

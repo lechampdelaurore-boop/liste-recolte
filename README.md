@@ -187,7 +187,7 @@ Le code de ce dépôt est publié sous la licence **PolyForm Noncommercial 1.0.0
 | `magasin.html` | Page du magasin (étape 13C) : saisie du stock avec le compte du magasin. Autonome, même charte. |
 | `sw.js` | Hors ligne : la page et la liste passent par le réseau, sinon la dernière copie. Changer `CACHE` à chaque modification de l'appli. Ne met jamais la base Firebase en cache. |
 | `manifest.webmanifest`, `icons/` | Installation sur l'écran d'accueil. |
-| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`), débouchés et livraisons (`debouches.cjs`), connexion par compte (`connexion.cjs`), listes calculées depuis la semaine (`listes-calculees.cjs`), couleur des débouchés (`couleurs.cjs`), filtre par jour de récolte et impression (`filtre.cjs`), flèches du clavier dans la grille (`fleches.cjs`), tri de l'onglet Récolte sur ordinateur (`tri-ordinateur.cjs`), aromatiques (`aromatiques.cjs`), miniatures des légumes (`miniatures.cjs`), animation de la coche (`animation-coche.cjs`), ordre de récolte habituel (`ordre-habituel.cjs`), historique des semaines (`historique.cjs`), caisses d'endives hors du total (`endives-sur-place.cjs`) ; règles de la base sur l'émulateur officiel de Firebase (`regles.cjs`). |
+| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`), débouchés et livraisons (`debouches.cjs`), connexion par compte (`connexion.cjs`), listes calculées depuis la semaine (`listes-calculees.cjs`), couleur des débouchés (`couleurs.cjs`), filtre par jour de récolte et impression (`filtre.cjs`), flèches du clavier dans la grille (`fleches.cjs`), tri de l'onglet Récolte sur ordinateur (`tri-ordinateur.cjs`), aromatiques (`aromatiques.cjs`), miniatures des légumes (`miniatures.cjs`), animation de la coche (`animation-coche.cjs`), ordre de récolte habituel (`ordre-habituel.cjs`), historique des semaines (`historique.cjs`), caisses d'endives hors du total (`endives-sur-place.cjs`), céleri-branche en bouquet (`celeri-bouquet.cjs`) ; règles de la base sur l'émulateur officiel de Firebase (`regles.cjs`). |
 | `docs/` | Format des listes, fonctionnement de la base partagée. |
 | `LICENSE` | Licence PolyForm Noncommercial 1.0.0 : usage non commercial seulement. |
 | `AGENTS.md` | Consignes pour les agents IA qui modifient ce dépôt (`CLAUDE.md` y renvoie). |
@@ -216,9 +216,12 @@ node tests/jours-recolte.cjs
 node tests/ordre-habituel.cjs
 node tests/historique.cjs
 node tests/endives-sur-place.cjs
+node tests/celeri-bouquet.cjs
 ```
 
 `tests/endives-sur-place.cjs` vérifie, sur un téléphone et un ordinateur, que les caisses d'endives ne comptent pas dans le cadre « Caisses » (tuiles et total) mais sont nommées dessous, que la ligne de l'endive garde sa quantité, que le total ne bouge pas quand on les coche, qu'une autre ferme sans le réglage les compte comme avant, et que la semaine n'est pas réécrite.
+
+`tests/celeri-bouquet.cjs` vérifie, sur un téléphone, que « Céleri-branche en bouquet » est un produit à part (identifiant `celeri-branche-en-bouquet`) en grande basse de 10 bouquets, avec le dessin du céleri-branche, que le céleri-branche au kilo et ses quantités restent tels quels, et que, dans Récolte et Préparation, il part en GB pour les débouchés en caisses plastiques et en grand colis bois pour ceux en colis bois.
 
 `tests/historique.cjs` vérifie la page « Historique » avec un téléphone et un ordinateur : bouton dans l'onglet Semaine, visible sans défiler ; semaines passées dans l'ordre, la semaine prochaine absente, toutes repliées, et seuls les noms des jours et semaines lus à l'ouverture (lecture « shallow ») ; une semaine dépliée lit son jour et montre le résumé (« 2 produits récoltés sur 3 · 16 kg »), les produits dans l'ordre de la coche avec qui et l'heure, « Pas coché », la préparation ; semaine sans coche ; liste en fichier du 4/11 reprise ; « Ouvrir la liste de ce jour » et « Voir la répartition » ; sans réseau, l'historique déjà lu avec un avertissement, puis « Réessayer » ; pas de défilement de côté ; la base identique du début à la fin.
 
