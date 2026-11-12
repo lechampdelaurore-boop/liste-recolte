@@ -61,6 +61,8 @@ dialog.big{max-width:min(460px,94vw)}
 .p-qui{font-size:.88rem;font-weight:600}
 .p.fait{background:var(--surface2)}
 .p.fait input{background:#fff}
+.rappel{margin:0;background:var(--warn-bg);border:3px solid #000;border-radius:var(--radius);padding:10px 14px;font-size:1.05rem;font-weight:800;line-height:1.3;box-shadow:var(--ombre)}
+.nr{justify-self:start;display:inline-block;background:#c00000;color:#fff;border:2px solid #000;border-radius:8px;padding:3px 10px;font-size:.95rem;font-weight:900;letter-spacing:.02em}
 .err{margin:0;background:var(--warn-bg);border:2px solid #000;border-radius:8px;padding:4px 8px;font-size:.9rem;font-weight:700}
 .vide{margin:0;font-weight:700}
 .act{min-height:48px;padding:8px 14px;border:var(--bw) solid var(--line);border-radius:12px;background:var(--surface);font-weight:800;cursor:pointer;box-shadow:var(--ombre)}
@@ -89,6 +91,7 @@ dialog label{display:grid;gap:4px;font-weight:700}
     <h1>Stock au magasin</h1>
     <p class="sub" id="semaine"></p>
   </div>
+  <p class="rappel" id="rappel" role="note">La quantité notée est toujours la somme de ce qui est en rayon et de ce qui est en stock.</p>
   <div class="nav" id="nav" hidden>
     <button type="button" data-a="prec" aria-label="Semaine précédente">‹</button>
     <div id="navTxt"></div>
@@ -573,6 +576,7 @@ function ligneHtml(p){
   var h = '<div class="card p' + (q ? ' fait' : '') + '" data-pid="' + esc(p.id) + '">' +
     '<div class="p-top"><div class="p-nom">' + miniHtml(f.nom) + esc(f.nom) + ' <small>' + esc(colisTxt(f)) + '</small></div>' +
     '<button type="button" class="p-x" data-a="retirer" aria-label="' + esc('Retirer ' + f.nom + ' de la semaine') + '">×</button></div>' +
+    (q ? '' : '<span class="nr">Non renseigné</span>') +
     '<div class="ctl"><button type="button" data-a="moins" aria-label="' + esc('Moins, ' + f.nom) + '">−</button>' +
     '<input type="text" inputmode="decimal" enterkeyhint="done" value="' + (q ? esc(nb(q.n)) : '') + '" placeholder="?" aria-label="' + esc('Stock de ' + f.nom) + '">' +
     '<button type="button" data-a="unite"' + (us.length < 2 ? ' disabled' : '') + ' aria-label="' + esc('Changer d\'unité, ' + f.nom) + '">' + esc(nomUnite(u, f, q ? q.n : 2)) + '</button>' +
