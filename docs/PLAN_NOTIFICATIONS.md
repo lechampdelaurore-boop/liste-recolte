@@ -1,6 +1,6 @@
 # Plan : une cloche de notifications, côté ferme et côté magasin (étapes 25 et 26)
 
-*Rédigé le 12/11/2026, à la demande de François. Documentation seulement : aucun code n'est écrit par cette PR. L'étape 25 (code) se lance quand le fil de code en cours (fin de semaine et pré-remplissage du magasin) est fini.*
+*Rédigé le 12/11/2026, à la demande de François. Documentation seulement : aucun code n'est écrit par cette PR. L'étape 25 (code) se lance quand le fil de code en cours (fin de semaine et pré-remplissage du magasin) est fini. Précision du 12/11 (François revient sur sa décision) : **pas de pré-remplissage de la liste du magasin** d'après la semaine de la ferme ; le blocage de « J'ai fini » est conservé.*
 
 ## La demande de François (12/11, mot pour mot, abrégé)
 
@@ -36,6 +36,7 @@ Ferme et magasin ont **exactement la même cloche** : même place dans l'en-têt
 Comportement proposé :
 
 - Le bouton « J'ai fini le stock » est en bas de la liste du magasin, gros, avec le nombre de produits saisis. Un appui demande une confirmation d'une ligne (« Prévenir la ferme que le stock de la semaine 47 est fini ? »).
+- **Repère « Non renseigné » (demande de François, 12/11).** Sur la page du magasin, un produit ajouté mais sans quantité porte, **au-dessus de sa case de quantité, un repère bien visible « Non renseigné »** (trait épais, lisible au soleil) qui disparaît dès qu'un chiffre est saisi (zéro compris). C'est ce repère que la fenêtre ci-dessous reprend. *Lecture de la dictée de François : si « le bouton non renseigné au-dessus de quantité » veut dire autre chose, le dire.*
 - **Fenêtre bloquante s'il manque des quantités (demande de François, 12/11, côté magasin seulement).** Si, à l'appui sur « J'ai fini », un ou plusieurs produits de la semaine n'ont **pas de quantité**, une fenêtre s'ouvre avec la **liste de ces produits** (« Il manque la quantité de 3 produits : Carottes, Poireaux, Radis. Complétez-les avant d'envoyer »). Elle n'a **qu'un bouton, « Compléter »** : pas de « Envoyer quand même », donc rien ne part tant que tout n'est pas renseigné. En le touchant, la page revient au premier produit sans quantité. Le contrôle se fait sur le téléphone, avant la file d'attente : il marche aussi hors ligne. **Zéro est une quantité** (rupture de stock) : seule une case vide compte comme « non renseignée ». Rien de tel côté ferme : « Prévenir le magasin » n'est pas bloqué.
 - Après l'envoi, il affiche « Ferme prévenue à 14 h 32 » et se range. Si le magasin saisit encore un produit après, le bouton revient (un nouveau « J'ai fini » enverra une nouvelle notification, jamais deux en moins de deux minutes).
 - Aucune notification à chaque saisie : seulement le bouton, ou le filet de sécurité ci-dessous.
@@ -54,7 +55,7 @@ Même raison que ci-dessus : la ferme compose la liste en plusieurs fois (ajoute
 
 - Texte reçu par le magasin : « **La ferme a mis à jour la liste de la semaine 48** · 14 produits ».
 - Après l'appui : « Magasin prévenu le 12/11 à 10 h 12 », et le bouton revient si la liste change ensuite.
-- Il ne part rien d'autre au magasin que ce texte : le magasin ne lit toujours **pas** les listes de la ferme (les règles de la base le refusent). Les produits apparaissent sur sa page par le pré-remplissage en cours de développement, pas par cette notification.
+- Il ne part rien d'autre au magasin que ce texte : le magasin ne lit toujours **pas** les listes de la ferme (les règles de la base le refusent). **Il n'y a pas de pré-remplissage** (François l'a annulé le 12/11) : la notification ne fait que dire au magasin que la liste a changé, et le magasin ajoute lui-même ses produits avec « Ajouter un produit », comme aujourd'hui. Le nombre de produits du texte est donc une information, pas une liste que la page montrerait.
 
 ## Comment c'est rangé dans la base (pour l'étape de code)
 
@@ -94,7 +95,7 @@ Une seule PR de code pour l'étape 25 : les deux notifications partagent la mêm
 
 ## Points d'attention pour le fil de code
 
-- Le fil « fin de semaine et pré-remplissage du magasin » touche aussi `magasin.html` et les règles : **lancer l'étape 25 seulement quand il est fusionné**, et repartir de `main`.
+- Le fil de code en cours (« fin de semaine » ; son pré-remplissage du magasin est annulé par François) touche aussi `magasin.html` et les règles : **lancer l'étape 25 seulement quand il est fusionné**, et repartir de `main`.
 - Rien de la ferme dans la notification côté magasin au-delà de la semaine et du nombre de produits.
 - Vérifier avant la PR : le chiffre baisse à zéro à l'ouverture de la feuille ; une seule notification pour 10 saisies suivies d'un seul « J'ai fini » ; « J'ai fini » avec un produit sans quantité : fenêtre bloquante avec la liste, rien écrit dans la base, aucune notification ; l'automatique « incomplet » contient la liste complète des produits sans quantité et la feuille de la cloche l'affiche en entier ; avec un zéro : accepté ; sans bouton, une seule notification automatique 15 minutes après la dernière saisie (page du magasin ouverte, puis page fermée et appli de la ferme ouverte plus tard, jamais les deux) ; aucune automatique si « J'ai fini » est venu après la dernière saisie ; aucune notification sans bouton ; un compte magasin ne peut pas lire `notifs/ferme` ni écrire dans `notifs/magasin` (avec `tests/regles.cjs` et l'émulateur) ; hors ligne, le bouton part au retour du réseau.
 - **Non vérifié en réel** (à l'essai de François, deux vrais téléphones) : le chiffre en direct entre deux appareils.

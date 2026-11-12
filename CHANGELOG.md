@@ -2,6 +2,8 @@
 
 ## 2026-11-12
 
+- **Plan des notifications : pré-remplissage annulé** (François revient sur sa décision : pas de pré-remplissage de la liste du magasin d'après la ferme ; il garde le repère « Non renseigné » et le blocage de « J'ai fini »). Plan ajusté. Documentation seulement.
+
 - **Plan des notifications, quantités manquantes** (François : au clic sur « J'ai fini », une fenêtre bloquante liste les produits sans quantité et empêche l'envoi). Plan mis à jour, y compris le sort de l'envoi automatique de 15 minutes (part, marqué « incomplet »). Documentation seulement.
 
 - **Plan des notifications, cloche identique des deux côtés** (François : « que ce soit du côté ferme ou du côté magasin, je veux que ce soit pareil »). Section « Pareil des deux côtés » ajoutée au plan. Documentation seulement.
