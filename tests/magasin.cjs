@@ -41,6 +41,9 @@ const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, 
 const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7 + 7 * decal); return d; };
 // Numéro de semaine ISO, calculé autrement que dans l'appli (jeudi de la semaine, en UTC), pour vérifier l'affichage.
 const numSemaine = (d) => { if (typeof d === 'string') { const p = d.split('-'); d = new Date(+p[0], p[1] - 1, +p[2]); } const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7)); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
+// « du lundi 9 au dimanche 15 novembre » (écrit autrement que dans l'appli, pour la vérifier)
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const duAuAttendu = (d) => { if (typeof d === 'string') { const p = d.split('-'); d = new Date(+p[0], p[1] - 1, +p[2]); } const f = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 6); const an = d.getFullYear() !== new Date().getFullYear() || f.getFullYear() !== d.getFullYear(); if (f.getFullYear() !== d.getFullYear()) return `du lundi ${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()} au dimanche ${f.getDate()} ${MOIS[f.getMonth()]} ${f.getFullYear()}`; return `du lundi ${d.getDate()}${f.getMonth() === d.getMonth() ? '' : ' ' + MOIS[d.getMonth()]} au dimanche ${f.getDate()} ${MOIS[f.getMonth()]}` + (an ? ' ' + f.getFullYear() : ''); };
 const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; while (Date.now() < fin) { if (await fn()) return true; await new Promise((x) => setTimeout(x, 150)); } return false; };
 
 (async () => {
@@ -114,7 +117,7 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   verifie((await M.textContent('#quiNom')) === 'Igor · changer', 'le prénom tapé « igor » devient « Igor », en haut de l\'écran (obtenu « ' + (await M.textContent('#quiNom')) + ' »)');
   await attendreQue(() => base.lire('magasins/ta/personnes/igor'));
   verifie((base.lire('magasins/ta/personnes/igor') || {}).nom === 'Igor', 'le prénom est gardé dans la liste des prénoms du magasin');
-  verifie((await M.textContent('#titre')) === 'Stock · Très Allier' && (await M.textContent('#navTxt')) === 'Semaine ' + numSemaine(lundi(0)) + ' · du lundi ' + lundi(0).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + 'Cette semaine', 'le magasin du compte (Très Allier) et la semaine en cours sont affichés, avec « Cette semaine » (obtenu « ' + (await M.textContent('#navTxt')) + ' »)');
+  verifie((await M.textContent('#titre')) === 'Stock · Très Allier' && (await M.textContent('#navTxt')) === 'Semaine ' + numSemaine(lundi(0)) + ' · ' + duAuAttendu(lundi(0)) + 'Cette semaine', 'le magasin du compte (Très Allier) et la semaine en cours sont affichés, avec « Cette semaine » (obtenu « ' + (await M.textContent('#navTxt')) + ' »)');
   verifie((await M.$$('#liste .p')).length === 0 && (await M.textContent('#liste')).includes('Aucun produit pour cette semaine'), 'au départ, la liste est vide : « Aucun produit pour cette semaine »');
   verifie(await M.isVisible('#reprendre'), 'le bouton « Reprendre les produits de la semaine d\'avant » est proposé (le poireau y était compté)');
   await capture(M, '3-liste-vide');
@@ -314,7 +317,7 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   refuser = true;
   await M.click('#nav [data-a="prec"]');
   await M.waitForTimeout(200);
-  verifie(dialogues[dialogues.length - 1] === 'Passer à la semaine ' + numSemaine(lundi(-1)) + ' (du lundi ' + lundi(-1).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' }) + ') ? Les saisies iront dans cette semaine-là.' && (await M.textContent('#navTxt')).endsWith('Cette semaine'), 'flèche ‹ : la page demande confirmation ; en refusant, on reste sur la semaine en cours (message « ' + dialogues[dialogues.length - 1] + ' »)');
+  verifie(dialogues[dialogues.length - 1] === 'Passer à la semaine ' + numSemaine(lundi(-1)) + ' (' + duAuAttendu(lundi(-1)) + ') ? Les saisies iront dans cette semaine-là.' && (await M.textContent('#navTxt')).endsWith('Cette semaine'), 'flèche ‹ : la page demande confirmation ; en refusant, on reste sur la semaine en cours (message « ' + dialogues[dialogues.length - 1] + ' »)');
   refuser = false;
   await M.click('#nav [data-a="prec"]');
   await M.waitForFunction(() => document.querySelector('#navTxt').textContent.endsWith('Semaine passée'));

@@ -41,6 +41,9 @@ const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, 
 const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7 + 7 * decal); return iso(d); };
 // Numéro de semaine ISO, calculé autrement que dans l'appli (jeudi de la semaine, en UTC), pour vérifier l'affichage.
 const numSemaine = (d) => { if (typeof d === 'string') { const p = d.split('-'); d = new Date(+p[0], p[1] - 1, +p[2]); } const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7)); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
+// « du lundi 9 au dimanche 15 novembre » (écrit autrement que dans l'appli, pour la vérifier)
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const duAuAttendu = (d) => { if (typeof d === 'string') { const p = d.split('-'); d = new Date(+p[0], p[1] - 1, +p[2]); } const f = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 6); const an = d.getFullYear() !== new Date().getFullYear() || f.getFullYear() !== d.getFullYear(); if (f.getFullYear() !== d.getFullYear()) return `du lundi ${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()} au dimanche ${f.getDate()} ${MOIS[f.getMonth()]} ${f.getFullYear()}`; return `du lundi ${d.getDate()}${f.getMonth() === d.getMonth() ? '' : ' ' + MOIS[d.getMonth()]} au dimanche ${f.getDate()} ${MOIS[f.getMonth()]}` + (an ? ' ' + f.getFullYear() : ''); };
 const plus = (id, n) => { const p = id.split('-'); const d = new Date(+p[0], p[1] - 1, +p[2]); d.setDate(d.getDate() + n); return iso(d); };
 const heure = (id, h, m) => { const p = id.split('-'); return new Date(+p[0], p[1] - 1, +p[2], h, m).getTime(); };
 const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
@@ -180,7 +183,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   await T.waitForSelector('#semTab table');
   await T.waitForTimeout(300);
   const titreS = net(await T.textContent('#semTitre'));
-  const attenduS = 'Semaine ' + numSemaine(W1) + ' · du ' + new Date(heure(W1, 12, 0)).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' });
+  const attenduS = 'Semaine ' + numSemaine(W1) + ' · ' + duAuAttendu(W1);
   verifie(titreS === attenduS && (await T.getAttribute('[data-sem="cumul"]', 'aria-pressed')) === 'true', 'onglet Semaine, page Cumul, ' + attenduS + ' (obtenu « ' + titreS + ' »)');
   verifie(net(await T.textContent('#semTable')).includes('Poireau'), 'le cumul de cette semaine-là s\'affiche');
   await T.click('#hiEntree [data-a="historique"]');

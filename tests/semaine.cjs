@@ -37,6 +37,9 @@ const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, 
 const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7 + 7 * decal); return d; };
 // Numéro de semaine ISO, calculé autrement que dans l'appli (jeudi de la semaine, en UTC), pour vérifier l'affichage.
 const numSemaine = (d) => { if (typeof d === 'string') { const p = d.split('-'); d = new Date(+p[0], p[1] - 1, +p[2]); } const t = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate())); t.setUTCDate(t.getUTCDate() + 4 - (t.getUTCDay() || 7)); return Math.ceil(((t - Date.UTC(t.getUTCFullYear(), 0, 1)) / 864e5 + 1) / 7); };
+// « du lundi 9 au dimanche 15 novembre » (écrit autrement que dans l'appli, pour la vérifier)
+const MOIS = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+const duAuAttendu = (d) => { if (typeof d === 'string') { const p = d.split('-'); d = new Date(+p[0], p[1] - 1, +p[2]); } const f = new Date(d.getFullYear(), d.getMonth(), d.getDate() + 6); const an = d.getFullYear() !== new Date().getFullYear() || f.getFullYear() !== d.getFullYear(); if (f.getFullYear() !== d.getFullYear()) return `du lundi ${d.getDate()} ${MOIS[d.getMonth()]} ${d.getFullYear()} au dimanche ${f.getDate()} ${MOIS[f.getMonth()]} ${f.getFullYear()}`; return `du lundi ${d.getDate()}${f.getMonth() === d.getMonth() ? '' : ' ' + MOIS[d.getMonth()]} au dimanche ${f.getDate()} ${MOIS[f.getMonth()]}` + (an ? ' ' + f.getFullYear() : ''); };
 
 (async () => {
   const site = await serveurSite();
@@ -83,11 +86,23 @@ const numSemaine = (d) => { if (typeof d === 'string') { const p = d.split('-');
   await attendre(A);
   verifie(await A.isVisible('#semView') && !(await A.isVisible('#todo')) && !(await A.isVisible('#crates')) && !(await A.isVisible('#circs')), 'l\'onglet Semaine remplace la liste, les caisses et les filtres de circuit');
   const titre = await A.textContent('#semTitre');
-  verifie(titre.includes(lundi(0).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long' })) && (await A.textContent('#semQuand')) === 'Cette semaine', 's\'ouvre sur la semaine en cours (obtenu « ' + titre + ' »)');
-  verifie(titre.startsWith('Semaine ' + numSemaine(lundi(0)) + ' · du '), 'le titre donne le numéro de la semaine, « Semaine ' + numSemaine(lundi(0)) + ' », puis la date (obtenu « ' + titre + ' »)');
+  verifie(titre.includes(duAuAttendu(lundi(0))) && (await A.textContent('#semQuand')) === 'Cette semaine', 's\'ouvre sur la semaine en cours (obtenu « ' + titre + ' »)');
+  verifie(titre === 'Semaine ' + numSemaine(lundi(0)) + ' · ' + duAuAttendu(lundi(0)), 'le titre donne le numéro de la semaine, puis le lundi et le dimanche, « Semaine ' + numSemaine(lundi(0)) + ' · ' + duAuAttendu(lundi(0)) + ' » (obtenu « ' + titre + ' »)');
+  {
+    // Passage de mois et d'année : la fonction de l'appli, essayée sur des semaines choisies.
+    const cas = { '2026-11-09': 'du lundi 9 au dimanche 15 novembre', '2026-11-30': 'du lundi 30 novembre au dimanche 6 décembre', '2026-12-28': 'du lundi 28 décembre 2026 au dimanche 3 janvier 2027', '2027-02-24': 'du lundi 22 au dimanche 28 février' };
+    // Les fonctions de date sont prises telles quelles dans index.html et dans magasin.html, et essayées ici.
+    const fonctions = (fichier) => { const src = fs.readFileSync(path.join(__dirname, '..', fichier), 'utf8'); const prendre = (nom) => { const i = src.indexOf('function ' + nom + '('); const j = src.indexOf('\nfunction ', i + 1); return src.slice(i, j); }; return new Function(['jourIso', 'deIso', 'lundiDe', 'duAu'].map(prendre).join('\n') + '\nreturn duAu;')(); };
+    const duAuIndex = fonctions('index.html'), duAuMagasin = fonctions('magasin.html');
+    const obtenu = Object.keys(cas).map((k) => duAuIndex(k));
+    verifie(Object.keys(cas).every((k) => duAuMagasin(k) === duAuIndex(k)), 'la page du magasin écrit les semaines comme l\'appli');
+    verifie(obtenu.join(' | ') === Object.values(cas).join(' | '), 'date de fin : même mois, passage de mois, passage d\'année, un mercredi ramené à son lundi (obtenu « ' + obtenu.join(' | ') + ' »)');
+    const avecAn = duAuIndex('2026-11-09', true);
+    verifie(avecAn === 'du lundi 9 au dimanche 15 novembre 2026', 'avec l\'année (impression) : « ' + avecAn + ' »');
+  }
   await A.click('[data-a="semSuiv"]'); await attendre(A);
   const titreSuiv = await A.textContent('#semTitre');
-  verifie(titreSuiv.startsWith('Semaine ' + numSemaine(lundi(1)) + ' · du '), 'la semaine suivante a son numéro (obtenu « ' + titreSuiv + ' »)');
+  verifie(titreSuiv === 'Semaine ' + numSemaine(lundi(1)) + ' · ' + duAuAttendu(lundi(1)), 'la semaine suivante a son numéro (obtenu « ' + titreSuiv + ' »)');
   await A.click('[data-a="semPrec"]'); await attendre(A);
   verifie((await A.isVisible('#semVide')) && (await A.$$('section.sp')).length === 0, 'semaine vide au départ');
   await capture(A, '1-semaine-vide');
