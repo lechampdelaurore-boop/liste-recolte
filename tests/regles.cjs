@@ -197,9 +197,17 @@ const compte = async (email, mdp) => {
   verifie(r.s === 401, 'agent : une ligne d\'une proposition déposée ne se change pas');
   r = await appel('agent/propositions', g.idToken);
   verifie(r.s === 200 && r.j['mail-1'].l[0].n === 9, 'agent : il relit ses propositions (pour ne pas déposer deux fois le même mail)');
-  const interdits = [['listes', 'GET'], ['listes/semaines/' + W, 'GET'], ['listes/reglages/debouches', 'GET'], ['magasins', 'GET'], ['notifs/ferme', 'GET'], ['profils/' + f.localId, 'GET'], ['agent', 'GET']];
+  // Étape 32 : la porte lit les débouchés de la ferme (pour reconnaître la livraison d'une commande), et rien d'autre de « listes ».
+  r = await appel('listes/reglages/debouches', g.idToken);
+  verifie(r.s === 200 && r.j && r.j.at === 3, 'agent : il lit les débouchés de la ferme (étape 32, la porte) (' + r.s + ')');
+  r = await ecrit('listes/reglages/debouches', { at: 9 }, g.idToken, 'PUT');
+  const rDebP = await ecrit('listes/reglages/debouches/at', 9, g.idToken, 'PUT');
+  verifie(r.s === 401 && rDebP.s === 401, 'agent : il ne modifie pas les débouchés');
+  const interdits = [['listes', 'GET'], ['listes/semaines/' + W, 'GET'], ['listes/reglages', 'GET'], ['listes/reglages/ordre', 'GET'], ['magasins', 'GET'], ['notifs/ferme', 'GET'], ['profils/' + f.localId, 'GET'], ['agent', 'GET']];
   const res = []; for (const [ch] of interdits) res.push((await appel(ch, g.idToken)).s);
-  verifie(res.every((x) => x === 401), 'agent : il ne lit rien d\'autre (listes, semaines, débouchés, magasins, notifications, profil d\'un autre, racine de « agent ») (' + res.join(',') + ')');
+  verifie(res.every((x) => x === 401), 'agent : il ne lit rien d\'autre (listes, semaines, autres réglages, magasins, notifications, profil d\'un autre, racine de « agent ») (' + res.join(',') + ')');
+  const rDebM = await appel('listes/reglages/debouches', m.idToken), rDebE = await appel('listes/reglages/debouches', e.idToken), rDebN = await appel('listes/reglages/debouches', null);
+  verifie(rDebM.s === 401 && rDebE.s === 401 && rDebN.s === 401, 'magasin, compte sans profil, sans compte : toujours pas de lecture des débouchés');
   const ecr = [await ecrit('listes/semaines/' + W + '/q/endive/av03', { n: 9, u: 'colis', by: 'Agent', at: 1 }, g.idToken, 'PUT'), await ecrit('listes/2026-11-04', { 'done/radis': { by: 'Agent', at: 1 } }, g.idToken),
     await ecrit('magasins/ta/semaines/' + W + '/ail-sec', { n: 1, u: 'kg', by: 'Agent', at: 1 }, g.idToken, 'PUT'), await ecrit('notifs/ferme/1-x', nf({ at: 1 }), g.idToken, 'PUT'), await ecrit('profils/' + g.localId, '"ferme"', g.idToken, 'PUT'), await ecrit('agent/reglages', { x: 1 }, g.idToken, 'PUT')];
   verifie(ecr.every((x) => x.s === 401), 'agent : il n\'écrit nulle part ailleurs (semaine, liste, stock du magasin, notifications, son profil, autre chemin de « agent ») (' + ecr.map((x) => x.s).join(',') + ')');
