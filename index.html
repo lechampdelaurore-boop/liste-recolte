@@ -528,6 +528,42 @@ dialog.big{max-width:min(460px,94vw);width:100%}
 .hi-jour .hint{color:var(--fg);font-weight:600}
 .hi-jour .sem-act{justify-self:start}
 .hi-vide{padding:10px 12px;margin:0;font-weight:700}
+/* Commandes à valider (étape 31) : propositions de l'agent, au-dessus des pages de la semaine. */
+.tabs button{position:relative}
+.tab-n{position:absolute;top:2px;left:calc(50% + 6px);min-width:24px;height:24px;padding:0 5px;border-radius:12px;background:#e00000;color:#fff;border:2px solid #fff;font-size:.85rem;font-weight:900;line-height:20px;text-align:center}
+@media (min-width:1000px){.tab-n{position:static;margin-left:2px}}
+#semCmd{margin-bottom:12px}
+@media (min-width:1000px){#semCmd{max-width:900px}}
+.cmd-boite{display:grid;gap:10px;padding:12px;border-width:3px}
+.cmd-titre{margin:0;font-size:1.2rem;font-weight:900;display:flex;align-items:center;gap:8px}
+.cmd-n{display:inline-block;min-width:28px;height:28px;padding:0 6px;border-radius:14px;background:#e00000;color:#fff;font-size:1rem;line-height:28px;text-align:center}
+.cmd-rien,.cmd-autres{margin:0;font-weight:700}
+.cmd{display:grid;gap:8px;border:var(--bw) solid var(--line);border-radius:12px;padding:10px 12px;border-left:10px solid var(--dc,#000)}
+.cmd-tete{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:baseline}
+.cmd-liv{font-size:1.1rem;font-weight:900}
+.cmd-type{border:2px solid #000;border-radius:6px;padding:0 6px;font-size:.85rem;font-weight:900}
+.cmd-src{margin:0;font-size:.92rem;font-weight:600}
+.cmd-src a{color:#000;font-weight:800}
+.cmd-note{margin:0;font-size:.95rem;font-weight:700}
+.cmd-alerte{margin:0;background:var(--warn-bg);border:2px solid #000;border-radius:8px;padding:4px 8px;font-size:.92rem;font-weight:800}
+.cmd-t{border-collapse:collapse;width:100%;font-size:.95rem}
+.cmd-t th,.cmd-t td{border-top:2px solid #000;padding:6px 4px;text-align:left;vertical-align:top}
+.cmd-t th{font-size:.82rem;font-weight:900;border-top:0}
+.cmd-t td:nth-child(n+2),.cmd-t th:nth-child(n+2){text-align:right;white-space:nowrap}
+.cmd-t tr.cmd-pareil td{font-weight:500}
+.cmd-t tr.cmd-change td:last-child{font-weight:900}
+.cmd-t .cmd-main td{border-top:0;padding:0 0 6px;text-align:left;white-space:normal;font-size:.88rem;font-weight:800}
+.cmd-t .cmd-main span{display:inline-block;background:var(--warn-bg);border:2px solid #000;border-radius:6px;padding:2px 6px}
+.cmd-btns{display:flex;flex-wrap:wrap;gap:8px}
+.cmd-btns .sem-act{flex:1 1 140px}
+.cmd-btns .cmd-ok{background:var(--accent);color:#fff;border-color:#000;box-shadow:var(--ombre)}
+.cmd-btns .cmd-ok:disabled{background:#fff;color:#000;border-style:dashed;box-shadow:none;cursor:default}
+.cmd-histo-b{justify-self:start;display:inline-flex;align-items:center;gap:8px}
+.cmd-faits{list-style:none;margin:0;padding:0;display:grid;gap:8px}
+.cmd-fait{display:grid;gap:4px;border:2px solid #000;border-radius:10px;padding:8px 10px;border-left:8px solid var(--dc,#000)}
+.cmd-fait p{margin:0}
+.cmd-fait small{font-size:.88rem;font-weight:600}
+.cmd-fait .sem-act{justify-self:start;min-height:40px;padding:6px 12px}
 /* CLOCHE-DEBUT : cloche des notifications (étape 25), bloc identique dans index.html et magasin.html */
 .cloche{position:relative;display:inline-grid;place-items:center;min-width:48px;min-height:44px;padding:0 10px;border:2px solid #fff;border-radius:999px;background:#fff;color:#000;cursor:pointer;flex:none}
 .cloche svg{width:26px;height:26px;display:block;fill:none;stroke:#000;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
@@ -558,7 +594,7 @@ button.notif-i{cursor:pointer}
 
 <nav class="tabs" id="tabs" aria-label="Pages">
   <div class="tabs-in">
-    <button type="button" data-view="semaine" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4M7.5 14h3M13.5 14h3M7.5 17.5h3"/></svg><span>Semaine</span></button>
+    <button type="button" data-view="semaine" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4M7.5 14h3M13.5 14h3M7.5 17.5h3"/></svg><span>Semaine</span><b class="tab-n" id="cmdN" hidden>0</b></button>
     <button type="button" data-view="recolte" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 10h19l-2.2 10.5H4.7z"/><path d="M8 14v3.5M12 14v3.5M16 14v3.5"/><path d="M12 10c-.6-3.4.6-6 3.8-7.5-.3 3.6-1.7 6-3.8 7.5zM11.5 10C9.3 8.4 7.8 6.6 7.3 4c2.9.7 4.1 2.9 4.2 6z"/></svg><span>Récolte</span></button>
     <button type="button" data-view="prep" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 7.5L12 3l9 4.5v9L12 21l-9-4.5z"/><path d="M3 7.5L12 12l9-4.5M12 12v9"/></svg><span>Préparation</span></button>
     <button type="button" data-view="reglages" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 6h9M19 6h1M4 12h3M13 12h7M4 18h11M21 18h-1"/><circle cx="16" cy="6" r="2.5"/><circle cx="10" cy="12" r="2.5"/><circle cx="17.5" cy="18" r="2.5"/></svg><span>Réglages</span></button>
@@ -661,6 +697,8 @@ button.notif-i{cursor:pointer}
   </div>
 
   <div id="semView" hidden>
+    <!-- Commandes à valider (étape 31) : propositions déposées par l'agent, validées ou refusées ici. -->
+    <div id="semCmd" class="sem-page" hidden></div>
     <div id="semFiltre" class="sem-page" hidden></div>
     <div id="semRep" class="sem-page">
       <div class="sem-barre">
@@ -1389,6 +1427,7 @@ function render(){
   document.querySelectorAll('#zones .chip').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.z === ui.zone)); });
   document.querySelectorAll('#circs .chip').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.c === ui.circ)); });
   $('#who').textContent = me ? '👤 ' + me : '👤 Qui es-tu ?';
+  cmdBadge();
   if(sans || !list){
     $('#prog').hidden = true;
     if(regV) renderReglages(); else if(semV) renderSemaine(); else if(histV) renderHisto();
@@ -1938,6 +1977,237 @@ function semFlush(){
       });
     })
     .catch(function(){ sem.flushing = false; majStatut(); });
+}
+
+/* ---------- Commandes à valider (étape 31, docs/PLAN_AGENT_IA.md) ---------- */
+// Un agent (par la porte de l'étape 32) dépose des propositions de commande sous agent/propositions/<id> :
+// {w (lundi de la semaine), c (livraison, c'est-à-dire la colonne), cle (la commande : un bon de même clé en est une
+// nouvelle version), src (d'où elle vient), lien (facultatif), date (heure du mail), type (« commande » ou « annulation »),
+// l (lignes {p : produit, nom : tel qu'écrit dans le mail, n, u}), refus (lignes que la porte n'a pas comprises),
+// verif (raison de vérifier avant de valider), by, at}. Les règles de la base ne laissent l'agent écrire rien d'autre,
+// ni réécrire ou effacer une proposition. Rien ne s'inscrit seul : une personne valide ou refuse, ici.
+// La décision est écrite dans la semaine (listes/semaines/<lundi>/commandes/<id>) avec les quantités, d'un seul envoi,
+// par le même chemin que la saisie à la main (semEcrire : même format, « la dernière action gagne », hors ligne possible).
+// Plusieurs versions d'une même commande (Auvabio « annule et remplace ») : la plus récente (heure du mail) gagne, les
+// autres sont « remplacées » ; si une version d'avant a été validée, la nouvelle est une correction montrée ligne par
+// ligne, et « Valider » n'écrit que les lignes qui changent. Les propositions sont relues toutes les 15 s, sans flux
+// de plus (un téléphone ne garde que six connexions à la fois vers la base).
+var cmd = (function(){ var c = ls('recolte.commandes') || {}; return {items:c.items || {}, depuis:c.depuis || '', dec:{}, etat:'', lecture:false, coupe:0, gen:0, histo:false}; })();
+var cmdSig = '';
+function cmdActif(){ return !!DB && !!CLE && !!compte; }
+function cmdDepuis(){ var a = lundiDe(new Date()); return sem.id && sem.id < a ? sem.id : a; }
+function cmdForme(p){ return !!p && typeof p === 'object' && /^\d{4}-\d{2}-\d{2}$/.test(p.w || '') && typeof p.c === 'string' && typeof p.cle === 'string' && typeof p.date === 'number'; }
+function cmdRelancer(tous){
+  if(!cmdActif() || !dbPret() || cmd.lecture) return;
+  // Refus de la base (règles pas encore publiées) ou réseau coupé : on réessaie au plus une fois par minute.
+  if(!tous && cmd.coupe && Date.now() - cmd.coupe < 60000) return;
+  var depuis = cmdDepuis(), gen = ++cmd.gen;
+  // Lecture sans effet sur la pastille : un refus ne doit pas faire dire « Compte sans accès ».
+  function lire(ch, q){ return jetonFrais().then(function(){ return fetch(dbUrl(ch, q), {cache:'no-store'}); }); }
+  cmd.lecture = true;
+  lire('/agent/propositions', 'orderBy=' + encodeURIComponent('"w"') + '&startAt=' + encodeURIComponent('"' + depuis + '"')).then(function(r){
+    if(r.status === 401 || r.status === 403){ cmd.etat = 'refus'; cmd.items = {}; throw new Error('refus'); }
+    if(!r.ok) throw new Error(String(r.status));
+    return r.json();
+  }).then(function(v){
+    if(cmd.gen !== gen) throw new Error('autre');
+    v = v && typeof v === 'object' ? v : {};
+    cmd.items = v; cmd.depuis = depuis; cmd.etat = 'ok'; cmd.coupe = 0;
+    ls('recolte.commandes', {depuis:depuis, items:v});
+    // Décisions des autres semaines (pour le chiffre de l'onglet) : la semaine ouverte a les siennes en direct.
+    var ws = {};
+    Object.keys(v).forEach(function(k){ if(cmdForme(v[k]) && v[k].w !== sem.id) ws[v[k].w] = 1; });
+    return Promise.all(Object.keys(ws).map(function(w){
+      return lire('/listes/semaines/' + w + '/commandes').then(function(r){ return r.ok ? r.json() : null; })
+        .then(function(d){ cmd.dec[w] = d && typeof d === 'object' ? d : {}; }, function(){});
+    }));
+  }).then(function(){ cmd.lecture = false; cmdMaj(); }, function(e){
+    cmd.lecture = false;
+    if(!e || e.message !== 'autre') cmd.coupe = Date.now();
+    cmdMaj();
+  });
+}
+function cmdMaj(){
+  cmdBadge();
+  var s = canon(cmd.items) + '|' + canon(cmd.dec) + '|' + cmd.etat;
+  if(s === cmdSig) return;
+  cmdSig = s;
+  if(ui.view === 'semaine' && !drag) render();
+}
+// Décisions d'une semaine : en direct pour la semaine ouverte, sinon la dernière lecture (ou la copie du téléphone).
+function cmdDec(w){
+  if(w === sem.id) return semLire('commandes') || {};
+  return cmd.dec[w] || lireA(ls('recolte.semaine.' + w) || {}, 'commandes') || {};
+}
+function cmdOrdre(a, b){ var x = cmd.items[a], y = cmd.items[b]; return (x.date - y.date) || ((x.at || 0) - (y.at || 0)) || (a < b ? -1 : a > b ? 1 : 0); }
+// Les versions de chaque commande de la semaine w, de la plus ancienne à la plus récente.
+function cmdGroupes(w){
+  var g = {};
+  Object.keys(cmd.items).forEach(function(id){ var p = cmd.items[id]; if(cmdForme(p) && p.w === w) (g[p.cle] = g[p.cle] || []).push(id); });
+  return Object.keys(g).map(function(k){ return g[k].sort(cmdOrdre); });
+}
+function cmdGroupe(id){ var p = cmd.items[id]; return cmdGroupes(p.w).filter(function(ids){ return ids.indexOf(id) >= 0; })[0] || [id]; }
+// À valider : la version la plus récente de chaque commande, tant que personne n'a décidé.
+function cmdEnAttente(w){ var d = cmdDec(w); return cmdGroupes(w).map(function(ids){ return ids[ids.length - 1]; }).filter(function(id){ return !d[id]; }).sort(cmdOrdre); }
+function cmdSemaines(){ var ws = {}; Object.keys(cmd.items).forEach(function(id){ if(cmdForme(cmd.items[id])) ws[cmd.items[id].w] = 1; }); return Object.keys(ws).sort(); }
+function cmdTotal(){ return cmd.etat === 'refus' ? 0 : cmdSemaines().reduce(function(a, w){ return a + cmdEnAttente(w).length; }, 0); }
+function cmdBadge(){
+  var n = cmdActif() ? cmdTotal() : 0, b = $('#cmdN');
+  b.hidden = !n; b.textContent = String(n);
+  b.parentNode.setAttribute('aria-label', 'Semaine' + (n ? ', ' + n + ' commande' + (n > 1 ? 's' : '') + ' à valider' : ''));
+}
+// Fiche d'un produit : celle de la semaine, sinon celle du référentiel (un produit retiré du référentiel est inconnu).
+function cmdFiche(pid){
+  var f = semLire('produits/' + pid);
+  if(f && f.nom) return complet(pid, f);
+  var r = refDe(pid);
+  return r && !r.masque ? complet(pid, fiche(r)) : null;
+}
+function cmdUniteOk(u, f){ var c = contenu(f); return u === 'colis' || (!!c && c.u === u); }
+// Ce que la proposition demande d'écrire : une quantité par produit dans sa livraison (zéro : rien), et ce qui ne peut
+// pas s'inscrire (produit inconnu, unité impossible), à saisir à la main.
+function cmdCible(p){
+  var ok = {}, non = [];
+  if(p.type === 'annulation') return {ok:ok, non:non};
+  tableau(p.l).forEach(function(l){
+    if(!l || typeof l.p !== 'string' || !l.p) return;
+    var f = cmdFiche(l.p), nom = l.nom || (f ? f.nom : l.p);
+    if(!f){ non.push('« ' + nom + ' » : produit inconnu de la ferme'); return; }
+    if(typeof l.n !== 'number' || !(l.n >= 0)){ non.push(f.nom + ' : quantité illisible'); return; }
+    if(!cmdUniteOk(l.u, f)){ non.push(f.nom + ' : unité « ' + l.u + ' » impossible pour ce produit'); return; }
+    if(l.n === 0) return;
+    var k = l.p + '|' + p.c;
+    if(ok[k]){ non.push(f.nom + ' : ligne en double, seule la première est gardée'); return; }
+    ok[k] = {p:l.p, c:p.c, n:l.n, u:l.u};
+  });
+  return {ok:ok, non:non};
+}
+function cmdMeme(a, b){ if(!a || !b) return !a && !b; if(a.tout || b.tout) return false; return Math.abs(a.n - b.n) < 1e-9 && (a.u || 'colis') === (b.u || 'colis'); }
+function cmdCase(pid, c){ var t = semLire('tout/' + pid); if(t && t.c === c) return {tout:true}; var q = semLire('q/' + pid + '/' + c); return q && typeof q.n === 'number' ? q : null; }
+// Dernière version validée de la commande (plus ancienne que celle à valider) : sa décision garde ce qui a été inscrit.
+function cmdBase(ids, d, avant){
+  for(var i = ids.indexOf(avant) - 1; i >= 0; i--){ var x = d[ids[i]]; if(x && x.e === 'valide') return {id:ids[i], dec:x}; }
+  return null;
+}
+function cmdLivraisonOk(c){
+  return creneaux().concat(creneauxDe(debListe(), false)).some(function(x){ return x.id === c && !x.retire; });
+}
+// Tout ce qu'il faut pour montrer et valider une proposition de la semaine ouverte.
+function cmdContexte(id){
+  var p = cmd.items[id], ids = cmdGroupe(id), d = cmdDec(p.w), base = cmdBase(ids, d, id), cib = cmdCible(p), b = {};
+  if(base) tableau(base.dec.l).forEach(function(x){ if(x && x.p && x.c) b[x.p + '|' + x.c] = x; });
+  var cles = Object.keys(cib.ok);
+  Object.keys(b).forEach(function(k){ if(cles.indexOf(k) < 0) cles.push(k); });
+  var lignes = cles.map(function(k){
+    var pid = k.split('|')[0], c = k.split('|')[1], apres = cib.ok[k] || null, avant = b[k] || null, actuel = cmdCase(pid, c);
+    return {k:k, pid:pid, c:c, f:cmdFiche(pid) || {nom:pid}, apres:apres, avant:avant, actuel:actuel,
+      change: base ? !cmdMeme(apres, avant) : !cmdMeme(apres, actuel),
+      // Modifiée à la main depuis la validation d'avant : la case ne dit plus ce qui avait été validé.
+      main: !!base && !cmdMeme(actuel, avant)};
+  });
+  var plusAnciennes = ids.slice(0, ids.indexOf(id)).filter(function(x){ return !d[x]; }).length;
+  return {p:p, d:d, ids:ids, base:base, cib:cib, lignes:lignes, plusAnciennes:plusAnciennes,
+    actif: ids[ids.length - 1] === id && !d[id], livraisonOk:cmdLivraisonOk(p.c)};
+}
+function cmdQ(q, f){ return !q ? '—' : q.tout ? 'tout le reste' : qTxt(q.n, q.u || 'colis', f); }
+function cmdQuand(t){ return new Date(t).toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}) + ' à ' + new Date(t).getHours() + ' h ' + String(new Date(t).getMinutes()).padStart(2, '0'); }
+function cmdLien(p){ return typeof p.lien === 'string' && /^https:\/\//.test(p.lien) ? ' · <a href="' + esc(p.lien) + '" target="_blank" rel="noopener noreferrer">Voir le message</a>' : ''; }
+function cmdSrcHtml(p){ return '<p class="cmd-src">' + esc(p.src || 'Source inconnue') + ' · reçue le ' + esc(cmdQuand(p.date)) + (p.by ? ' · déposée par ' + esc(p.by) : '') + cmdLien(p) + '</p>'; }
+function cmdLivHtml(p){ var c = creneaux().concat(creneauxDe(debListe(), true)).filter(function(x){ return x.id === p.c; })[0]; return c ? esc(c.nom + (c.jour ? ' · ' + c.jour : '')) : esc(p.c); }
+function cmdDcDe(c){ var x = creneaux().concat(creneauxDe(debListe(), true)).filter(function(y){ return y.id === c; })[0]; return x ? dc(x.circuit) : ''; }
+function cmdCarteHtml(id){
+  var x = cmdContexte(id), p = x.p, annul = p.type === 'annulation', base = x.base;
+  var type = annul ? 'Annulation' : base ? 'Correction' : 'Commande';
+  var h = '<article class="cmd" data-cmd="' + esc(id) + '"' + cmdDcDe(p.c) + '><div class="cmd-tete"><span class="cmd-liv">' + cmdLivHtml(p) + '</span><span class="cmd-type">' + type + '</span></div>' + cmdSrcHtml(p);
+  if(base){
+    var bp = cmd.items[base.id];
+    h += '<p class="cmd-note">' + (annul ? 'Annule' : 'Remplace') + ' le bon reçu le ' + esc(cmdQuand(bp.date)) + ', déjà validé par ' + esc(base.dec.by || '?') + ' le ' + esc(cmdQuand(base.dec.at)) + '. Seules les lignes qui changent seront écrites.</p>';
+  }
+  if(x.plusAnciennes) h += '<p class="cmd-note">Remplace ' + (x.plusAnciennes > 1 ? x.plusAnciennes + ' bons plus anciens' : 'un bon plus ancien') + ', pas encore validé' + (x.plusAnciennes > 1 ? 's' : '') + ' (rangé' + (x.plusAnciennes > 1 ? 's' : '') + ' dans « Déjà traitées »).</p>';
+  if(!x.livraisonOk) h += '<p class="cmd-alerte">Livraison inconnue (« ' + esc(p.c) + ' ») : elle n\'est pas dans les débouchés de la ferme. Impossible de valider ; refuser, puis saisir à la main.</p>';
+  if(p.verif) h += '<p class="cmd-alerte">À vérifier : ' + esc(p.verif) + '</p>';
+  var montrees = base ? x.lignes.filter(function(l){ return l.change; }) : x.lignes;
+  if(montrees.length){
+    h += '<table class="cmd-t"><thead><tr><th>Produit</th><th>' + (base ? 'Validé avant' : 'Dans la semaine') + '</th><th>' + (base ? 'Nouveau bon' : 'Commande') + '</th></tr></thead><tbody>';
+    montrees.forEach(function(l){
+      h += '<tr class="' + (l.change ? 'cmd-change' : 'cmd-pareil') + '"><td>' + miniHtml(l.f.nom) + esc(l.f.nom) + '</td><td>' + esc(cmdQ(base ? l.avant : l.actuel, l.f)) + '</td><td>' +
+        (l.apres ? esc(cmdQ(l.apres, l.f)) : 'retiré (0)') + (!base && !l.change ? ' <small>déjà saisi</small>' : '') + '</td></tr>';
+      if(base && l.main) h += '<tr class="cmd-main"><td colspan="3"><span>Modifié à la main depuis : ' + esc(cmdQ(l.actuel, l.f)) + ' dans la semaine.</span></td></tr>';
+    });
+    h += '</tbody></table>';
+  } else if(!annul || base) h += '<p class="cmd-note">' + (base ? 'Rien ne change par rapport au bon déjà validé.' : 'Aucune ligne à inscrire.') + '</p>';
+  if(annul && !base) h += '<p class="cmd-note">Aucune version de cette commande n\'a été validée : rien à retirer de la semaine.</p>';
+  if(base){ var pareil = x.lignes.length - montrees.length; if(pareil) h += '<p class="cmd-note">' + pareil + ' ligne' + (pareil > 1 ? 's' : '') + ' sans changement.</p>'; }
+  var non = x.cib.non.concat(tableau(p.refus).filter(function(r){ return typeof r === 'string'; }));
+  if(non.length) h += '<p class="cmd-alerte">Pas inscrit, à saisir à la main : ' + non.map(esc).join(' ; ') + '.</p>';
+  var libre = annul ? (base ? 'Valider l\'annulation' : 'Noter l\'annulation') : 'Valider';
+  h += '<div class="cmd-btns"><button type="button" class="sem-act cmd-ok" data-a="cmd-valider" data-id="' + esc(id) + '"' + (x.livraisonOk ? '' : ' disabled') + '>' + libre + '</button>' +
+    '<button type="button" class="sem-act" data-a="cmd-refuser" data-id="' + esc(id) + '">Refuser</button></div>';
+  return h + '</article>';
+}
+function cmdResume(p){
+  var t = tableau(p.l).filter(function(l){ return l && typeof l.p === 'string'; }).map(function(l){ var f = cmdFiche(l.p) || {nom:l.nom || l.p}; return f.nom + ' ' + cmdQ(l, f); });
+  return p.type === 'annulation' ? 'Annulation' : t.join(' · ') || 'Aucune ligne';
+}
+function cmdFaitHtml(id, d, ids){
+  var p = cmd.items[id], x = d[id], der = ids[ids.length - 1] === id, etat;
+  if(x && x.e === 'valide') etat = (p.type === 'annulation' ? 'Annulation validée' : 'Validée') + ' par ' + (x.by || '?') + ' le ' + cmdQuand(x.at);
+  else if(x && x.e === 'refuse') etat = 'Refusée par ' + (x.by || '?') + ' le ' + cmdQuand(x.at);
+  else etat = 'Remplacée par un bon plus récent';
+  return '<li class="cmd-fait"' + cmdDcDe(p.c) + '><p><b>' + cmdLivHtml(p) + '</b> · ' + esc(etat) + '</p>' + cmdSrcHtml(p) + '<small>' + esc(cmdResume(p)) + '</small>' +
+    (x && x.e === 'refuse' && der ? '<button type="button" class="sem-act" data-a="cmd-remettre" data-id="' + esc(id) + '">Remettre à valider</button>' : '') + '</li>';
+}
+function cmdHtml(){
+  if(!cmdActif() || cmd.etat === 'refus') return '';
+  var w = sem.id, d = cmdDec(w), actifs = cmdEnAttente(w), faits = [];
+  cmdGroupes(w).forEach(function(ids){ ids.forEach(function(id){ if(actifs.indexOf(id) < 0) faits.push({id:id, ids:ids}); }); });
+  faits.sort(function(a, b){ return cmdOrdre(b.id, a.id); });
+  var autres = cmdSemaines().filter(function(x){ return x !== w; }).map(function(x){ return {w:x, n:cmdEnAttente(x).length}; }).filter(function(x){ return x.n; });
+  if(!actifs.length && !faits.length && !autres.length) return '';
+  var h = '<section class="card cmd-boite" aria-label="Commandes à valider"><h2 class="cmd-titre">Commandes à valider' + (actifs.length ? ' <b class="cmd-n">' + actifs.length + '</b>' : '') + '</h2>';
+  h += actifs.length ? actifs.map(cmdCarteHtml).join('') : '<p class="cmd-rien">Aucune commande à valider pour cette semaine.</p>';
+  autres.forEach(function(a){
+    h += '<p class="cmd-autres">' + a.n + ' commande' + (a.n > 1 ? 's' : '') + ' à valider pour la semaine ' + numSem(a.w) + '.</p>' +
+      '<button type="button" class="sem-act cmd-histo-b" data-a="cmd-semaine" data-w="' + esc(a.w) + '">Voir la semaine ' + numSem(a.w) + '</button>';
+  });
+  if(faits.length){
+    h += '<button type="button" class="sem-act cmd-histo-b" data-a="cmd-histo" aria-expanded="' + cmd.histo + '">Déjà traitées (' + faits.length + ')' + ARROW_SEM + '</button>';
+    if(cmd.histo) h += '<ul class="cmd-faits">' + faits.map(function(x){ return cmdFaitHtml(x.id, d, x.ids); }).join('') + '</ul>';
+  }
+  return h + '</section>';
+}
+function cmdTxtLigne(l){ return l.f.nom + ' (' + cmdQ(l.actuel, l.f) + ')'; }
+function cmdValider(id){
+  var p = cmd.items[id]; if(!p || p.w !== sem.id) return;
+  var x = cmdContexte(id);
+  if(!x.actif || !x.livraisonOk) return;
+  var msgs = [], ecrites = x.lignes.filter(function(l){ return l.change; });
+  if(p.verif) msgs.push('À vérifier : ' + p.verif);
+  var mains = x.base ? ecrites.filter(function(l){ return l.main; }) : ecrites.filter(function(l){ return l.actuel; });
+  if(mains.length) msgs.push((x.base ? 'Modifié à la main depuis la validation : ' : 'Déjà une autre quantité dans la semaine : ') + mains.map(cmdTxtLigne).join(', ') + '. ' + (mains.length > 1 ? 'Ces quantités seront remplacées.' : 'Cette quantité sera remplacée.'));
+  if(msgs.length && !confirm(msgs.join('\n\n') + '\n\nValider quand même ?')) return;
+  avecNom(function(){
+    var ch = {};
+    ecrites.forEach(function(l){
+      ch['q/' + l.pid + '/' + l.c] = l.apres ? signe({n:l.apres.n, u:l.apres.u}) : null;
+      var t = semLire('tout/' + l.pid);
+      if(t && t.c === l.c) ch['tout/' + l.pid] = null;
+      if(l.apres && !semLire('produits/' + l.pid)){ var r = refDe(l.pid); if(r) ch['produits/' + l.pid] = signe(fiche(r)); }
+    });
+    var dec = signe({e:'valide'}), l = Object.keys(x.cib.ok).map(function(k){ var o = x.cib.ok[k]; return {p:o.p, c:o.c, n:o.n, u:o.u}; });
+    if(l.length) dec.l = l;
+    ch['commandes/' + id] = dec;
+    semEcrire(ch);
+  });
+}
+function cmdAction(a, b){
+  var id = b.dataset.id;
+  if(a === 'cmd-histo'){ cmd.histo = !cmd.histo; render(); var bh = $('#semCmd [data-a="cmd-histo"]'); if(bh) bh.focus(); return; }
+  if(a === 'cmd-semaine'){ allerSemaine(b.dataset.w); saveUi(); render(); scrollTo(0, 0); return; }
+  if(!id || !cmd.items[id] || cmd.items[id].w !== sem.id) return;
+  if(a === 'cmd-valider'){ cmdValider(id); return; }
+  if(a === 'cmd-refuser'){ if(cmdContexte(id).actif) avecNom(function(){ var ch = {}; ch['commandes/' + id] = signe({e:'refuse'}); semEcrire(ch); }); return; }
+  if(a === 'cmd-remettre'){ var x = cmdDec(sem.id)[id]; if(x && x.e === 'refuse'){ var ch = {}; ch['commandes/' + id] = null; semEcrire(ch); } }
 }
 
 /* ---------- Débouchés et livraisons (étape 13B) ---------- */
@@ -2880,6 +3150,9 @@ function renderSemaine(){
   magSuivre();
   magAuto();
   dcCache = couleurs();
+  // Commandes à valider (étape 31) : au-dessus des pages ; une semaine plus ancienne que la dernière lecture est relue.
+  var hc = cmdHtml(); $('#semCmd').innerHTML = hc; $('#semCmd').hidden = !hc;
+  if(cmdActif() && cmd.depuis && id < cmd.depuis) cmdRelancer(true);
   var pc = PC.matches;
   // Téléphone : ne pas redessiner pendant une saisie, on le fera en quittant la case.
   // Ordinateur (grille) : on redessine, puis on remet le curseur dans la même case, avec ce qui y était tapé.
@@ -3379,6 +3652,7 @@ $('#semView').addEventListener('click', function(e){
     if(pr) avecNom(function(){ var ch = {}; ch['produits/' + b.dataset.p] = signe(fiche(pr)); semEcrire(ch); });
     return;
   }
+  if(a.indexOf('cmd-') === 0){ cmdAction(a, b); return; }
   if(a === 'propose' || !f) return;
   var cle = pid + '|' + k;
   delete semErr[cle];
@@ -4036,7 +4310,7 @@ function verifier(){
     if(!dbPret()) return;
     if(lid && es && es.readyState === 2) ouvrir();
     flush(); semRelancer(); debRelancer(); ordreRelancer(); magRelancer(false);
-    clocheRelancer(false); suiviRelancer(); autoFerme();
+    clocheRelancer(false); suiviRelancer(); autoFerme(); cmdRelancer(false);
     if(!enLigne && navigator.onLine) sonder();
   }, function(){ enLigne = false; majStatut(); });
 }
@@ -4058,7 +4332,7 @@ function relancerTout(tous){
   if(sem.id && (tous || !sem.es || sem.es.readyState === 2)){ if(sem.es) sem.es.close(); sem.es = null; semConnecter(); }
   if(refCharge && (tous || !deb.es || deb.es.readyState === 2)){ if(deb.es) deb.es.close(); deb.es = null; debConnecter(); }
   if(tous || !ordreH.es || ordreH.es.readyState === 2){ if(ordreH.es) ordreH.es.close(); ordreH.es = null; ordreConnecter(); }
-  magRelancer(tous); clocheRelancer(tous); suiviRelancer();
+  magRelancer(tous); clocheRelancer(tous); suiviRelancer(); cmdRelancer(tous);
   flush(); semFlush(); debFlush(); ordreFlush();
 }
 // Un flux de la base (liste, semaine ou débouchés) a répondu : la pastille passe à « Partagé ».
