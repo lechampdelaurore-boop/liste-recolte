@@ -2,6 +2,8 @@
 
 ## 2026-11-12
 
+- **Page du magasin : rappel « rayon + stock » et repère « Non renseigné »** (demandes de François : « la quantité renseignée est toujours la somme de ce qui est en rayon et de ce qui est en stock », « un truc rouge bien visible, non renseigné, de manière à ce qu'il n'y ait pas d'oubli »). En haut de la page, avant le choix de la semaine, un cadre jaune à trait épais : « La quantité notée est toujours la somme de ce qui est en rayon et de ce qui est en stock. » Sur chaque produit de la liste sans quantité, une étiquette rouge « Non renseigné » au-dessus de la case ; elle disparaît dès qu'un chiffre est saisi, zéro compris (0 = plus rien, case vide = pas compté). Le pré-remplissage de la liste depuis la semaine de la ferme, codé ce matin, a été retiré avant toute PR à la demande de François : rien n'a changé dans la base ni dans ses règles. `sw.js` : CACHE `recolte-v53`.
+
 - **Plan des notifications : bouton renommé** (François : « J'ai fini » devient « Envoyer une notification »). Plan, feuille de route et état du projet mis à jour. Documentation seulement.
 
 - **Plan des notifications : pré-remplissage annulé** (François revient sur sa décision : pas de pré-remplissage de la liste du magasin d'après la ferme ; il garde le repère « Non renseigné » et le blocage de « J'ai fini »). Plan ajusté. Documentation seulement.

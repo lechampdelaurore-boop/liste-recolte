@@ -125,6 +125,11 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   await M.waitForSelector(ligne('poireau'));
   verifie((await M.$$eval('#liste .p', (e) => e.map((x) => x.dataset.pid))).join() === 'poireau' && (await M.textContent(ligne('poireau') + ' .p-qui')).startsWith('Semaine d\'avant : 8 kg (Igor, '), 'reprendre la semaine d\'avant : le poireau arrive, case vide, avec « Semaine d\'avant : 8 kg (Igor, …) »');
   verifie(!(await M.isVisible('#reprendre')), 'le bouton « Reprendre » disparaît une fois la liste commencée');
+  // 12/11/2026, demandes de François : rappel rayon + stock en haut, bien visible ; étiquette rouge « Non renseigné ».
+  const rappel = await M.$eval('#rappel', (e) => { const r = e.getBoundingClientRect(), n = document.querySelector('#nav').getBoundingClientRect(); return { t: e.textContent, fond: getComputedStyle(e).backgroundColor, avant: r.bottom <= n.top, vu: r.height > 0 }; });
+  verifie(rappel.vu && rappel.avant && rappel.t === 'La quantité notée est toujours la somme de ce qui est en rayon et de ce qui est en stock.' && rappel.fond === 'rgb(255, 230, 128)', 'en haut, avant le choix de la semaine, sur fond jaune : « ' + rappel.t + ' » (fond ' + rappel.fond + ')');
+  const nrP = await M.$eval(ligne('poireau'), (x) => { const n = x.querySelector('.nr'), c = x.querySelector('.ctl'); return n ? n.textContent + '|' + getComputedStyle(n).backgroundColor + '|' + (n.getBoundingClientRect().bottom <= c.getBoundingClientRect().top) : '-'; });
+  verifie(nrP === 'Non renseigné|rgb(192, 0, 0)|true', 'poireau pas encore compté : étiquette rouge « Non renseigné » au-dessus de la quantité (obtenu ' + nrP + ')');
   verifie(base.lire(`magasins/ta/semaines/${SEM}`) === null, 'ajouter un produit à la liste n\'écrit rien dans la base (seul le chiffre part)');
 
   // 1 bis. Ajouter un produit un par un, en colis par défaut
@@ -151,6 +156,8 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   await attendreQue(() => base.lire(`magasins/ta/semaines/${SEM}/carotte-lavee`));
   let s = base.lire(`magasins/ta/semaines/${SEM}/carotte-lavee`) || {};
   verifie(s.n === 12 && s.u === 'kg' && s.by === 'Igor' && s.at > 0, '12 kg de carotte lavée enregistrés avec le prénom Igor et l\'heure');
+  await M.waitForTimeout(200);
+  verifie(!(await M.$(ligne('carotte-lavee') + ' .nr')) && !!(await M.$(ligne('poireau') + ' .nr')), 'la carotte comptée perd l\'étiquette « Non renseigné » ; le poireau la garde');
   let j = journal();
   verifie(j.length === 1 && j[0].pid === 'carotte-lavee' && j[0].n === 12 && j[0].by === 'Igor' && j[0].an === undefined, 'une ligne au journal : Igor, carotte lavée, 12 kg, sans valeur d\'avant');
   await M.waitForFunction(() => document.querySelector('#sync').textContent.includes('Enregistré'));
@@ -358,6 +365,14 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   await E.waitForSelector('#msg .err');
   verifie((await E.textContent('#msg')).includes('n\'a pas accès') && (await E.$$('#liste .p')).length === 0, 'un compte sans profil : « Ce compte n\'a pas accès à la saisie du stock »');
   await capture(F, '5-ferme-stock');
+
+  // 11 bis. Zéro est une quantité : pas d'étiquette « Non renseigné »
+  await M.fill(ligne('carotte-lavee') + ' input', '0');
+  await M.press(ligne('carotte-lavee') + ' input', 'Enter');
+  await attendreQue(() => (base.lire(`magasins/ta/semaines/${SEM}/carotte-lavee`) || {}).n === 0);
+  await M.waitForTimeout(200);
+  verifie((base.lire(`magasins/ta/semaines/${SEM}/carotte-lavee`) || {}).n === 0 && !(await M.$(ligne('carotte-lavee') + ' .nr')) && (await M.inputValue(ligne('carotte-lavee') + ' input')) === '0', 'carotte à 0 : 0 est enregistré, la case montre « 0 », sans étiquette « Non renseigné »');
+  await capture(M, '7-non-renseigne');
 
   // 12. Déconnexion
   await M2.click('#deconnecter');
