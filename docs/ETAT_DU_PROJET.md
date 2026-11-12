@@ -2,7 +2,9 @@
 
 ## Où on en est
 
-*Au 11 novembre 2026, soir. Source : lecture du dépôt et demandes de François du 4/11 au 11/11.*
+*Au 12 novembre 2026, matin. Source : lecture du dépôt et demandes de François du 4/11 au 12/11.*
+
+- **Date de fin de la semaine (12/11, matin)**, demande de François : partout où l'appli nomme une semaine, « Semaine 46 · du lundi 9 au dimanche 15 novembre » (mois répété au passage de mois, année au passage d'année). Affichage seulement, rien dans la base. Vérifié : `tests/semaine.cjs` (titre exact, passage de mois et d'année, page du magasin écrite pareil), les dix-neuf tests verts. **Non vérifié en réel** : les vrais téléphones.
 
 - **Réglages repliés (11/11, soir)**, note de François du 10/11 : dans l'onglet Réglages, chaque débouché et chaque jour de récolte habituel tient sur une ligne, avec une flèche pour déplier son détail, comme la page « À récolter ». Un débouché ou un jour qu'on vient d'ajouter s'ouvre déplié. Affichage seulement, rien dans la base. Vérifié : `tests/debouches.cjs` (82 sur 82 : repliés au départ, ligne de 56 px, une seule fiche dépliée à la fois, replié de nouveau après rechargement, rien d'écrit), les dix-huit autres tests verts. **Non vérifié en réel** : le vrai téléphone et l'ordinateur de François.
 

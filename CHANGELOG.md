@@ -1,5 +1,9 @@
 # Historique des changements
 
+## 2026-11-12
+
+- **Date de fin de la semaine** (demande de François : « tu mets pas seulement la date du début, tu mets aussi la date de fin, donc du lundi 9 au dimanche 15 »). Partout où l'appli nomme une semaine (onglet Semaine, impression, Récolte, Préparation, historique, page du magasin) : « Semaine 46 · du lundi 9 au dimanche 15 novembre ». Passage de mois : « du lundi 30 novembre au dimanche 6 décembre » ; passage d'année : « du lundi 28 décembre 2026 au dimanche 3 janvier 2027 ». La petite ligne « jusqu'au dimanche 15 » sous le titre de l'onglet Semaine est retirée (redite). Affichage seulement, rien dans la base. `sw.js` : CACHE `recolte-v52`.
+
 ## 2026-11-11
 
 - **Réglages : débouchés et jours de récolte repliés** (note de François du 10/11 : dans les menus de réglage, les jours de récolte et les débouchés repliés par défaut, avec une flèche pour déplier le détail, même système que la page « À récolter »). Onglet **Réglages**, page « Débouchés » : chaque débouché tient sur une ligne (son nom dans sa couleur, son colis, ses livraisons, par exemple « Caisses plastique · mardi, jeudi ») ; ▲ ▼ restent sur la ligne ; la flèche (toute la ligne) déplie sa fiche à modifier. Page « Jours de récolte » : chaque jour habituel tient sur une ligne (« Lundi », « Chaque semaine » ou non, ses livraisons). Un débouché ou un jour qu'on vient d'ajouter s'affiche déplié ; un débouché qui a une erreur à corriger aussi. La fiche « Nouveau débouché » et le bouton « Ajouter un jour de récolte » ne changent pas. Ce qui est déplié ne vaut que sur l'appareil, le temps de la visite : rien n'est écrit dans la base. `CACHE` → `recolte-v51`. `tests/debouches.cjs` : huit vérifications de plus (82) ; `tests/debouches.cjs` et `tests/couleurs.cjs` déplient les fiches avant de les modifier.

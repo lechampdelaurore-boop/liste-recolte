@@ -281,7 +281,7 @@ const NON_COMPAREES = ['celeri-branche', 'persil', 'poireau'];
 
   // 8. La liste en fichier (4/11) l'emporte pour sa date
   await A.click('[data-sem="repartir"]');
-  for (let i = 0; i < 60 && (await texte(A, '#semTitre')) !== 'Semaine 45 · du 2 novembre' && (await texte(A, '#semTitre')) !== 'Semaine 45 · du 2 novembre 2026'; i++) await A.click('[data-a="semPrec"]');
+  for (let i = 0; i < 60 && !(await texte(A, '#semTitre')).startsWith('Semaine 45 · du lundi 2 au dimanche 8 novembre'); i++) await A.click('[data-a="semPrec"]');
   await A.click('[data-view="recolte"]');
   await A.waitForSelector('#recJours [data-jour="2026-11-04"]');
   await A.click('#recJours [data-jour="2026-11-04"]');
