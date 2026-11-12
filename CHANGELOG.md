@@ -2,8 +2,10 @@
 
 ## 2026-11-12
 
+- **Plan des notifications, cloche identique des deux côtés** (François : « que ce soit du côté ferme ou du côté magasin, je veux que ce soit pareil »). Section « Pareil des deux côtés » ajoutée au plan. Documentation seulement.
 - **Plan des notifications, précision** (François : si le magasin oublie « J'ai fini », une notification automatique 15 minutes après la dernière saisie). Plan mis à jour (`docs/PLAN_NOTIFICATIONS.md`) : filet de sécurité de 15 minutes, sans doublon, limite sans serveur expliquée. Documentation seulement.
 
+- **Date de fin de la semaine** (demande de François : « tu mets pas seulement la date du début, tu mets aussi la date de fin, donc du lundi 9 au dimanche 15 »). Partout où l'appli nomme une semaine (onglet Semaine, impression, Récolte, Préparation, historique, page du magasin) : « Semaine 46 · du lundi 9 au dimanche 15 novembre ». Passage de mois : « du lundi 30 novembre au dimanche 6 décembre » ; passage d'année : « du lundi 28 décembre 2026 au dimanche 3 janvier 2027 ». La petite ligne « jusqu'au dimanche 15 » sous le titre de l'onglet Semaine est retirée (redite). Affichage seulement, rien dans la base. `sw.js` : CACHE `recolte-v52`.
 - **Plan des notifications** (demande de François : une petite cloche côté ferme et côté magasin ; notification à la ferme quand le magasin a fini son stock, au magasin quand la ferme met à jour la liste de la semaine suivante). Documentation seulement, aucun code : nouveau `docs/PLAN_NOTIFICATIONS.md` (où va la cloche, bouton « J'ai fini » et bouton « Prévenir le magasin », rangement dans la base, règles à ajouter, notification appli fermée comparée) ; étapes 25 et 26 ajoutées à la feuille de route ; décision notée dans `docs/DECISIONS.md`.
 
 ## 2026-11-11

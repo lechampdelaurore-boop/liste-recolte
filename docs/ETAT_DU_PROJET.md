@@ -2,7 +2,9 @@
 
 ## Où on en est
 
-*Au 12 novembre 2026. Source : lecture du dépôt et demandes de François du 4/11 au 12/11.*
+*Au 12 novembre 2026, matin. Source : lecture du dépôt et demandes de François du 4/11 au 12/11.*
+
+- **Date de fin de la semaine (12/11, matin)**, demande de François : partout où l'appli nomme une semaine, « Semaine 46 · du lundi 9 au dimanche 15 novembre » (mois répété au passage de mois, année au passage d'année). Affichage seulement, rien dans la base. Vérifié : `tests/semaine.cjs` (titre exact, passage de mois et d'année, page du magasin écrite pareil), les dix-neuf tests verts. **Non vérifié en réel** : les vrais téléphones.
 
 - **Plan des notifications (12/11)**, demande de François : une cloche dans l'en-tête de la liste de récolte et de la page du magasin. Plan écrit, **code pas encore fait** : `docs/PLAN_NOTIFICATIONS.md` (étape 25 : boutons « J'ai fini » côté magasin et « Prévenir le magasin » côté ferme, une seule notification à chaque fois ; étape 26 : notification sur le téléphone appli fermée, demande un petit programme sur Cloudflare, **« vas-y » de François requis**, recommandation : attendre). Le code se lancera quand le fil « fin de semaine et pré-remplissage du magasin » sera fusionné ; François colle lui-même les nouvelles règles de la base avant la mise en ligne. **Précision du 12/11** : si le magasin oublie « J'ai fini », la ferme est prévenue automatiquement 15 minutes après la dernière saisie (sans serveur, appli fermée : à l'ouverture suivante). Rien de vérifié en réel (aucun code).
 

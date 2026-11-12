@@ -17,6 +17,10 @@ Une cloche dans l'en-tête des deux pages (la liste de récolte de la ferme et l
 - Un appui ouvre une feuille (fenêtre) avec les 30 dernières notifications, la plus récente en haut ; les non lues sont encadrées en gras. Un bouton « Tout marquer comme lu ». Sans nouveauté : « Rien de nouveau ».
 - Côté ferme, un appui sur une notification ouvre l'onglet Semaine à la bonne semaine.
 
+## Pareil des deux côtés (demande de François, 12/11)
+
+Ferme et magasin ont **exactement la même cloche** : même place dans l'en-tête, même forme, même chiffre rouge, même feuille qui s'ouvre, mêmes mots (« Tout marquer comme lu », « Rien de nouveau »), même présentation d'une notification (texte, prénom, date et heure), même façon de marquer comme lu. Seuls changent les textes des notifications elles-mêmes. Les deux boutons d'envoi (« J'ai fini » côté magasin, « Prévenir le magasin » côté ferme) s'ouvrent aussi de la même façon : une confirmation d'une ligne, puis « Envoyé à 14 h 32 ». Comme `magasin.html` est une copie autonome, le code de la cloche est écrit une fois et recopié à l'identique dans `index.html` et `magasin.html` ; le test de l'étape 25 vérifie que les deux blocs sont identiques (comme pour `ESPECE_AUSSI`).
+
 ## Les deux notifications
 
 ### 1. Magasin → ferme : « le magasin a fini son stock »
