@@ -2,6 +2,8 @@
 
 ## 2026-11-12
 
+- **Plan des notifications : bouton renommé** (François : « J'ai fini » devient « Envoyer une notification »). Plan, feuille de route et état du projet mis à jour. Documentation seulement.
+
 - **Plan des notifications : pré-remplissage annulé** (François revient sur sa décision : pas de pré-remplissage de la liste du magasin d'après la ferme ; il garde le repère « Non renseigné » et le blocage de « J'ai fini »). Plan ajusté. Documentation seulement.
 
 - **Plan des notifications, quantités manquantes** (François : au clic sur « J'ai fini », une fenêtre bloquante liste les produits sans quantité et empêche l'envoi). Plan mis à jour, y compris le sort de l'envoi automatique de 15 minutes (part, marqué « incomplet »). Documentation seulement.
