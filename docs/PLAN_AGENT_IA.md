@@ -127,13 +127,16 @@ Rien de propre à cette ferme dans le code : débouchés, créneaux, produits et
 | 34 | Locavore | Sonnet 5.5 · Moyen | Oui : selon la réponse à la question 1 |
 | 35 | Validation automatique par débouché (option) | Opus 5.5 · Moyen | Oui : vraies données |
 
-## Questions à François (une à la fois, chacune avec sa recommandation)
+## Réponses de François (12/11/2026, les six questions)
 
-1. **Locavore** : comment envoie-t-il ses commandes (mail de notification, ou seulement sur son site avec identifiant) ? *Recommandation : mail si possible.*
-2. **Mails** : quels débouchés commandent par mail, et peut-on mettre leurs mails sous un libellé (ou un filtre) « commandes » ? *Recommandation : oui, l'agent ne lit que ce libellé.*
-3. **Où vont les commandes** : dans la répartition de la semaine (colonnes des débouchés, comme la saisie à la main) ? *Recommandation : oui ; le stock du magasin reste saisi par le magasin.*
-4. **Validation** : un appui à chaque commande au début ? *Recommandation : oui, avec mode à blanc d'abord.*
-5. **Hébergeur** : la porte sur le Cloudflare déjà utilisé ? *Recommandation : oui (gratuit).*
+1. **Locavor** : le mail annonce les commandes, le détail est sur le site.
+2. **Détail Locavor** : l'agent va le lire sur le site dès que le mail arrive (lecture seule, session ouverte par François). **Panier adéquat** reste à la main. Pour **Auvabio**, les annulations et remplacements sont gérés par les règles de la section dédiée.
+3. **Destination** : oui, les commandes validées vont dans la répartition de la semaine ; le stock du magasin reste saisi par le magasin.
+4. **Validation** : oui, un appui par commande, mode à blanc d'abord ; validation automatique éventuelle plus tard, par débouché.
+5. **Hébergeur** : oui, la porte sur le Cloudflare déjà utilisé, secrets saisis par François seul. Le « vas-y » exprès reste requis au moment de l'étape 32.
+6. **Mails** : oui, libellé Gmail « commandes » avec filtre sur les seuls expéditeurs de commandes (Auvabio, Locavor) ; l'agent ne lit que ce libellé, en lecture seule. Le « vas-y » exprès pour l'accès à la boîte reste requis à l'étape 33.
+
+Le plan est donc **validé dans ses grandes lignes** ; chaque ouverture (règles de la base, service Cloudflare, accès à la boîte, site Locavor) demande encore son « vas-y » au moment voulu.
 
 ## Piste future, non décidée : « Google Tasks en mieux »
 
