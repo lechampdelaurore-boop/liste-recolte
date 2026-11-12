@@ -1,5 +1,9 @@
 # Historique des changements
 
+## 2026-11-12
+
+- **Plan des notifications** (demande de François : une petite cloche côté ferme et côté magasin ; notification à la ferme quand le magasin a fini son stock, au magasin quand la ferme met à jour la liste de la semaine suivante). Documentation seulement, aucun code : nouveau `docs/PLAN_NOTIFICATIONS.md` (où va la cloche, bouton « J'ai fini » et bouton « Prévenir le magasin », rangement dans la base, règles à ajouter, notification appli fermée comparée) ; étapes 25 et 26 ajoutées à la feuille de route ; décision notée dans `docs/DECISIONS.md`.
+
 ## 2026-11-11
 
 - **Réglages : débouchés et jours de récolte repliés** (note de François du 10/11 : dans les menus de réglage, les jours de récolte et les débouchés repliés par défaut, avec une flèche pour déplier le détail, même système que la page « À récolter »). Onglet **Réglages**, page « Débouchés » : chaque débouché tient sur une ligne (son nom dans sa couleur, son colis, ses livraisons, par exemple « Caisses plastique · mardi, jeudi ») ; ▲ ▼ restent sur la ligne ; la flèche (toute la ligne) déplie sa fiche à modifier. Page « Jours de récolte » : chaque jour habituel tient sur une ligne (« Lundi », « Chaque semaine » ou non, ses livraisons). Un débouché ou un jour qu'on vient d'ajouter s'affiche déplié ; un débouché qui a une erreur à corriger aussi. La fiche « Nouveau débouché » et le bouton « Ajouter un jour de récolte » ne changent pas. Ce qui est déplié ne vaut que sur l'appareil, le temps de la visite : rien n'est écrit dans la base. `CACHE` → `recolte-v51`. `tests/debouches.cjs` : huit vérifications de plus (82) ; `tests/debouches.cjs` et `tests/couleurs.cjs` déplient les fiches avant de les modifier.
