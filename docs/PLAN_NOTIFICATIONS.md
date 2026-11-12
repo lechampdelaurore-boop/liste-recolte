@@ -33,7 +33,10 @@ Comportement proposé :
 
 - Le bouton « J'ai fini le stock » est en bas de la liste du magasin, gros, avec le nombre de produits saisis. Un appui demande une confirmation d'une ligne (« Prévenir la ferme que le stock de la semaine 47 est fini ? »).
 - Après l'envoi, il affiche « Ferme prévenue à 14 h 32 » et se range. Si le magasin saisit encore un produit après, le bouton revient (un nouveau « J'ai fini » enverra une nouvelle notification, jamais deux en moins de deux minutes).
-- Aucune notification quand une seule saisie est faite : seulement le bouton.
+- Aucune notification à chaque saisie : seulement le bouton, ou le filet de sécurité ci-dessous.
+- **Filet de sécurité (demande de François, 12/11) : si la personne oublie d'appuyer, la ferme est prévenue 15 minutes après la dernière saisie.** François a hésité entre 30 et 15 minutes et a retenu **15 minutes** (réglage unique dans le code, facile à changer). Texte : « Igor n'a rien saisi depuis 15 minutes : le stock de Très Allier semble fini · semaine 47 · 12 produits » (marqué « automatique »). Pas d'envoi automatique si « J'ai fini » a été appuyé après la dernière saisie, ni deux fois pour la même dernière saisie.
+- **Limite à connaître : sans serveur, personne ne compte les 15 minutes quand toutes les pages sont fermées.** Deux comptes à rebours se relaient, et le premier qui voit les 15 minutes écoulées envoie la notification : (1) la page du magasin, tant qu'elle reste ouverte (téléphone allumé, onglet ouvert) ; (2) l'appli de la ferme, dès qu'elle est ouverte ou au premier rafraîchissement du fil. Si le magasin ferme la page et que personne ne rouvre l'appli de la ferme, **la notification n'arrive qu'à l'ouverture suivante de l'appli de la ferme**, pas à la minute exacte. L'heure exacte, appli fermée, demande l'étape 26.
+- **Pas de doublon** : l'identifiant de la notification automatique est calculé (`auto-<semaine>-<heure de la dernière saisie>`) et la règle de la base refuse une deuxième écriture du même identifiant : si les deux comptes à rebours se déclenchent, une seule notification existe.
 - Texte reçu par la ferme : « **Igor a fini le stock de Très Allier** · semaine 47 · 12 produits » (prénom déjà demandé par la page du magasin).
 - Le bouton marche hors ligne (il passe par la file d'attente déjà en place dans `magasin.html` : envoyé au retour du réseau).
 
@@ -51,7 +54,7 @@ Même raison que ci-dessus : la ferme compose la liste en plusieurs fois (ajoute
 
 Un fil de notifications par côté, ajout seulement (jamais modifié ni effacé, comme le journal du magasin) :
 
-- `notifs/ferme/<id>` : `{type: "stock-fini", did, w, by, n, at}`. Écrit par le profil `magasin:<did>` (seulement avec son propre `did`), lu par le profil `ferme`.
+- `notifs/ferme/<id>` : `{type: "stock-fini", auto?, did, w, by, n, at}` (`auto` vrai pour le filet des 15 minutes). Écrit par le profil `magasin:<did>` (seulement avec son propre `did`), lu par le profil `ferme`.
 - `notifs/magasin/<did>/<id>` : `{type: "liste-misealajour", w, by, n, at}`. Écrit par le profil `ferme`, lu par `magasin:<did>` (et par `ferme`).
 - Les `<id>` sont les identifiants chronologiques de la base : la page lit seulement les 30 derniers, en direct (même mécanisme `EventSource` que le reste).
 - **Lu / non lu** : l'heure de la dernière notification vue est gardée **sur chaque téléphone** (comme le prénom). Chaque personne a donc son propre chiffre : si Aurore lit une notification, le chiffre de François ne tombe pas à zéro. Compromis : un nouveau téléphone repart de « tout lu » (pas de pluie de vieilles notifications).
@@ -87,5 +90,5 @@ Une seule PR de code pour l'étape 25 : les deux notifications partagent la mêm
 
 - Le fil « fin de semaine et pré-remplissage du magasin » touche aussi `magasin.html` et les règles : **lancer l'étape 25 seulement quand il est fusionné**, et repartir de `main`.
 - Rien de la ferme dans la notification côté magasin au-delà de la semaine et du nombre de produits.
-- Vérifier avant la PR : le chiffre baisse à zéro à l'ouverture de la feuille ; une seule notification pour 10 saisies suivies d'un seul « J'ai fini » ; aucune notification sans bouton ; un compte magasin ne peut pas lire `notifs/ferme` ni écrire dans `notifs/magasin` (avec `tests/regles.cjs` et l'émulateur) ; hors ligne, le bouton part au retour du réseau.
+- Vérifier avant la PR : le chiffre baisse à zéro à l'ouverture de la feuille ; une seule notification pour 10 saisies suivies d'un seul « J'ai fini » ; sans bouton, une seule notification automatique 15 minutes après la dernière saisie (page du magasin ouverte, puis page fermée et appli de la ferme ouverte plus tard, jamais les deux) ; aucune automatique si « J'ai fini » est venu après la dernière saisie ; aucune notification sans bouton ; un compte magasin ne peut pas lire `notifs/ferme` ni écrire dans `notifs/magasin` (avec `tests/regles.cjs` et l'émulateur) ; hors ligne, le bouton part au retour du réseau.
 - **Non vérifié en réel** (à l'essai de François, deux vrais téléphones) : le chiffre en direct entre deux appareils.
