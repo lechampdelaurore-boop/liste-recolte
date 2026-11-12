@@ -11,6 +11,9 @@
 // une notification automatique) ; notifs/magasin/<débouché> écrit par la ferme, lu par la ferme et ce magasin ; un même
 // identifiant n'est réécrit qu'avec la même heure ; magasins/<débouché>/suivi écrit par le magasin. reglesAvantNotifs :
 // les règles d'avant l'étape 25 (ces chemins refusés). Requêtes « orderBy="$key"&limitToLast=N » comprises (lecture et flux).
+// Étape 31 (commandes à valider) : agent/propositions lu par la ferme et le profil « agent », qui y écrit une proposition
+// une seule fois (jamais réécrite ni effacée) ; reglesAvantAgent : les règles d'avant l'étape 31 (ce chemin refusé).
+// Requête « orderBy="w"&startAt="<lundi>" » comprise.
 const http = require('http');
 const crypto = require('crypto');
 
@@ -45,6 +48,12 @@ module.exports = function fauxFirebase(port, options = {}) {
       }
       return false;
     }
+    if (p[0] === 'agent') {
+      // Étape 31 : agent/propositions lu par la ferme et l'agent ; une proposition écrite une seule fois, par l'agent.
+      if (serveur.reglesAvantAgent || p[1] !== 'propositions') return false;
+      if (m === 'GET') return (profil === 'ferme' || profil === 'agent') && p.length >= 2;
+      return profil === 'agent' && m === 'PUT' && p.length === 3 && !!v && lire(p) === null;
+    }
     if (p[0] !== 'magasins') return false;
     if (m === 'GET' && profil === 'ferme') return true;
     if (!p[1] || profil !== 'magasin:' + p[1]) return false;
@@ -72,6 +81,11 @@ module.exports = function fauxFirebase(port, options = {}) {
   const lire = (p) => { let o = root; for (const k of p) { if (o == null) return null; o = o[k]; } return o === undefined ? null : o; };
   // « orderBy="$key"&limitToLast=N » : les N derniers enfants, par ordre des clés (comme la vraie base).
   const filtrer = (v, url) => {
+    // « orderBy="w"&startAt="<lundi>" » (étape 31) : les enfants dont « w » vient à partir de ce lundi.
+    if (url.searchParams.get('orderBy') === '"w"' && v && typeof v === 'object') {
+      const depuis = JSON.parse(url.searchParams.get('startAt') || 'null');
+      return Object.fromEntries(Object.entries(v).filter(([, x]) => x && typeof x.w === 'string' && (depuis === null || x.w >= depuis)));
+    }
     const n = Number(url.searchParams.get('limitToLast'));
     if (!n || url.searchParams.get('orderBy') !== '"$key"' || !v || typeof v !== 'object') return v;
     return Object.fromEntries(Object.keys(v).sort().slice(-n).map((k) => [k, v[k]]));

@@ -84,6 +84,8 @@ Ce que la porte écrit : uniquement dans `agent/propositions/<source>` (la boît
 
 ## La boîte d'arrivée dans l'appli (étape 31)
 
+*Codée le 12/11/2026 (« vas-y » de François). Ce qui a été fait et les choix de détail : `docs/DECISIONS.md` (12/11, étape 31) ; pas-à-pas des règles : `docs/PAS_A_PAS_COMMANDES.md`. Écarts avec ce qui suit : la décision est rangée dans la semaine (pas de journal `agent/journal` à part : la proposition, jamais modifiée, sert de trace) ; la cloche n'annonce pas encore les commandes (chiffre rouge sur l'onglet Semaine à la place), à décider à l'étape 32 ; la table « expéditeur → débouché » (`agent/reglages`) est pour l'étape 32 ou 33.*
+
 - Une carte « Commandes à valider » dans l'onglet Semaine : pour chaque proposition, le débouché, la source (mail ou Locavore, avec la date), les lignes, les refus de la porte et la quantité déjà répartie.
 - **« Valider »** écrit les quantités dans la semaine **par le même code que la saisie à la main** (même format, même règle « la dernière action gagne », prénom de la personne qui valide). **« Refuser »** écarte la proposition. Aucune proposition ne se valide seule.
 - La cloche annonce « 3 commandes à valider » (nouveau type de notification, sans service de plus).

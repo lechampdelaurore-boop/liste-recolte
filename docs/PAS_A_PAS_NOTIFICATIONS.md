@@ -4,6 +4,7 @@
 
 ## Avant de commencer
 
+- **Depuis l'étape 31 (12/11/2026, fin d'après-midi)**, `docs/regles-base/fermees.json` contient aussi la boîte « Commandes à valider ». Si ces règles ne sont pas encore publiées, suivre plutôt `docs/PAS_A_PAS_COMMANDES.md` (sauvegarde, puis une seule publication pour les deux), puis l'action 3 ci-dessous pour essayer la cloche.
 - La cloche est déjà en ligne, mais **tant que ces règles ne sont pas publiées, elle ne reçoit rien** : sa feuille dit « Les notifications ne sont pas encore ouvertes : la ferme doit d'abord publier les nouvelles règles de la base ». **Rien d'autre ne change** : la liste de récolte, l'onglet Semaine et la saisie du stock au magasin marchent exactement comme avant (essayé : `tests/notifications.cjs`, partie « règles d'avant »).
 - Les nouvelles règles **ajoutent** deux choses et ne changent rien d'existant :
   1. `notifs` : le fil des notifications. `notifs/ferme` est lu par la ferme seule et écrit par le magasin (pour lui seul) ; `notifs/magasin/<débouché>` est écrit par la ferme et lu par la ferme et ce magasin. Une notification ne s'efface pas et ne se réécrit pas.

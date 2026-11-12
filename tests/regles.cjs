@@ -179,6 +179,52 @@ const compte = async (email, mdp) => {
   verifie(r.s === 200 && rsuF.s === 401 && rsuLv.s === 401 && rsuX.s !== 200, 'état de la semaine du magasin (suivi) : écrit par le magasin seul, pour lui seul, sans champ en plus');
   r = await appel('magasins/ta/suivi', f.idToken);
   verifie(r.s === 200 && r.j.manque[0] === 'Poireau', 'état de la semaine du magasin : lu par la ferme');
+  // Étape 31 : commandes à valider. Le profil « agent » dépose des propositions sous agent/propositions, rien d'autre.
+  const g = await compte('agent@ferme.invalid', 'essai-agent');
+  await fetch(`${DB}/profils/${g.localId}.json?ns=${NS}`, { method: 'PUT', headers: admin, body: '"agent"' });
+  const pr = (o) => Object.assign({ w: W, c: 'av03', cle: 'auvabio-allier-' + W, src: '[Commande] COMMANDE ALLIER', date: 1000, type: 'commande', by: 'Agent', at: 1001,
+    l: [{ p: 'endive', nom: 'Endive', n: 9, u: 'colis' }, { p: 'poireau', n: 2.5, u: 'kg' }], refus: ['« blettes » : inconnu'], lien: 'https://mail.google.com/mail/u/0/#inbox/abc', verif: 'PDF et mail différents' }, o);
+  r = await ecrit('agent/propositions/mail-1', pr(), g.idToken, 'PUT');
+  verifie(r.s === 200, 'agent : il dépose une proposition complète (lignes, refus, lien, à vérifier) (' + r.s + ')');
+  r = await ecrit('agent/propositions/mail-annule', pr({ type: 'annulation', l: null, refus: null, lien: null, verif: null, date: 2000 }), g.idToken, 'PUT');
+  verifie(r.s === 200, 'agent : une annulation, sans lignes, est acceptée');
+  r = await ecrit('agent/propositions/mail-1', pr({ at: 1002 }), g.idToken, 'PUT');
+  const rmeme1 = await ecrit('agent/propositions/mail-1', pr(), g.idToken, 'PUT');
+  verifie(r.s === 401 && rmeme1.s === 401, 'agent : une proposition ne se réécrit pas, même à l\'identique (le même mail revient : refusé)');
+  r = await appel('agent/propositions/mail-1', g.idToken, { method: 'DELETE' });
+  verifie(r.s === 401, 'agent : une proposition ne s\'efface pas');
+  r = await ecrit('agent/propositions/mail-1/l/0/n', 99, g.idToken, 'PUT');
+  verifie(r.s === 401, 'agent : une ligne d\'une proposition déposée ne se change pas');
+  r = await appel('agent/propositions', g.idToken);
+  verifie(r.s === 200 && r.j['mail-1'].l[0].n === 9, 'agent : il relit ses propositions (pour ne pas déposer deux fois le même mail)');
+  const interdits = [['listes', 'GET'], ['listes/semaines/' + W, 'GET'], ['listes/reglages/debouches', 'GET'], ['magasins', 'GET'], ['notifs/ferme', 'GET'], ['profils/' + f.localId, 'GET'], ['agent', 'GET']];
+  const res = []; for (const [ch] of interdits) res.push((await appel(ch, g.idToken)).s);
+  verifie(res.every((x) => x === 401), 'agent : il ne lit rien d\'autre (listes, semaines, débouchés, magasins, notifications, profil d\'un autre, racine de « agent ») (' + res.join(',') + ')');
+  const ecr = [await ecrit('listes/semaines/' + W + '/q/endive/av03', { n: 9, u: 'colis', by: 'Agent', at: 1 }, g.idToken, 'PUT'), await ecrit('listes/2026-11-04', { 'done/radis': { by: 'Agent', at: 1 } }, g.idToken),
+    await ecrit('magasins/ta/semaines/' + W + '/ail-sec', { n: 1, u: 'kg', by: 'Agent', at: 1 }, g.idToken, 'PUT'), await ecrit('notifs/ferme/1-x', nf({ at: 1 }), g.idToken, 'PUT'), await ecrit('profils/' + g.localId, '"ferme"', g.idToken, 'PUT'), await ecrit('agent/reglages', { x: 1 }, g.idToken, 'PUT')];
+  verifie(ecr.every((x) => x.s === 401), 'agent : il n\'écrit nulle part ailleurs (semaine, liste, stock du magasin, notifications, son profil, autre chemin de « agent ») (' + ecr.map((x) => x.s).join(',') + ')');
+  const formes = [
+    ['champ en plus', pr({ prix: 3 })], ['type inconnu', pr({ type: 'suppression' })], ['semaine qui n\'est pas une date', pr({ w: 'demain' })],
+    ['livraison vide', pr({ c: '' })], ['source de plus de 120 signes', pr({ src: 'x'.repeat(121) })], ['heure du mail manquante', pr({ date: null })],
+    ['lien qui n\'est pas en https', pr({ lien: 'http://exemple.invalid' })], ['quantité négative', pr({ l: [{ p: 'endive', n: -1, u: 'colis' }] })],
+    ['unité inconnue', pr({ l: [{ p: 'endive', n: 1, u: 'tonne' }] })], ['ligne avec un champ en plus', pr({ l: [{ p: 'endive', n: 1, u: 'colis', prix: 2 }] })],
+    ['ligne sans produit', pr({ l: [{ n: 1, u: 'colis' }] })], ['plus de 200 lignes', pr({ l: Object.fromEntries([[200, { p: 'endive', n: 1, u: 'colis' }]]) })],
+    ['prénom vide', pr({ by: '' })], ['identifiant avec un espace', pr(), 'mail 2'],
+  ];
+  const resF = [];
+  for (const [nom, v, id] of formes) { const x = await ecrit('agent/propositions/' + encodeURIComponent(id || 'forme-' + resF.length), v, g.idToken, 'PUT'); resF.push(x.s); verifie(x.s !== 200, 'agent : proposition refusée, ' + nom + ' (' + x.s + ')'); }
+  r = await ecrit('agent/propositions/mail-199', pr({ l: Object.fromEntries([[199, { p: 'endive', n: 1, u: 'colis' }]]) }), g.idToken, 'PUT');
+  verifie(r.s === 200, 'agent : 200 lignes au plus (la ligne n° 199 passe)');
+  r = await ecrit('agent/propositions/par-la-ferme', pr(), f.idToken, 'PUT');
+  const rmP = await ecrit('agent/propositions/par-le-magasin', pr(), m.idToken, 'PUT'), rmL = await appel('agent/propositions', m.idToken), reL = await appel('agent/propositions', e.idToken), rnL = await appel('agent/propositions', null);
+  verifie(r.s === 401 && rmP.s === 401 && rmL.s === 401 && reL.s === 401 && rnL.s === 401, 'ferme, magasin, compte sans profil, sans compte : aucun ne dépose de proposition ; seuls la ferme et l\'agent les lisent');
+  const rq2 = await fetch(url('agent/propositions', f.idToken, 'orderBy=' + encodeURIComponent('"w"') + '&startAt=' + encodeURIComponent('"' + W + '"')));
+  const jq2 = await rq2.json();
+  const rq3 = await fetch(url('agent/propositions', f.idToken, 'orderBy=' + encodeURIComponent('"w"') + '&startAt=' + encodeURIComponent('"2099-01-05"')));
+  const jq3 = await rq3.json();
+  verifie(rq2.status === 200 && Object.keys(jq2).sort().join() === 'mail-1,mail-199,mail-annule' && rq3.status === 200 && Object.keys(jq3 || {}).length === 0, 'ferme : elle lit les propositions par la requête de l\'appli (« orderBy w, startAt » : index accepté), seulement à partir de la semaine demandée');
+  r = await ecrit('listes/semaines/' + W, { 'commandes/mail-1': { e: 'valide', by: 'François', at: 3000, l: [{ p: 'endive', c: 'av03', n: 9, u: 'colis' }] }, 'q/endive/av03': { n: 9, u: 'colis', by: 'François', at: 3000 } }, f.idToken);
+  verifie(r.s === 200, 'ferme : la validation (décision et quantités, dans la semaine) est acceptée par les règles d\'avant, sans rien changer à « listes »');
   r = await appel('listes/2026-11-04', 'jeton-abime');
   // L'émulateur traite un jeton abîmé comme une absence de compte ; la vraie base dit « Could not parse auth token ».
   verifie(r.s === 401, 'jeton abîmé : refusé (message de l\'émulateur : « ' + r.j.error + ' »)');
@@ -272,6 +318,18 @@ const compte = async (email, mdp) => {
     r = await ecrit('notifs/magasin/ta/' + Date.now() + '-essai', { type: 'liste-misealajour', w: lundiCourant, by: 'François', n: 3, at: Date.now() }, f.idToken, 'PUT');
     await M.waitForFunction(() => !document.querySelector('#clocheN').hidden, null, { timeout: 25000 }).catch(() => {});
     verifie(r.s === 200 && !(await M.$eval('#clocheN', (b) => b.hidden)), 'appli + émulateurs : une notification de la ferme arrive dans la cloche du magasin');
+    // Étape 31 : l'appli de la ferme lit les propositions de l'agent avec les vraies règles et valide.
+    // Les débouchés de départ (le test les avait remplacés par un essai d'écriture) : la livraison « ta-mar » existe.
+    await fetch(`${DB}/listes/reglages/debouches.json?ns=${NS}`, { method: 'PUT', headers: admin, body: fs.readFileSync(path.join(RACINE, 'referentiel/debouches.json'), 'utf8') });
+    r = await ecrit('agent/propositions/mail-appli', pr({ w: lundiCourant, c: 'ta-mar', cle: 'essai-appli', l: [{ p: 'poireau', n: 2, u: 'colis' }], refus: null, verif: null, date: Date.now(), at: Date.now() }), g.idToken, 'PUT');
+    await A.click('#tabs [data-view="semaine"]');
+    await A.waitForSelector('#semCmd article[data-cmd="mail-appli"]', { timeout: 25000 }).catch(() => {});
+    verifie(r.s === 200 && (await A.$eval('#cmdN', (b) => (b.hidden ? '' : b.textContent))) === '2' && await A.isVisible('#semCmd article[data-cmd="mail-appli"]'), 'appli + émulateurs : la proposition de l\'agent arrive dans la boîte de l\'onglet Semaine ; chiffre 2 sur l\'onglet (elle et l\'annulation déposée plus haut, même semaine)');
+    await A.click('#semCmd [data-a="cmd-valider"][data-id="mail-appli"]');
+    let dv = null;
+    for (let i = 0; i < 40 && !dv; i++) { await A.waitForTimeout(250); dv = (await appel('listes/semaines/' + lundiCourant + '/commandes/mail-appli', f.idToken)).j; }
+    const qv = (await appel('listes/semaines/' + lundiCourant + '/q/poireau/ta-mar', f.idToken)).j;
+    verifie(dv && dv.e === 'valide' && dv.by === 'François' && qv && qv.n === 2 && qv.by === 'François' && (await A.textContent('#sync')).includes('Partagé'), 'appli + émulateurs : « Valider » écrit la décision et la quantité dans la semaine, acceptées par les vraies règles');
     verifie(erreurs.length === 0, 'appli + émulateurs : aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));
     await nav.close(); site.close();
   } else console.log('NON LANCÉ : partie appli (Playwright absent)');
