@@ -2,6 +2,8 @@
 
 ## 2026-11-12
 
+- **Agent des mails de commande (étape 33), préparé** : nouveau `docs/AGENT_MAILS.md` (règles de lecture d'Auvabio, invite de l'agent planifié, mise en place par François, mode à blanc). Aucun code, rien d'écrit dans la base, tâche planifiée pas encore créée.
+
 - **Règle de lecture des débouchés publiée** (21 h 09, par François, action 6 de `docs/PAS_A_PAS_PORTE.md`) : texte publié vérifié identique à `docs/regles-base/fermees.json` ; la porte lit les livraisons dans les réglages de la ferme. Registres seulement.
 
 - **Porte de l'agent ouverte** (20 h 50) : compte `agent@ferme.invalid` et secrets Cloudflare saisis par François, profil `agent` posé par Claude, redéploiement ; `/agent/etat` répond « PORTE PRÊTE », appel sans clé refusé. Registres seulement.
