@@ -2,6 +2,8 @@
 
 ## 2026-11-12
 
+- **Porte de l'agent ouverte** (20 h 50) : compte `agent@ferme.invalid` et secrets Cloudflare saisis par François, profil `agent` posé par Claude, redéploiement ; `/agent/etat` répond « PORTE PRÊTE », appel sans clé refusé. Registres seulement.
+
 - **La porte de l'agent (étape 32)** (« vas-y » de François du 12/11, 19 h 39). Nouveau `functions/agent/[[chemin]].js` : petit programme Cloudflare Pages servi avec l'appli sous `/agent/…` (aide, état sans clé, livraisons, produits, propositions de la semaine, dépôt d'une commande) ; il reconnaît livraisons et produits sans deviner, dépose une proposition par livraison dans « Commandes à valider » (« DÉJÀ VU » pour un mail déjà lu) avec le compte au profil `agent`. Porte fermée tant que les secrets ne sont pas saisis (`docs/PAS_A_PAS_PORTE.md`). Règles : le profil `agent` peut lire les débouchés (`docs/regles-base/fermees.json`, ancienne version `fermees-sans-porte.json`, publication facultative par François). Nouveau test `tests/porte.cjs` (40 vérifications), `tests/regles.cjs` complété (109). Appli inchangée (pas de changement de `CACHE`).
 
 - **Règles de la base publiées (étapes 25 et 31)** à 19 h 31, après la sauvegarde exportée par François ; publication faite par Claude sur autorisation écrite de François. Texte publié vérifié identique à `docs/regles-base/fermees.json` ; sans compte, tout reste refusé. ; sur le téléphone de François (19 h 34), la cloche dit « Rien de nouveau » et la pastille « Partagé ». Registres seulement.
