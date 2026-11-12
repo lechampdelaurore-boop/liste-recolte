@@ -2,6 +2,8 @@
 
 ## 2026-11-12
 
+- **Règle de lecture des débouchés publiée** (21 h 09, par François, action 6 de `docs/PAS_A_PAS_PORTE.md`) : texte publié vérifié identique à `docs/regles-base/fermees.json` ; la porte lit les livraisons dans les réglages de la ferme. Registres seulement.
+
 - **Porte de l'agent ouverte** (20 h 50) : compte `agent@ferme.invalid` et secrets Cloudflare saisis par François, profil `agent` posé par Claude, redéploiement ; `/agent/etat` répond « PORTE PRÊTE », appel sans clé refusé. Registres seulement.
 
 - **La porte de l'agent (étape 32)** (« vas-y » de François du 12/11, 19 h 39). Nouveau `functions/agent/[[chemin]].js` : petit programme Cloudflare Pages servi avec l'appli sous `/agent/…` (aide, état sans clé, livraisons, produits, propositions de la semaine, dépôt d'une commande) ; il reconnaît livraisons et produits sans deviner, dépose une proposition par livraison dans « Commandes à valider » (« DÉJÀ VU » pour un mail déjà lu) avec le compte au profil `agent`. Porte fermée tant que les secrets ne sont pas saisis (`docs/PAS_A_PAS_PORTE.md`). Règles : le profil `agent` peut lire les débouchés (`docs/regles-base/fermees.json`, ancienne version `fermees-sans-porte.json`, publication facultative par François). Nouveau test `tests/porte.cjs` (40 vérifications), `tests/regles.cjs` complété (109). Appli inchangée (pas de changement de `CACHE`).
