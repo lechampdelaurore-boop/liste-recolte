@@ -73,6 +73,8 @@ François craint les erreurs quand Auvabio renvoie un bon. Vérifié dans la bo�
 
 ## La porte (option B), en clair
 
+*Codée le 12/11/2026 (« vas-y » de François) : `functions/agent/[[chemin]].js`, installation `docs/PAS_A_PAS_PORTE.md`, choix de détail `docs/DECISIONS.md` (12/11, étape 32). Écarts avec ce qui suit : pas de lecture de la semaine (`/agent/semaine`) ; en plus, `/agent/produits`, `/agent/propositions?w=` et `/agent/etat` (sans clé) ; pas de journal `agent/journal` (la proposition, jamais modifiée, sert de trace) ; un mail sur plusieurs livraisons donne une proposition par livraison.*
+
 Quatre appels, tous courts :
 
 1. **Lire la semaine** (`GET /agent/semaine?w=<lundi>`) : une ligne par produit, par exemple `poireau | dispo 10 colis | ta-mar 2 | lv 3 | reste 5`. Ordre de grandeur : quelques centaines de tokens pour une petite semaine, 2 000 à 3 000 pour une grande (**estimation, non mesurée**).
