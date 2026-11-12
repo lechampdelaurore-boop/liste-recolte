@@ -2,7 +2,9 @@
 
 ## Où on en est
 
-*Au 11 novembre 2026, soir. Source : lecture du dépôt et demandes de François du 4/11 au 11/11.*
+*Au 12 novembre 2026. Source : lecture du dépôt et demandes de François du 4/11 au 12/11.*
+
+- **Plan des notifications (12/11)**, demande de François : une cloche dans l'en-tête de la liste de récolte et de la page du magasin. Plan écrit, **code pas encore fait** : `docs/PLAN_NOTIFICATIONS.md` (étape 25 : boutons « J'ai fini » côté magasin et « Prévenir le magasin » côté ferme, une seule notification à chaque fois ; étape 26 : notification sur le téléphone appli fermée, demande un petit programme sur Cloudflare, **« vas-y » de François requis**, recommandation : attendre). Le code se lancera quand le fil « fin de semaine et pré-remplissage du magasin » sera fusionné ; François colle lui-même les nouvelles règles de la base avant la mise en ligne. Rien de vérifié en réel (aucun code).
 
 - **Réglages repliés (11/11, soir)**, note de François du 10/11 : dans l'onglet Réglages, chaque débouché et chaque jour de récolte habituel tient sur une ligne, avec une flèche pour déplier son détail, comme la page « À récolter ». Un débouché ou un jour qu'on vient d'ajouter s'ouvre déplié. Affichage seulement, rien dans la base. Vérifié : `tests/debouches.cjs` (82 sur 82 : repliés au départ, ligne de 56 px, une seule fiche dépliée à la fois, replié de nouveau après rechargement, rien d'écrit), les dix-huit autres tests verts. **Non vérifié en réel** : le vrai téléphone et l'ordinateur de François.
 
