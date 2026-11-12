@@ -74,13 +74,35 @@ dialog button{padding:13px;border-radius:10px;border:var(--bw) solid var(--line)
 dialog button.oui{background:var(--accent);color:#fff;border-color:var(--accent)}
 dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid var(--line);background:var(--bg)}
 dialog label{display:grid;gap:4px;font-weight:700}
+/* Envoi d'une notification à la ferme (étape 25) : gros bouton en bas de la liste */
+.envoi{display:grid;gap:8px;padding:12px}
+.envoi-b{display:grid;gap:2px;justify-items:center;width:100%;min-height:64px;padding:10px 14px;border:3px solid #000;border-radius:14px;background:var(--accent);color:#fff;font-size:1.15rem;font-weight:900;cursor:pointer;box-shadow:var(--ombre)}
+.envoi-b small{font-size:.9rem;font-weight:700}
+.envoi-ok{margin:0;font-size:1.05rem;font-weight:900}
 [hidden]{display:none !important}
+/* CLOCHE-DEBUT : cloche des notifications (étape 25), bloc identique dans index.html et magasin.html */
+.cloche{position:relative;display:inline-grid;place-items:center;min-width:48px;min-height:44px;padding:0 10px;border:2px solid #fff;border-radius:999px;background:#fff;color:#000;cursor:pointer;flex:none}
+.cloche svg{width:26px;height:26px;display:block;fill:none;stroke:#000;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+.cloche-n{position:absolute;top:-7px;right:-7px;min-width:25px;height:25px;padding:0 5px;border-radius:13px;background:#e00000;color:#fff;border:2px solid #fff;font-size:.9rem;font-weight:900;line-height:21px;text-align:center}
+dialog.notif-dlg{max-width:min(520px,94vw);width:100%}
+.notif-rien{margin:4px 0 0;font-weight:800}
+.notif-etat{margin:8px 0 0;background:#ffe680;border:2px solid #000;border-radius:8px;padding:6px 10px;font-size:.95rem;font-weight:700}
+.notif-l{list-style:none;margin:10px 0 0;padding:0;display:grid;gap:8px;max-height:60vh;overflow:auto}
+.notif-i{display:grid;gap:4px;width:100%;text-align:left;padding:10px 12px;border:2px solid #000;border-radius:12px;background:#fff;color:#000;font-weight:600;line-height:1.3;box-shadow:none}
+button.notif-i{cursor:pointer}
+.notif-i.notif-nouv{border-width:4px;padding:8px 10px;font-weight:900}
+.notif-i small{font-size:.85rem;font-weight:700}
+.notif-auto{display:inline-block;margin-left:4px;border:2px solid #000;border-radius:6px;padding:0 6px;font-size:.8rem;font-weight:900;white-space:nowrap}
+/* CLOCHE-FIN */
 </style>
 </head>
 <body>
 <header class="appbar"><div class="appbar-in">
   <div class="brand"><img src="icons/icon.svg" width="34" height="34" alt=""><span id="titre">Stock du magasin</span></div>
   <div class="appbar-r">
+    <!-- CLOCHE-DEBUT : bouton de la cloche (bloc identique dans index.html et magasin.html) -->
+    <button type="button" class="cloche" id="cloche" hidden aria-label="Notifications" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 17V11a6.5 6.5 0 0 1 13 0v6l1.5 1.8h-16z"/><path d="M9.8 21a2.3 2.3 0 0 0 4.4 0"/></svg><b class="cloche-n" id="clocheN" hidden>0</b></button>
+    <!-- CLOCHE-FIN -->
     <button type="button" class="pill" id="qui" hidden aria-label="Changer de prénom"><span id="quiNom"></span></button>
     <span class="pill wait" id="sync"><i></i><span>Connexion…</span></span>
   </div>
@@ -104,6 +126,7 @@ dialog label{display:grid;gap:4px;font-weight:700}
     <button type="button" class="act" id="reprendre" hidden>Reprendre les produits de la semaine d'avant</button>
   </div>
   <div id="liste" class="liste"></div>
+  <div id="envoi" class="card envoi" hidden></div>
   <div id="pied" hidden>
     <p class="hint" id="compteTxt"></p>
     <p><button type="button" class="act" id="deconnecter">Se déconnecter de ce téléphone</button></p>
@@ -129,6 +152,12 @@ dialog label{display:grid;gap:4px;font-weight:700}
   <div class="btns"><button type="button" id="addClose">Fermer</button></div>
 </dialog>
 
+<dialog id="manqueDlg">
+  <h2>Il manque des quantités</h2>
+  <p id="manqueTxt"></p>
+  <div class="btns"><button type="button" class="oui" id="manqueOk">Compléter</button></div>
+</dialog>
+
 <dialog id="quiDlg">
   <h2>Qui saisit ?</h2>
   <p class="hint">Votre prénom s'affiche à côté de chaque saisie, pour que la ferme sache qui a compté.</p>
@@ -140,6 +169,16 @@ dialog label{display:grid;gap:4px;font-weight:700}
     <button type="button" id="quiAnnuler" hidden>Annuler</button>
   </form>
 </dialog>
+
+<!-- CLOCHE-DEBUT : feuille des notifications (bloc identique dans index.html et magasin.html) -->
+<dialog id="notifDlg" class="big notif-dlg" aria-labelledby="notifTitre">
+  <h2 id="notifTitre">Notifications</h2>
+  <p class="notif-etat" id="notifEtat" role="alert" hidden></p>
+  <p class="notif-rien" id="notifRien">Rien de nouveau</p>
+  <ul class="notif-l" id="notifListe"></ul>
+  <div class="btns"><button type="button" id="notifLu">Tout marquer comme lu</button><button type="button" id="notifFermer">Fermer</button></div>
+</dialog>
+<!-- CLOCHE-FIN -->
 
 <script src="cle-web.js"></script>
 <script src="config.js"></script>
@@ -203,6 +242,164 @@ function duAu(iso, annee){
   return 'du lundi ' + l.getDate() + (l.getMonth() === d.getMonth() ? '' : ' ' + mois(l)) + ' au dimanche ' + d.getDate() + fin;
 }
 function decaler(id, n){ var d = deIso(id); d.setDate(d.getDate() + 7 * n); return jourIso(d); }
+
+/* ---------- CLOCHE-DEBUT : cloche des notifications (étape 25, 12/11/2026) ----------
+   Bloc recopié à l'identique dans index.html et magasin.html (tests/notifications.cjs le vérifie) : même cloche, même
+   chiffre rouge, même feuille, mêmes mots des deux côtés (demande de François). Seul change le fil lu, donné par la page
+   avec clocheBrancher. Données (voir docs/PLAN_NOTIFICATIONS.md), ajoutées seulement, jamais effacées :
+     notifs/ferme/<id>          {type:'stock-fini', did, w, by, n, at, auto?, manque?}  écrit par le magasin, lu par la ferme
+     notifs/magasin/<did>/<id>  {type:'liste-misealajour', w, by, n, at}             écrit par la ferme, lu par le magasin
+   Les 30 dernières sont relues toutes les 15 s (sans connexion de plus à la base). Lu ou non lu : gardé sur chaque téléphone (identifiants déjà vus), donc chacun
+   a son chiffre ; un nouveau téléphone part de « tout lu ». Un envoi fait sans réseau attend sur le téléphone et part
+   au retour du réseau. Les fonctions dont il a besoin (ls, esc, numSem, $) existent pareil dans les deux pages. */
+var NOTIF_DELAI = 15 * 60 * 1000; // envoi automatique : 15 minutes après la dernière saisie du magasin (François, 12/11)
+var NOTIF_ECART = 2 * 60 * 1000;  // jamais deux envois voulus pour la même semaine en moins de deux minutes
+var NOTIF_MAX = 30;
+var NOTIF_Q = 'orderBy=' + encodeURIComponent('"$key"') + '&limitToLast=' + NOTIF_MAX, NOTIF_Q5 = 'orderBy=' + encodeURIComponent('"$key"') + '&limitToLast=5';
+var cloche = {cfg:null, gen:0, items:{}, vus:null, gras:{}, lecture:false, recu:false, etat:'', coupe:0, envois:[], envoiEnCours:false, refus:''};
+function notifHeure(at){ var d = new Date(at); return d.getHours() + ' h ' + String(d.getMinutes()).padStart(2, '0'); }
+function notifJour(at){
+  var d = new Date(at), auj = new Date(), hier = new Date(); hier.setDate(hier.getDate() - 1);
+  if(d.toDateString() === auj.toDateString()) return 'aujourd\'hui';
+  if(d.toDateString() === hier.toDateString()) return 'hier';
+  return d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'numeric'});
+}
+function notifQuand(at){ return notifJour(at) + ' à ' + notifHeure(at); }
+function notifNb(n, mot){ n = Number(n) || 0; return n + ' ' + mot + (n > 1 ? 's' : ''); }
+function notifListe(x){
+  var l = Array.isArray(x) ? x : (x && typeof x === 'object' ? Object.keys(x).sort(function(a, b){ return a - b; }).map(function(k){ return x[k]; }) : []);
+  return l.filter(function(s){ return typeof s === 'string' && s; });
+}
+// Notification automatique du magasin : même identifiant et même heure, qu'elle parte de la page du magasin ou de
+// l'appli de la ferme (la règle de la base n'en garde qu'une).
+function notifIdAuto(did, w, derniere){ return String(derniere + NOTIF_DELAI) + '-auto-' + did + '-' + w; }
+function notifAuto(did, w, derniere, by, n, manque){
+  var v = {type:'stock-fini', auto:true, did:did, w:w, by:String(by || '?').slice(0, 40), n:Number(n) || 0, at:derniere + NOTIF_DELAI};
+  manque = notifListe(manque); if(manque.length) v.manque = manque;
+  return v;
+}
+function notifTexte(n){
+  var nom = cloche.cfg && cloche.cfg.nomDeb ? cloche.cfg.nomDeb(n.did) : (n.did || 'le magasin'), sem = 'semaine ' + numSem(n.w), by = n.by || '?';
+  if(n.type === 'liste-misealajour') return 'La ferme a mis à jour la liste de la ' + sem + ' · ' + notifNb(n.n, 'produit');
+  if(n.type !== 'stock-fini') return 'Notification';
+  var manque = notifListe(n.manque), delai = Math.round(NOTIF_DELAI / 60000) + ' minutes';
+  if(!n.auto) return by + ' a fini le stock de ' + nom + ' · ' + sem + ' · ' + notifNb(n.n, 'produit');
+  if(!manque.length) return by + ' n\'a rien saisi depuis ' + delai + ' : le stock de ' + nom + ' semble fini · ' + sem + ' · ' + notifNb(n.n, 'produit');
+  return by + ' n\'a rien saisi depuis ' + delai + ' · stock de ' + nom + ' incomplet : ' + notifNb(manque.length, 'produit') + ' sans quantité (' + manque.join(', ') + ') · ' + sem;
+}
+// La page branche la cloche sur son fil : cfg = {cle, chemin, url(chemin, q), lire(chemin, opts, q), pret(), nomDeb(did),
+// ouvrir(notification) ou rien, apres() appelé à chaque nouveauté}.
+function clocheBrancher(cfg){
+  if(cloche.cfg && cloche.cfg.cle === cfg.cle && cloche.cfg.chemin === cfg.chemin){ cloche.cfg = cfg; clocheAfficher(); clocheRelancer(false); return; }
+  cloche.gen++; cloche.cfg = cfg; cloche.lecture = false; cloche.items = ls(cfg.cle + '.copie') || {}; cloche.vus = ls(cfg.cle + '.vus');
+  cloche.gras = {}; cloche.recu = false; cloche.etat = ''; cloche.coupe = 0; cloche.refus = '';
+  cloche.envois = ls(cfg.cle + '.envois') || [];
+  clocheAfficher(); clocheRelancer(false);
+}
+function clocheOublier(){ cloche.gen++; cloche.lecture = false; cloche.cfg = null; cloche.items = {}; cloche.envois = []; if($('#notifDlg').open) $('#notifDlg').close(); clocheAfficher(); }
+function clocheTriees(){
+  return Object.keys(cloche.items).filter(function(k){ var n = cloche.items[k]; return n && typeof n === 'object' && n.type && typeof n.at === 'number'; })
+    .sort(function(a, b){ return cloche.items[b].at - cloche.items[a].at || (a < b ? 1 : -1); });
+}
+function clocheNonLues(){ var v = cloche.vus || []; return clocheTriees().filter(function(k){ return v.indexOf(k) < 0; }); }
+// Lecture des notifications : toutes les 15 s (la page l'appelle avec sa vérification régulière), à l'ouverture de la
+// cloche et au retour sur l'appli. Pas de lecture en direct de plus : le téléphone garde ses connexions à la base pour
+// la liste et la semaine. Une petite lecture (les 5 dernières) dit s'il y a du nouveau, même venu d'un téléphone un peu
+// en retard sur l'heure ; s'il y en a, on relit les 30 dernières. tous = true : relire quoi qu'il arrive.
+function clocheRelancer(tous){
+  var c = cloche.cfg; if(!c || !c.pret()) return;
+  clocheEnvoyer();
+  if(cloche.lecture) return;
+  // Refus de la base (règles pas encore publiées) ou réseau coupé : on réessaie au plus une fois par minute.
+  if(!tous && cloche.coupe && Date.now() - cloche.coupe < 60000) return;
+  var gen = cloche.gen;
+  cloche.lecture = true;
+  function fin(){ if(cloche.gen === gen) cloche.lecture = false; }
+  function lire(q){
+    return c.lire(c.chemin, {cache:'no-store'}, q).then(function(r){
+      if(cloche.gen !== gen) throw new Error('autre');
+      if(r.status === 401 || r.status === 403){ cloche.etat = 'refus'; cloche.coupe = Date.now(); clocheAfficher(); throw new Error('refus'); }
+      if(!r.ok) throw new Error(String(r.status));
+      return r.json();
+    });
+  }
+  lire(NOTIF_Q5).then(function(v){
+    var neuf = Object.keys(v && typeof v === 'object' ? v : {}).some(function(k){ return !cloche.items[k]; });
+    cloche.etat = ''; cloche.coupe = 0;
+    if(cloche.recu && !neuf && !tous){ clocheAfficher(); return; }
+    return lire(NOTIF_Q).then(function(tout){
+      cloche.items = tout && typeof tout === 'object' ? tout : {};
+      var ids = clocheTriees();
+      ids.slice(NOTIF_MAX).forEach(function(k){ delete cloche.items[k]; });
+      ids = ids.slice(0, NOTIF_MAX);
+      cloche.recu = true;
+      // Premier passage sur ce téléphone : tout est lu. Feuille ouverte : ce qui arrive est lu, et en gras.
+      if(!cloche.vus) cloche.vus = ids.slice();
+      if($('#notifDlg').open) ids.forEach(function(k){ if(cloche.vus.indexOf(k) < 0){ cloche.gras[k] = 1; cloche.vus.push(k); } });
+      cloche.vus = cloche.vus.filter(function(k){ return ids.indexOf(k) >= 0; });
+      ls(c.cle + '.copie', cloche.items); ls(c.cle + '.vus', cloche.vus);
+      clocheAfficher();
+      if(c.apres) c.apres();
+    });
+  }).then(fin, function(e){ if(e && e.message !== 'refus' && e.message !== 'autre' && cloche.gen === gen) cloche.coupe = Date.now(); fin(); });
+}
+document.addEventListener('visibilitychange', function(){ if(document.visibilityState === 'visible') clocheRelancer(false); });
+// Envoi d'une notification : gardée sur le téléphone, puis envoyée, dans l'ordre (au retour du réseau s'il n'y en a pas).
+function clocheEnvoyer(chemin, id, v){
+  var c = cloche.cfg; if(!c) return;
+  if(chemin){ cloche.envois.push({chemin:chemin, id:id, v:v}); ls(c.cle + '.envois', cloche.envois); cloche.refus = ''; }
+  if(cloche.envoiEnCours || !cloche.envois.length || !c.pret()) return;
+  var e = cloche.envois[0], gen = cloche.gen;
+  cloche.envoiEnCours = true;
+  c.lire(e.chemin + '/' + e.id, {method:'PUT', body:JSON.stringify(e.v)}).then(function(r){
+    if(cloche.gen !== gen) return;
+    cloche.envoiEnCours = false;
+    if(!r.ok && r.status !== 401 && r.status !== 403) return; // la base ne répond pas bien : on réessaiera
+    cloche.envois = cloche.envois.filter(function(x){ return x !== e; }); ls(c.cle + '.envois', cloche.envois);
+    // Refus de la base : un envoi voulu le dit ; un envoi automatique se tait (la notification existe peut-être déjà).
+    if(!r.ok && !e.v.auto) cloche.refus = 'La base a refusé la notification : la ferme doit d\'abord publier les nouvelles règles de la base (voir le pas-à-pas).';
+    if(c.apres) c.apres();
+    clocheEnvoyer();
+  }, function(){ if(cloche.gen === gen) cloche.envoiEnCours = false; });
+}
+function clocheEnAttente(id){ return cloche.envois.some(function(e){ return e.id === id; }); }
+function clocheAfficher(){
+  var b = $('#cloche'), c = cloche.cfg;
+  b.hidden = !c;
+  var n = c ? clocheNonLues().length : 0;
+  $('#clocheN').hidden = !n; $('#clocheN').textContent = String(n);
+  b.setAttribute('aria-label', n ? 'Notifications : ' + n + ' nouvelle' + (n > 1 ? 's' : '') : 'Notifications');
+  if($('#notifDlg').open) clocheFeuille();
+}
+function clocheFeuille(){
+  var ids = clocheTriees(), c = cloche.cfg, gras = Object.keys(cloche.gras).filter(function(k){ return ids.indexOf(k) >= 0; });
+  var etat = cloche.etat === 'refus' ? 'Les notifications ne sont pas encore ouvertes : la ferme doit d\'abord publier les nouvelles règles de la base (voir le pas-à-pas).'
+    : !cloche.recu && !ids.length ? 'Pas encore de réponse de la base (pas de réseau ?). Les notifications arriveront au retour du réseau.' : '';
+  $('#notifEtat').textContent = etat; $('#notifEtat').hidden = !etat;
+  $('#notifRien').hidden = gras.length > 0;
+  $('#notifLu').hidden = !gras.length;
+  $('#notifListe').innerHTML = ids.map(function(k){
+    var n = cloche.items[k], t = esc(notifTexte(n)) + (n.auto ? ' <span class="notif-auto">automatique</span>' : '');
+    var dedans = '<span class="notif-t">' + t + '</span><small>' + esc((n.by || '?') + ', ' + notifQuand(n.at)) + '</small>';
+    var cls = 'notif-i' + (cloche.gras[k] ? ' notif-nouv' : '');
+    return '<li>' + (c && c.ouvrir ? '<button type="button" class="' + cls + '" data-id="' + esc(k) + '">' + dedans + '</button>' : '<div class="' + cls + '">' + dedans + '</div>') + '</li>';
+  }).join('');
+}
+$('#cloche').onclick = function(){
+  // À l'ouverture, le chiffre retombe à zéro ; les nouveautés restent en gras dans la feuille.
+  cloche.gras = {}; clocheNonLues().forEach(function(k){ cloche.gras[k] = 1; });
+  cloche.vus = clocheTriees(); if(cloche.cfg) ls(cloche.cfg.cle + '.vus', cloche.vus);
+  var d = $('#notifDlg'); if(!d.open) d.showModal();
+  clocheAfficher(); clocheRelancer(true);
+};
+$('#notifLu').onclick = function(){ cloche.gras = {}; clocheFeuille(); };
+$('#notifFermer').onclick = function(){ $('#notifDlg').close(); };
+$('#notifListe').addEventListener('click', function(e){
+  var b = e.target.closest('[data-id]'), c = cloche.cfg; if(!b || !c || !c.ouvrir) return;
+  var n = cloche.items[b.dataset.id]; if(!n) return;
+  $('#notifDlg').close(); c.ouvrir(n);
+});
+/* ---------- CLOCHE-FIN ---------- */
 
 /* ---------- Produits et unités (mêmes règles que l'onglet Semaine de la liste de récolte) ---------- */
 var NOMS_CAISSES = {PB:'petite basse', PH:'petite haute', GB:'grande basse', GH:'grande haute'};
@@ -329,7 +526,7 @@ function demanderCompte(){
   if(!d.open) d.showModal();
 }
 function perdreCompte(msg){
-  compte = null; ls('magasin.compte', null); did = null;
+  compte = null; ls('magasin.compte', null); did = null; clocheOublier();
   if(es){ es.close(); es = null; }
   enLigne = false; refuse = ''; recu = false;
   var err = $('#authErr'); err.textContent = msg || ''; err.hidden = !msg;
@@ -377,6 +574,7 @@ function suite(){
   render();
   if(!qui) demanderQui();
   ouvrir(false); lirePersonnes(); flush();
+  brancherCloche(); autoMagasin();
 }
 
 /* ---------- Prénom : demandé d'abord, modifiable d'un appui ---------- */
@@ -457,9 +655,10 @@ function verifier(){
   if(lundi !== courante){ if(w === courante) allerA(lundi); courante = lundi; }
   var avantJeton = compte.jeton;
   jetonFrais().then(function(){
-    if(compte && compte.jeton !== avantJeton) ouvrir(true);
+    var neuf = compte && compte.jeton !== avantJeton;
+    if(neuf) ouvrir(true);
     else if(!es || es.readyState === 2) ouvrir(false);
-    flush();
+    flush(); clocheRelancer(neuf); autoMagasin();
   }, function(){ enLigne = false; majStatut(); });
 }
 var courante = w;
@@ -484,6 +683,7 @@ addEventListener('offline', function(){ enLigne = false; majStatut(); });
 // Chaque saisie part avec une ligne du journal (prénom, ancienne et nouvelle valeur, heure), que personne ne peut effacer.
 function saisir(pid, val){
   var ancien = data[pid] || null, t = Date.now(), l = listeLocale();
+  msgNotif = '';
   if(l.indexOf(pid) < 0){ l.push(pid); ls(cleListe(), l); }
   var j = {pid:pid, by:qui, at:t};
   if(val){ j.n = val.n; j.u = val.u; }
@@ -491,7 +691,11 @@ function saisir(pid, val){
   if(val){ val.by = qui; val.at = t; }
   data = setAt(data, pid, val);
   // Les saisies partent dans l'ordre, chacune avec sa ligne du journal : une saisie corrigée avant son envoi y figure aussi.
-  pending.push({w:w, pid:pid, val:val, j:j, jid:t + '-' + Math.random().toString(36).slice(2, 7), at:t});
+  // Pour la notification automatique (étape 25) : l'heure de la dernière saisie de ce téléphone, et l'état de la
+  // semaine (produits comptés, produits sans quantité) envoyé avec la saisie pour que la ferme puisse prévenir à sa place.
+  var st = etatSemaine(w);
+  ls('magasin.derniere', {did:did, w:w, at:t, by:qui});
+  pending.push({w:w, pid:pid, val:val, j:j, jid:t + '-' + Math.random().toString(36).slice(2, 7), at:t, suivi:{w:w, at:t, by:qui, n:st.n, manque:st.manque}});
   ls('magasin.pending', pending); garder(); render(); flush();
 }
 function flush(){
@@ -507,6 +711,13 @@ function flush(){
       if(!(srv && srv.at > p.at)) corps['semaines/' + p.w + '/' + p.pid] = p.val;
       else if(p.w === w && srv){ data = setAt(data, p.pid, srv); garder(); }
       return dbFetch(base, {method:'PATCH', body:JSON.stringify(corps)}).then(function(r){ if(!r.ok) throw r.status; return true; });
+    })
+    // Puis, à part, l'état de la semaine pour la ferme (étape 25). Un refus (règles pas encore publiées) ne bloque rien.
+    .then(function(){
+      if(!p.suivi) return;
+      var s = {w:p.suivi.w, at:p.suivi.at, by:p.suivi.by, n:p.suivi.n};
+      if(p.suivi.manque && p.suivi.manque.length) s.manque = p.suivi.manque;
+      return dbFetch(base + '/suivi', {method:'PUT', body:JSON.stringify(s)}).catch(function(){});
     })
     .then(function(){
       pending = pending.filter(function(x){ return x !== p; }); ls('magasin.pending', pending);
@@ -600,7 +811,8 @@ function render(){
   $('#actions').hidden = !pret; $('#nav').hidden = !pret; $('#semaine').hidden = pret;
   $('#navTxt').innerHTML = 'Semaine ' + numSem(w) + ' · ' + esc(duAu(w)) + '<small>' + (w === courante ? 'Cette semaine' : w < courante ? 'Semaine passée' : 'Semaine à venir') + '</small>';
   $('#aide').hidden = !!refuse;
-  if(!pret){ $('#liste').innerHTML = compte && !refuse ? '<p class="vide">Chargement…</p>' : ''; return; }
+  if(!pret){ $('#liste').innerHTML = compte && !refuse ? '<p class="vide">Chargement…</p>' : ''; $('#envoi').hidden = true; return; }
+  envoiHtml(pret);
   // Ne pas redessiner sous le doigt pendant une saisie : on redessine en quittant la case.
   var a = document.activeElement;
   if(a && a.closest && a.closest('#liste') && a.tagName === 'INPUT'){ attente = true; return; }
@@ -611,6 +823,91 @@ function render(){
     : '<p class="vide">Aucun produit pour cette semaine. Touchez « Ajouter un produit ».</p>';
 }
 function produitDe(pid){ return produits().filter(function(p){ return p.id === pid; })[0]; }
+
+/* ---------- Prévenir la ferme (étape 25, docs/PLAN_NOTIFICATIONS.md) ----------
+   Bouton « Envoyer une notification » en bas de la liste : une seule notification, quand le stock est fini. Il est
+   bloqué tant qu'un produit de la liste n'a pas de quantité (zéro compte comme une quantité). Si personne n'appuie,
+   la ferme est prévenue toute seule 15 minutes après la dernière saisie de ce téléphone (autoMagasin, tant que la
+   page est ouverte ; sinon l'appli de la ferme le fait à son ouverture, d'après magasins/<débouché>/suivi). */
+function brancherCloche(){
+  if(!did) return;
+  clocheBrancher({cle:'magasin.notifs.' + did, chemin:'/notifs/magasin/' + did, url:dbUrl, pret:function(){ return dbPret() && !!did; },
+    lire:function(ch, o, q){ return jetonFrais().then(function(){ return fetch(dbUrl(ch, q), o || {cache:'no-store'}); }); },
+    nomDeb:function(){ return nomMagasin(); }, ouvrir:null, apres:function(){
+      // Envoi refusé par la base : le bouton revient (avec le message), pour réessayer une fois les règles publiées.
+      var tous = envoyes();
+      if(cloche.refus && tous[w] && !clocheEnAttente(tous[w].id)){ delete tous[w]; ls('magasin.envoye.' + did, tous); }
+      envoiHtml(!!(compte && did && !refuse && REF));
+    }});
+}
+// Produits d'une semaine sur ce téléphone : combien sont comptés, et les noms de ceux qui n'ont pas de quantité.
+function etatSemaine(sem){
+  var d = sem === w ? data : (ls('magasin.copie.' + did + '.' + sem) || {});
+  var ids = (ls('magasin.liste.' + did + '.' + sem) || []).slice();
+  Object.keys(d).forEach(function(pid){ if(d[pid] && ids.indexOf(pid) < 0) ids.push(pid); });
+  var ps = ids.map(ficheDe).filter(Boolean).sort(function(a, b){ return a.f.nom.localeCompare(b.f.nom, 'fr'); });
+  return {n:ps.filter(function(p){ return d[p.id]; }).length, manque:ps.filter(function(p){ return !d[p.id]; }).map(function(p){ return p.f.nom; })};
+}
+function envoyes(){ return ls('magasin.envoye.' + did) || {}; }
+// Heure de la dernière saisie de la semaine affichée, de n'importe quel téléphone du magasin.
+function derniereSaisie(){ var t = 0; Object.keys(data).forEach(function(pid){ if(data[pid] && data[pid].at > t) t = data[pid].at; }); return t; }
+var msgNotif = '';
+function envoiHtml(pret){
+  var box = $('#envoi'), ps = pret ? produitsSemaine() : [];
+  box.hidden = !ps.length;
+  if(!ps.length) return;
+  // Envoyé, et aucune saisie depuis (de n'importe quel téléphone du magasin) : « Ferme prévenue ». Comparé à la dernière
+  // saisie connue au moment de l'envoi, pas à l'heure du téléphone (deux téléphones ne sont jamais tout à fait à l'heure).
+  var e = envoyes()[w], fait = e && derniereSaisie() <= (typeof e.ref === 'number' ? e.ref : e.at), n = ps.filter(function(p){ return data[p.id]; }).length;
+  var h = fait ? '<p class="envoi-ok">Ferme prévenue ' + (notifJour(e.at) === 'aujourd\'hui' ? '' : notifJour(e.at) + ' ') + 'à ' + esc(notifHeure(e.at)) + '</p>' +
+      (clocheEnAttente(e.id) ? '<p class="hint">Pas de réseau : la notification partira toute seule au retour du réseau.</p>' : '')
+    : '<button type="button" class="envoi-b" id="envoyer">Envoyer une notification<small>à la ferme : stock fini, ' + n + ' produit' + (n > 1 ? 's' : '') + ' compté' + (n > 1 ? 's' : '') + ' sur ' + ps.length + '</small></button>' +
+      '<p class="hint">À toucher quand le stock est fini. Sans cela, la ferme est prévenue toute seule ' + Math.round(NOTIF_DELAI / 60000) + ' minutes après la dernière saisie.</p>';
+  var err = cloche.refus || msgNotif;
+  if(err) h += '<p class="err" role="alert">' + esc(err) + '</p>';
+  box.innerHTML = h;
+}
+function montrerManque(manque){
+  var noms = manque.map(function(p){ return p.f.nom; }), un = noms.length === 1;
+  $('#manqueTxt').textContent = 'Il manque la quantité ' + (un ? 'd\'un produit' : 'de ' + noms.length + ' produits') + ' : ' + noms.join(', ') + '. Complétez-' + (un ? 'la' : 'les') + ' avant d\'envoyer.';
+  var d = $('#manqueDlg');
+  function completer(){
+    if(d.open) d.close();
+    var i = document.querySelector('#liste .p[data-pid="' + manque[0].id + '"] input');
+    if(i){ i.scrollIntoView({block:'center'}); i.focus(); }
+  }
+  $('#manqueOk').onclick = completer;
+  d.oncancel = function(ev){ ev.preventDefault(); completer(); };
+  d.showModal();
+}
+function envoyerFerme(){
+  msgNotif = '';
+  var ps = produitsSemaine(), manque = ps.filter(function(p){ return !data[p.id]; });
+  if(!ps.length) return;
+  // Contrôle sur le téléphone, avant la file d'attente : marche aussi sans réseau. Rien n'est écrit.
+  if(manque.length) return montrerManque(manque);
+  var e = envoyes()[w];
+  if(e && Date.now() - e.at < NOTIF_ECART){ msgNotif = 'Une notification vient de partir. Réessayez dans deux minutes.'; return render(); }
+  if(!confirm('Prévenir la ferme que le stock de la semaine ' + numSem(w) + ' est fini ?')) return;
+  avecQui(function(){
+    var t = Date.now(), id = t + '-' + Math.random().toString(36).slice(2, 7), tous = envoyes();
+    clocheEnvoyer('/notifs/ferme', id, {type:'stock-fini', did:did, w:w, by:qui, n:ps.length, at:t});
+    tous[w] = {at:t, id:id, ref:derniereSaisie()}; ls('magasin.envoye.' + did, tous);
+    render();
+  });
+}
+$('#envoi').addEventListener('click', function(e){ if(e.target.closest('#envoyer')) envoyerFerme(); });
+// Filet de sécurité : 15 minutes sans nouvelle saisie sur ce téléphone, et pas de « Envoyer une notification » depuis.
+// Vérifié toutes les 15 s tant que la page est ouverte. Même identifiant que celui de l'appli de la ferme : une seule part.
+function autoMagasin(){
+  var d = ls('magasin.derniere');
+  if(!d || !did || d.did !== did || typeof d.at !== 'number' || Date.now() < d.at + NOTIF_DELAI || ls('magasin.autoFait') === d.at) return;
+  ls('magasin.autoFait', d.at);
+  var e = envoyes()[d.w];
+  if(e && e.at >= d.at) return;
+  var st = etatSemaine(d.w);
+  clocheEnvoyer('/notifs/ferme', notifIdAuto(did, d.w, d.at), notifAuto(did, d.w, d.at, d.by, st.n, st.manque));
+}
 function avecQui(fn){ if(qui) fn(); else demanderQui(); }
 $('#liste').addEventListener('click', function(e){
   var b = e.target.closest('button[data-a]'); if(!b) return;

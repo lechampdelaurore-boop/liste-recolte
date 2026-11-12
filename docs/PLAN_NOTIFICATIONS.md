@@ -1,5 +1,7 @@
 # Plan : une cloche de notifications, côté ferme et côté magasin (étapes 25 et 26)
 
+*Étape 25 **codée le 12/11/2026** (PR de code) : ce qui suit est le plan ; les choix faits en codant (cloche relue toutes les 15 s au lieu d'un flux en direct, état de la semaine du magasin `magasins/<débouché>/suivi` pour l'envoi par la ferme, réécriture à l'identique permise) sont dans `docs/DECISIONS.md` (12/11) et `docs/base-partagee.md`. Pas-à-pas des règles : `docs/PAS_A_PAS_NOTIFICATIONS.md`.*
+
 *Rédigé le 12/11/2026, à la demande de François. Documentation seulement : aucun code n'est écrit par cette PR. L'étape 25 (code) se lance quand le fil de code en cours (fin de semaine et pré-remplissage du magasin) est fini. Précision du 12/11 (François revient sur sa décision) : **pas de pré-remplissage de la liste du magasin** d'après la semaine de la ferme ; le blocage de « Envoyer une notification » est conservé.*
 
 ## La demande de François (12/11, mot pour mot, abrégé)
