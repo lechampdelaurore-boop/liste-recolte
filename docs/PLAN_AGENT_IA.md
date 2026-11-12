@@ -31,6 +31,19 @@ L'agent ne supprime rien, ne modifie rien d'existant, n'écrit ni dans les coche
 
 Ce qui n'existe pas : aucune lecture de mails ni de Locavore, aucune boîte d'arrivée, aucun profil `agent`.
 
+## Ce qu'on a vu dans la boîte mail (12/11, lecture seule, à la demande de François)
+
+Recherche en lecture seule sur les 30 à 90 derniers jours, trois mails lus en entier. Aucun message modifié.
+
+| Débouché | Ce qui arrive par mail | Utilisable par l'agent ? |
+|---|---|---|
+| **Auvabio** | « [Commande] COMMANDE ALLIER / MAGASINS <date> » avec le bon de commande en PDF et, **dans le corps du mail, une synthèse** (ex. « Endive : 9 (9 colis, 45 kg) ») | **Oui, directement** : produits et quantités dans le texte ; le PDF sert de contrôle |
+| **Locavor** (écrit ainsi, sans « e ») | « Vous avez des commandes à préparer pour le mercredi <date> » : **ni produits ni quantités**, seulement le total en euros ; le détail est sur le site (« Accès aux ventes ») | **Seulement comme signal** : le détail demande le site avec identifiant |
+| **Panier adéquat** | Mail libre d'une personne : nombre de paniers et valeur (« 7 paniers à 5,80 € et 31 paniers à 12,67 € ») | À lire par un humain : ce sont des paniers, pas des produits |
+| Marché de Tronget (Ouvre ta ferme) | « Pas de commande pour le <date> » (ou commandes) | Hors périmètre : le marché reste à la main |
+
+Conséquence : Auvabio peut être branché le premier (étape 33). Locavor demande un des trois repères suivants, à choisir (question 2) : lire le site avec une session ouverte par François, que l'agent ne voit jamais en mot de passe ; ou que François copie la commande du site dans un mail ou un message ; ou la saisir à la main comme aujourd'hui.
+
 ## Options d'architecture
 
 | | A. L'agent parle directement à Firebase | **B. Une porte sur Cloudflare (recommandé)** | C. B + serveur MCP (plus tard) | D. Script sur un ordinateur de la ferme |
@@ -115,4 +128,4 @@ Une liste de tâches de la ferme, reliée au Cumul (une tâche peut renvoyer à 
 
 ## Non vérifié
 
-Le format exact des mails de commande et de Locavore (aucun exemple vu) ; la consommation réelle de tokens ; les limites gratuites actuelles de Cloudflare ; la lecture du libellé de mails par l'agent planifié.
+Le détail des commandes Locavor sur leur site (non vu) ; le contenu du PDF d'Auvabio (non lu) ; la consommation réelle de tokens ; les limites gratuites actuelles de Cloudflare ; la lecture du libellé de mails par l'agent planifié.
