@@ -36,6 +36,16 @@
             "$autre": { ".validate": false }
           }
         },
+        "suivi": {
+          ".write": "auth != null && root.child('profils').child(auth.uid).val() === 'magasin:' + $did && newData.exists()",
+          ".validate": "newData.hasChildren(['w', 'at', 'by', 'n'])",
+          "w": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)" },
+          "at": { ".validate": "newData.isNumber()" },
+          "by": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40" },
+          "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 10000" },
+          "manque": { "$i": { ".validate": "newData.isString() && newData.val().length <= 80" } },
+          "$autre": { ".validate": false }
+        },
         "journal": {
           "$w": {
             "$jid": {
@@ -50,6 +60,39 @@
               "at": { ".validate": "newData.isNumber()" },
               "$autre": { ".validate": false }
             }
+          }
+        }
+      }
+    },
+    "notifs": {
+      "ferme": {
+        ".read": "auth != null && root.child('profils').child(auth.uid).val() === 'ferme'",
+        "$id": {
+          ".write": "auth != null && newData.exists() && (!data.exists() || data.child('at').val() === newData.child('at').val()) && (root.child('profils').child(auth.uid).val() === 'magasin:' + newData.child('did').val() || (root.child('profils').child(auth.uid).val() === 'ferme' && newData.child('auto').val() === true))",
+          ".validate": "newData.hasChildren(['type', 'did', 'w', 'by', 'n', 'at']) && $id.length <= 120",
+          "type": { ".validate": "newData.val() === 'stock-fini'" },
+          "did": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40" },
+          "w": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)" },
+          "by": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40" },
+          "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 10000" },
+          "at": { ".validate": "newData.isNumber()" },
+          "auto": { ".validate": "newData.isBoolean()" },
+          "manque": { "$i": { ".validate": "newData.isString() && newData.val().length <= 80" } },
+          "$autre": { ".validate": false }
+        }
+      },
+      "magasin": {
+        "$did": {
+          ".read": "auth != null && (root.child('profils').child(auth.uid).val() === 'ferme' || root.child('profils').child(auth.uid).val() === 'magasin:' + $did)",
+          "$id": {
+            ".write": "auth != null && root.child('profils').child(auth.uid).val() === 'ferme' && newData.exists() && (!data.exists() || data.child('at').val() === newData.child('at').val())",
+            ".validate": "newData.hasChildren(['type', 'w', 'by', 'n', 'at']) && $id.length <= 120",
+            "type": { ".validate": "newData.val() === 'liste-misealajour'" },
+            "w": { ".validate": "newData.isString() && newData.val().matches(/^[0-9]{4}-[0-9]{2}-[0-9]{2}$/)" },
+            "by": { ".validate": "newData.isString() && newData.val().length > 0 && newData.val().length <= 40" },
+            "n": { ".validate": "newData.isNumber() && newData.val() >= 0 && newData.val() < 10000" },
+            "at": { ".validate": "newData.isNumber()" },
+            "$autre": { ".validate": false }
           }
         }
       }

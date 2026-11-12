@@ -7,6 +7,10 @@
 // Étape 13C : chacun lit son propre profil ; la ferme lit magasins ; le profil « magasin:<débouché> » lit et écrit
 // magasins/<débouché>/semaines et personnes, et ajoute au journal sans rien y réécrire (une écriture PATCH est
 // vérifiée chemin par chemin, comme la vraie base). Les validations de forme ne sont essayées que par tests/regles.cjs.
+// Étape 25 (notifications) : notifs/ferme lu par la ferme, écrit par le magasin pour son débouché (ou par la ferme pour
+// une notification automatique) ; notifs/magasin/<débouché> écrit par la ferme, lu par la ferme et ce magasin ; un même
+// identifiant n'est réécrit qu'avec la même heure ; magasins/<débouché>/suivi écrit par le magasin. reglesAvantNotifs :
+// les règles d'avant l'étape 25 (ces chemins refusés). Requêtes « orderBy="$key"&limitToLast=N » comprises (lecture et flux).
 const http = require('http');
 const crypto = require('crypto');
 
@@ -23,17 +27,31 @@ module.exports = function fauxFirebase(port, options = {}) {
   const json = (r, code, v) => { r.writeHead(code, { 'Content-Type': 'application/json' }); r.end(JSON.stringify(v)); };
   const lireCorps = (q) => new Promise((ok) => { let c = ''; q.on('data', (d) => (c += d)); q.on('end', () => ok(c)); });
   // Authentification : renvoie null si l'accès est permis, sinon le message d'erreur de la base.
-  const permis = (uid, m, p) => {
+  const permis = (uid, m, p, v) => {
     const profil = root.profils && root.profils[uid];
     if (p[0] === 'listes') return profil === 'ferme';
     if (serveur.reglesAvant13C) return false; // règles de l'étape 5 seules (avant la publication des nouvelles)
     if (p[0] === 'profils') return m === 'GET' && p.length === 2 && p[1] === uid;
+    if (p[0] === 'notifs') {
+      if (serveur.reglesAvantNotifs) return false;
+      const ex = lire(p), memeHeure = !ex || (v && ex.at === v.at);
+      if (p[1] === 'ferme') {
+        if (m === 'GET') return profil === 'ferme' && p.length >= 2;
+        return p.length === 3 && m === 'PUT' && !!v && memeHeure && (profil === 'magasin:' + v.did || (profil === 'ferme' && v.auto === true));
+      }
+      if (p[1] === 'magasin' && p[2]) {
+        if (m === 'GET') return profil === 'ferme' || profil === 'magasin:' + p[2];
+        return p.length === 4 && m === 'PUT' && !!v && memeHeure && profil === 'ferme';
+      }
+      return false;
+    }
     if (p[0] !== 'magasins') return false;
     if (m === 'GET' && profil === 'ferme') return true;
     if (!p[1] || profil !== 'magasin:' + p[1]) return false;
     if (p[2] === 'semaines') return m === 'GET' ? p.length >= 3 : p.length === 5;
     if (p[2] === 'personnes') return m === 'GET' ? p.length >= 3 : p.length === 4 && m !== 'DELETE';
     if (p[2] === 'journal') return m !== 'GET' && p.length === 5 && lire(p) === null;
+    if (p[2] === 'suivi') return !serveur.reglesAvantNotifs && m === 'PUT' && p.length === 3;
     return false;
   };
   const refus = (url, p, m, corps) => {
@@ -46,11 +64,18 @@ module.exports = function fauxFirebase(port, options = {}) {
     if (etat === 'aucun') return 'Permission denied';
     if (m === 'PATCH') {
       const v = JSON.parse(corps || '{}');
-      return Object.keys(v).every((k) => permis(t.uid, v[k] === null ? 'DELETE' : 'PUT', p.concat(k.split('/').filter(Boolean)))) ? null : 'Permission denied';
+      return Object.keys(v).every((k) => permis(t.uid, v[k] === null ? 'DELETE' : 'PUT', p.concat(k.split('/').filter(Boolean)), v[k])) ? null : 'Permission denied';
     }
-    return permis(t.uid, m, p) ? null : 'Permission denied';
+    let v = null; try { v = m === 'PUT' ? JSON.parse(corps || 'null') : null; } catch (e) { v = null; }
+    return permis(t.uid, m, p, v) ? null : 'Permission denied';
   };
   const lire = (p) => { let o = root; for (const k of p) { if (o == null) return null; o = o[k]; } return o === undefined ? null : o; };
+  // « orderBy="$key"&limitToLast=N » : les N derniers enfants, par ordre des clés (comme la vraie base).
+  const filtrer = (v, url) => {
+    const n = Number(url.searchParams.get('limitToLast'));
+    if (!n || url.searchParams.get('orderBy') !== '"$key"' || !v || typeof v !== 'object') return v;
+    return Object.fromEntries(Object.keys(v).sort().slice(-n).map((k) => [k, v[k]]));
+  };
   const ecrire = (p, v) => {
     if (!p.length) { root = v || {}; return; }
     let o = root;
@@ -88,13 +113,13 @@ module.exports = function fauxFirebase(port, options = {}) {
       serveur.lectures.push(p.join('/') + (url.searchParams.get('shallow') === 'true' ? '?shallow' : ''));
       r.writeHead(200, { 'Content-Type': 'application/json' });
       // « shallow=true » (comme la vraie base) : les noms des enfants seulement, chacun à true ; une valeur simple telle quelle.
-      const v = lire(p);
+      const v = filtrer(lire(p), url);
       if (url.searchParams.get('shallow') === 'true' && v && typeof v === 'object') return r.end(JSON.stringify(Object.fromEntries(Object.keys(v).map((k) => [k, true]))));
       return r.end(JSON.stringify(v));
     }
     if (q.method === 'GET') {
       r.writeHead(200, { 'Content-Type': 'text/event-stream' });
-      r.write('event: put\ndata: ' + JSON.stringify({ path: '/', data: lire(p) }) + '\n\n');
+      r.write('event: put\ndata: ' + JSON.stringify({ path: '/', data: filtrer(lire(p), url) }) + '\n\n');
       const a = { p, r, jeton: url.searchParams.get('auth') }; abonnes.push(a);
       q.on('close', () => abonnes.splice(abonnes.indexOf(a), 1));
       return;

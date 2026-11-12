@@ -136,6 +136,49 @@ const compte = async (email, mdp) => {
   verifie(r.s === 401, 'ferme : elle ne peut pas écrire à la place du magasin (elle écrit dans sa propre semaine)');
   r = await appel('magasins/ta', null); const r5 = await appel('magasins/ta/semaines/' + W, e.idToken);
   verifie(r.s === 401 && r5.s === 401, 'sans compte ou sans profil : le stock du magasin est refusé');
+  // Étape 25 : notifications (notifs/ferme, notifs/magasin/<débouché>) et état de la semaine du magasin (suivi)
+  const nf = (o) => Object.assign({ type: 'stock-fini', did: 'ta', w: W, by: 'Igor', n: 3, at: 100 }, o);
+  r = await ecrit('notifs/ferme/100-abcde', nf(), m.idToken, 'PUT');
+  verifie(r.s === 200, 'notifications : le magasin prévient la ferme (« Envoyer une notification ») (' + r.s + ')');
+  r = await ecrit('notifs/ferme/100-abcde', nf({ n: 9, at: 101 }), m.idToken, 'PUT');
+  const rmeme = await ecrit('notifs/ferme/100-abcde', nf(), m.idToken, 'PUT');
+  verifie(r.s === 401 && rmeme.s === 200, 'notifications : une notification ne se réécrit pas avec une autre heure (renvoi identique accepté, pour un envoi dont la réponse s\'est perdue)');
+  r = await appel('notifs/ferme/100-abcde', m.idToken, { method: 'DELETE' });
+  verifie(r.s === 401, 'notifications : une notification ne s\'efface pas');
+  r = await ecrit('notifs/ferme/101-x', nf({ did: 'lv', at: 101 }), m.idToken, 'PUT');
+  verifie(r.s === 401, 'notifications : le magasin ne peut pas écrire au nom d\'un autre magasin');
+  r = await appel('notifs/ferme', m.idToken);
+  verifie(r.s === 401, 'notifications : le magasin ne lit pas les notifications de la ferme');
+  const nfAuto = nf({ auto: true, at: 102, manque: ['Céleri-rave', 'Radis long rose'] });
+  r = await ecrit('notifs/ferme/102-auto-ta-' + W, nfAuto, m.idToken, 'PUT');
+  const rAutoF = await ecrit('notifs/ferme/102-auto-ta-' + W, nfAuto, f.idToken, 'PUT');
+  verifie(r.s === 200 && rAutoF.s === 200, 'notifications : l\'envoi automatique, avec la liste des produits sans quantité, par le magasin puis par la ferme (même identifiant, même heure : une seule notification)');
+  r = await ecrit('notifs/ferme/103-x', nf({ at: 103 }), f.idToken, 'PUT');
+  verifie(r.s === 401, 'notifications : la ferme n\'écrit dans son propre fil que l\'envoi automatique');
+  for (const [nom, v] of [['champ en plus', nf({ at: 104, prix: 1 })], ['autre type', nf({ at: 104, type: 'x' })], ['semaine qui n\'est pas une date', nf({ at: 104, w: 'demain' })], ['prénom vide', nf({ at: 104, by: '' })], ['nombre négatif', nf({ at: 104, n: -1 })]]) {
+    r = await ecrit('notifs/ferme/104-x', v, m.idToken, 'PUT'); verifie(r.s !== 200, 'notifications : refusée, ' + nom + ' (' + r.s + ')');
+  }
+  r = await appel('notifs/ferme', f.idToken);
+  const rq = await fetch(url('notifs/ferme', f.idToken, 'orderBy=' + encodeURIComponent('"$key"') + '&limitToLast=1'));
+  const jq = await rq.json();
+  verifie(r.s === 200 && Object.keys(r.j).length === 2 && rq.status === 200 && Object.keys(jq).join() === '102-auto-ta-' + W, 'notifications : la ferme lit son fil, aussi par la requête de la cloche (« orderBy $key, limitToLast »)');
+  const nm = { type: 'liste-misealajour', w: W, by: 'François', n: 14, at: 200 };
+  r = await ecrit('notifs/magasin/ta/200-abcde', nm, f.idToken, 'PUT');
+  verifie(r.s === 200, 'notifications : la ferme prévient le magasin (« Prévenir le magasin »)');
+  r = await ecrit('notifs/magasin/ta/201-x', Object.assign({}, nm, { at: 201 }), m.idToken, 'PUT');
+  verifie(r.s === 401, 'notifications : le magasin ne peut pas écrire dans son propre fil');
+  r = await ecrit('notifs/magasin/ta/202-x', Object.assign({}, nm, { at: 202, liste: ['carotte'] }), f.idToken, 'PUT');
+  verifie(r.s !== 200, 'notifications : rien d\'autre que la semaine et le nombre de produits ne part au magasin (champ en plus refusé)');
+  r = await appel('notifs/magasin/ta', m.idToken); const rlv = await appel('notifs/magasin/lv', m.idToken);
+  verifie(r.s === 200 && r.j['200-abcde'].n === 14 && rlv.s === 401, 'notifications : le magasin lit son fil, pas celui d\'un autre magasin');
+  r = await appel('notifs/ferme', null); const rmn = await appel('notifs/magasin/ta', e.idToken);
+  verifie(r.s === 401 && rmn.s === 401, 'notifications : sans compte ou sans profil, rien n\'est lisible');
+  const su = { w: W, at: 300, by: 'Igor', n: 2, manque: ['Poireau'] };
+  r = await ecrit('magasins/ta/suivi', su, m.idToken, 'PUT');
+  const rsuF = await ecrit('magasins/ta/suivi', su, f.idToken, 'PUT'), rsuLv = await ecrit('magasins/lv/suivi', su, m.idToken, 'PUT'), rsuX = await ecrit('magasins/ta/suivi', Object.assign({ prix: 1 }, su), m.idToken, 'PUT');
+  verifie(r.s === 200 && rsuF.s === 401 && rsuLv.s === 401 && rsuX.s !== 200, 'état de la semaine du magasin (suivi) : écrit par le magasin seul, pour lui seul, sans champ en plus');
+  r = await appel('magasins/ta/suivi', f.idToken);
+  verifie(r.s === 200 && r.j.manque[0] === 'Poireau', 'état de la semaine du magasin : lu par la ferme');
   r = await appel('listes/2026-11-04', 'jeton-abime');
   // L'émulateur traite un jeton abîmé comme une absence de compte ; la vraie base dit « Could not parse auth token ».
   verifie(r.s === 401, 'jeton abîmé : refusé (message de l\'émulateur : « ' + r.j.error + ' »)');
@@ -210,8 +253,25 @@ const compte = async (email, mdp) => {
     const lundiCourant = (() => { const d = new Date(); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })();
     r = await appel('magasins/ta', f.idToken);
     const jl = Object.values((r.j && r.j.journal && r.j.journal[lundiCourant]) || {});
+    M.on('dialog', (d) => d.accept());
     verifie(r.j && r.j.semaines[lundiCourant].poireau.n === 7 && r.j.semaines[lundiCourant].poireau.by === 'Igor' && jl.some((x) => x.pid === 'poireau' && x.n === 7) && r.j.personnes.igor.nom === 'Igor',
       'appli + émulateurs : la page du magasin écrit sa saisie, sa ligne de journal et le prénom, acceptés par les vraies règles');
+    // Étape 25 : « Envoyer une notification », la cloche de la ferme (requête des 30 dernières), « Prévenir le magasin »
+    const debut = Date.now();
+    await M.click('#envoyer');
+    let n1 = null;
+    for (let i = 0; i < 40 && !n1; i++) { await M.waitForTimeout(250); const x = await appel('notifs/ferme', f.idToken); n1 = Object.values(x.j || {}).find((v) => v.at >= debut && !v.auto); }
+    const su2 = await appel('magasins/ta/suivi', f.idToken);
+    verifie(n1 && n1.by === 'Igor' && n1.n === 1 && su2.j && su2.j.w === lundiCourant && su2.j.n === 1, 'appli + émulateurs : « Envoyer une notification » et l\'état de la semaine sont acceptés par les vraies règles');
+    await A.waitForFunction(() => !document.querySelector('#clocheN').hidden, null, { timeout: 25000 }).catch(() => {});
+    await A.click('#cloche');
+    const txt = await A.$$eval('#notifListe .notif-t', (x) => x.map((i) => i.textContent));
+    verifie(txt.length === 3 && txt[0].startsWith('Igor a fini le stock de'), 'appli + émulateurs : la cloche de la ferme reçoit la notification, la plus récente en haut (' + txt.length + ' dans la feuille : « ' + txt[0] + ' »)');
+    await A.click('#notifFermer');
+    // La ferme prévient le magasin (même écriture que « Prévenir le magasin ») : la cloche du magasin la reçoit.
+    r = await ecrit('notifs/magasin/ta/' + Date.now() + '-essai', { type: 'liste-misealajour', w: lundiCourant, by: 'François', n: 3, at: Date.now() }, f.idToken, 'PUT');
+    await M.waitForFunction(() => !document.querySelector('#clocheN').hidden, null, { timeout: 25000 }).catch(() => {});
+    verifie(r.s === 200 && !(await M.$eval('#clocheN', (b) => b.hidden)), 'appli + émulateurs : une notification de la ferme arrive dans la cloche du magasin');
     verifie(erreurs.length === 0, 'appli + émulateurs : aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));
     await nav.close(); site.close();
   } else console.log('NON LANCÉ : partie appli (Playwright absent)');
