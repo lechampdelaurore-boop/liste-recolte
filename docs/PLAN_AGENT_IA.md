@@ -39,10 +39,23 @@ Recherche en lecture seule sur les 30 à 90 derniers jours, trois mails lus en e
 |---|---|---|
 | **Auvabio** | « [Commande] COMMANDE ALLIER / MAGASINS <date> » avec le bon de commande en PDF et, **dans le corps du mail, une synthèse** (ex. « Endive : 9 (9 colis, 45 kg) ») | **Oui, directement** : produits et quantités dans le texte ; le PDF sert de contrôle |
 | **Locavor** (écrit ainsi, sans « e ») | « Vous avez des commandes à préparer pour le mercredi <date> » : **ni produits ni quantités**, seulement le total en euros ; le détail est sur le site (« Accès aux ventes ») | **Seulement comme signal** : le détail demande le site avec identifiant |
-| **Panier adéquat** | Mail libre d'une personne : nombre de paniers et valeur (« 7 paniers à 5,80 € et 31 paniers à 12,67 € ») | À lire par un humain : ce sont des paniers, pas des produits |
+| **Panier adéquat** | Mail libre d'une personne : nombre de paniers et valeur (« 7 paniers à 5,80 € et 31 paniers à 12,67 € ») ; le tableau de répartition entre plusieurs maraîchers est à part | **Hors périmètre** (décision de François, 12/11 : une fois par mois, il continue à la main) |
 | Marché de Tronget (Ouvre ta ferme) | « Pas de commande pour le <date> » (ou commandes) | Hors périmètre : le marché reste à la main |
 
-Conséquence : Auvabio peut être branché le premier (étape 33). Locavor demande un des trois repères suivants, à choisir (question 2) : lire le site avec une session ouverte par François, que l'agent ne voit jamais en mot de passe ; ou que François copie la commande du site dans un mail ou un message ; ou la saisir à la main comme aujourd'hui.
+Conséquence : Auvabio peut être branché le premier (étape 33). Pour Locavor, **François demande (12/11) que l'agent aille voir le détail sur le site dès que le mail « commandes à préparer » arrive** : le mail sert de déclencheur, la lecture du site se fait en lecture seule avec une session ouverte par François (l'agent ne voit jamais le mot de passe). Le site étant décrit par François comme « particulièrement mal fichu », c'est le point le plus fragile : étape 34, avec essai à blanc et un repli (saisie à la main) si la lecture du site se révèle instable.
+
+## Annulations et remplacements (Auvabio), cas relevé par François le 12/11
+
+François craint les erreurs quand Auvabio renvoie un bon. Vérifié dans la boîte : les mails de remplacement existent (5/11 : « Ce bon de commande annule et remplace le bon de commande précédent pour le 04/11/2026, 05/11/2026 »), avec **le même objet** que l'original (« [Commande]COMMANDE ALLIER <dates> ») et une phrase fixe. Règles proposées :
+
+1. **Une commande = une clé** : type de livraison + date(s) (« auvabio · ALLIER · 04/11 et 05/11 »). Un nouveau mail de même clé est une **nouvelle version**, jamais un doublon.
+2. **Version la plus récente par date du mail**, pas par ordre d'arrivée de lecture.
+3. Proposition **pas encore validée** : elle est remplacée, la carte est marquée « remplacée par un bon plus récent ».
+4. Proposition **déjà validée** : l'agent dépose une **correction**, montrée ligne par ligne (« Endive : 9 colis avant, 7 après »). Un produit disparu du nouveau bon apparaît « retiré (0) ». Rien ne s'applique seul ; « Valider » n'écrit que ces lignes, et l'ancienne valeur reste dans le journal.
+5. **Annulation sans remplacement** : proposition « annulation », à valider.
+6. Si une quantité a été **modifiée à la main** depuis la validation, la correction le signale avant de l'écraser.
+7. Le **PDF du bon** est lu en plus du texte du mail : si les deux ne concordent pas, la carte est marquée « à vérifier » et ne peut pas se valider d'un appui.
+8. L'agent ne dit jamais « traité » sur la foi d'un seul mail : la carte garde le lien du mail source.
 
 ## Options d'architecture
 

@@ -48,7 +48,7 @@ François précise que l'appli est une **preuve de concept** testée en conditio
 | 31 | Boîte d'arrivée « Commandes à valider » dans l'onglet Semaine + profil `agent` dans les règles de la base | Code | Opus 5.5 · Élevé (proposé) | **François** : « vas-y » exprès (sauvegarde avant, règles collées par lui) | Idée, après l'étape 30 |
 | 32 | La porte : petit programme sur Cloudflare Pages, appels courts pour l'agent, compte `agent` aux droits limités | Code et service | Opus 5.5 · Élevé (proposé) | **François** : « vas-y » exprès (service sur l'hébergeur, secrets saisis par lui seul) | Idée, après 31 |
 | 33 | Agent planifié pour les mails de commande, lecture seule, **mode à blanc** d'abord | Configuration | Sonnet 5.5 · Moyen | **François** : « vas-y » exprès (accès à la boîte mail) | Idée, après 32 |
-| 34 | Commandes Locavore dans la même boîte d'arrivée (mail ou site, selon la réponse de François) | Configuration | Sonnet 5.5 · Moyen | **François** : « vas-y » exprès | Idée, après 33 |
+| 34 | Commandes Locavor dans la même boîte d'arrivée : le mail déclenche la lecture du site (demande de François, 12/11) ; Panier adéquat reste à la main | Configuration | Sonnet 5.5 · Moyen | **François** : « vas-y » exprès | Idée, après 33 |
 | 35 | Validation automatique par débouché, après des semaines sans erreur (option) | Code | Opus 5.5 · Moyen (proposé) | **François** : « vas-y » exprès (vraies données) | Idée lointaine |
 | 36 | **Piste : « Google Tasks en mieux »**, liste de tâches reliée au Cumul et à Google Agenda | À étudier | À fixer | **François** | Piste notée le 12/11/2026, rien décidé, rien dessiné |
 
