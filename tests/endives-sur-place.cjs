@@ -69,7 +69,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
     const ctx = await nav.newContext({ ...opts, serviceWorkers: 'block' });
     await ctx.addInitScript((w) => {
       localStorage.setItem('recolte.qui', JSON.stringify('Martin'));
-      if (!localStorage.getItem('recolte.ui')) localStorage.setItem('recolte.ui', JSON.stringify({ semaine: w }));
+      if (!localStorage.getItem('recolte.ui')) localStorage.setItem('recolte.ui', JSON.stringify({ semaineLe: ((d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'))(new Date()), semaine: w }));
     }, W);
     const p = await ctx.newPage();
     p.on('pageerror', (e) => erreurs.push(e.message));
@@ -112,7 +112,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   REF2.produits.forEach((p) => { delete p.caisses_sur_place; });
   const T2ctx = await nav.newContext({ ...devices['Pixel 7'], serviceWorkers: 'block' });
   await T2ctx.route('**/referentiel/conditionnements.json', (r) => r.fulfill({ status: 200, contentType: 'application/json', body: JSON.stringify(REF2) }));
-  await T2ctx.addInitScript((w) => { localStorage.setItem('recolte.qui', JSON.stringify('Martin')); localStorage.setItem('recolte.ui', JSON.stringify({ semaine: w })); }, W);
+  await T2ctx.addInitScript((w) => { localStorage.setItem('recolte.qui', JSON.stringify('Martin')); localStorage.setItem('recolte.ui', JSON.stringify({ semaineLe: ((d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'))(new Date()), semaine: w })); }, W);
   const T2 = await T2ctx.newPage();
   T2.on('pageerror', (e) => erreurs.push(e.message));
   await T2.goto(`http://localhost:${PORT_SITE}/`);

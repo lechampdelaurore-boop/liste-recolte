@@ -1,5 +1,9 @@
 # Historique des changements
 
+## 2026-11-16
+
+- **Semaine en cours par défaut** (demande de François : « l'affichage par défaut […] se fait pour la semaine qui est en cours »). Vérifié dans le code : Semaine (Répartir, Cumul, Stock, À récolter, grille), Récolte, Préparation et la boîte des commandes suivaient déjà la semaine choisie, et la page du magasin s'ouvre toujours sur la semaine en cours ; l'historique n'a pas de semaine par défaut (toutes les semaines, la plus récente en haut). Seul écart trouvé et corrigé dans `index.html` : une semaine **à venir** choisie un autre jour restait affichée les jours suivants ; désormais toute semaine autre que la semaine en cours n'est gardée que le jour où elle a été choisie. Test ajouté dans `tests/semaine.cjs`. CACHE v56.
+
 ## 2026-11-12
 
 - **Règle de lecture des débouchés publiée** (21 h 09, par François, action 6 de `docs/PAS_A_PAS_PORTE.md`) : texte publié vérifié identique à `docs/regles-base/fermees.json` ; la porte lit les livraisons dans les réglages de la ferme. Registres seulement.

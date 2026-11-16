@@ -51,6 +51,7 @@ François précise que l'appli est une **preuve de concept** testée en conditio
 | 34 | Commandes Locavor dans la même boîte d'arrivée : le mail déclenche la lecture du site (demande de François, 12/11) ; Panier adéquat reste à la main | Configuration | Sonnet 5.5 · Moyen | **François** : « vas-y » exprès | Idée, après 33 |
 | 35 | Validation automatique par débouché, après des semaines sans erreur (option) | Code | Opus 5.5 · Moyen (proposé) | **François** : « vas-y » exprès (vraies données) | Idée lointaine |
 | 36 | **Piste : « Google Tasks en mieux »**, liste de tâches reliée au Cumul et à Google Agenda | À étudier | À fixer | **François** | Piste notée le 12/11/2026, rien décidé, rien dessiné |
+| 37 | **Semaine en cours par défaut** : chaque écran s'ouvre sur la semaine en cours ; une semaine passée ou à venir choisie un autre jour n'est plus gardée | Code | Opus 5.5 · Moyen (choisi par le coordinateur, étape absente de la roadmap au lancement) | **François** (demande du 16/11) | Fait le 16/11/2026 |
 
 Décidé le 4/11 : la préparation de commandes passe en premier ; les chantiers restent dans ce dépôt pour l'instant ; déménagement à re-décider avant l'étape 12.
 

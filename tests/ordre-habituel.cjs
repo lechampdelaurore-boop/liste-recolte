@@ -90,7 +90,7 @@ const kg = (n) => ({ n, u: 'kg', by: 'François', at: AT });
     const ctx = await nav.newContext({ ...opts, serviceWorkers: 'block' });
     await ctx.addInitScript(([n, w]) => {
       localStorage.setItem('recolte.qui', JSON.stringify(n));
-      if (!localStorage.getItem('recolte.ui')) localStorage.setItem('recolte.ui', JSON.stringify({ semaine: w, view: 'recolte' }));
+      if (!localStorage.getItem('recolte.ui')) localStorage.setItem('recolte.ui', JSON.stringify({ semaineLe: ((d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'))(new Date()), semaine: w, view: 'recolte' }));
     }, [nom, semaine]);
     const p = await ctx.newPage();
     p.on('pageerror', (e) => erreurs.push(nom + ' : ' + e.message));

@@ -1877,11 +1877,13 @@ function duAu(iso, annee){
   return 'du lundi ' + l.getDate() + (l.getMonth() === d.getMonth() ? '' : ' ' + mois(l)) + ' au dimanche ' + d.getDate() + fin;
 }
 function decaler(id, n){ var d = deIso(id); d.setDate(d.getDate() + 7 * n); return jourIso(d); }
-// La semaine choisie reste d'un jour à l'autre, sauf une semaine passée choisie un autre jour : on revient
-// alors à la semaine en cours (le lundi matin, Récolte ouvre la nouvelle semaine, étape 13D).
+// Par défaut, l'appli s'ouvre sur la semaine en cours (demande de François du 16/11/2026). Une autre semaine
+// choisie (passée ou à venir) n'est gardée que le jour même : choisie un autre jour, on revient à la semaine
+// en cours (le lundi matin, Récolte ouvre la nouvelle semaine, étape 13D). Le jour même, elle reste choisie
+// même si le téléphone recharge l'appli (retour d'une autre appli, par exemple).
 function semCourante(){
   var now = new Date(), cette = lundiDe(now);
-  if(!/^\d{4}-\d{2}-\d{2}$/.test(ui.semaine || '') || (ui.semaine < cette && ui.semaineLe !== jourIso(now))){ ui.semaine = cette; ui.semaineLe = jourIso(now); saveUi(); }
+  if(!/^\d{4}-\d{2}-\d{2}$/.test(ui.semaine || '') || (ui.semaine !== cette && ui.semaineLe !== jourIso(now))){ ui.semaine = cette; ui.semaineLe = jourIso(now); saveUi(); }
   return ui.semaine;
 }
 

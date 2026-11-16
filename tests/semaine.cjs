@@ -391,6 +391,42 @@ const duAuAttendu = (d) => { if (typeof d === 'string') { const p = d.split('-')
   verifie(await C.isVisible('#semList section.sp') && !(await C.isVisible('#semGrid')), 'fenêtre rétrécie sous 1000 px : retour aux fiches du téléphone');
   await ctxC.close();
 
+  // 15. Semaine en cours par défaut (demande de François du 16/11/2026) : une autre semaine choisie un autre jour
+  // (passée ou à venir) n'est pas gardée ; choisie aujourd'hui, elle reste après un rechargement.
+  const hier = new Date(); hier.setDate(hier.getDate() - 1);
+  const ouvreSur = async (ui) => {
+    const ctxD = await nav.newContext({ ...devices['Pixel 5'], serviceWorkers: 'block' });
+    await ctxD.addInitScript((u) => { localStorage.setItem('recolte.qui', JSON.stringify('Aurore')); if (!sessionStorage.getItem('pose')) { sessionStorage.setItem('pose', '1'); localStorage.setItem('recolte.ui', JSON.stringify(u)); } }, ui);
+    const D = await ctxD.newPage();
+    D.on('pageerror', (e) => erreurs.push('Aurore (semaine par défaut) : ' + e.message));
+    await D.goto(`http://localhost:${PORT_SITE}/?liste=2026-11-04`);
+    await D.waitForSelector('li.item', { state: 'attached' });
+    await D.click('[data-view="semaine"]');
+    await D.waitForSelector('#semView:not([hidden])');
+    await D.waitForFunction(() => document.querySelector('#semTitre').textContent.length > 0);
+    const r = { titre: await D.textContent('#semTitre'), quand: await D.textContent('#semQuand') };
+    await D.reload(); await D.waitForSelector('li.item', { state: 'attached' }); await D.click('[data-view="semaine"]'); await D.waitForSelector('#semView:not([hidden])');
+    await D.waitForFunction(() => document.querySelector('#semTitre').textContent.length > 0);
+    r.apres = await D.textContent('#semTitre');
+    await D.goto(`http://localhost:${PORT_SITE}/`); await D.waitForTimeout(300);
+    await D.click('[data-view="recolte"]'); await D.waitForFunction(() => document.querySelector('#recSem').textContent.length > 0);
+    r.recolte = await D.textContent('#recSem');
+    await ctxD.close();
+    return r;
+  };
+  const cetteSem = 'Semaine ' + numSemaine(lundi(0)) + ' · ';
+  let o = await ouvreSur({ view: 'semaine', semaine: iso(lundi(1)), semaineLe: iso(hier) });
+  verifie(o.titre.startsWith(cetteSem) && o.quand === 'Cette semaine' && o.recolte.startsWith(cetteSem), 'semaine prochaine choisie hier : l\'appli s\'ouvre sur la semaine en cours, Semaine et Récolte (obtenu « ' + o.titre + ' », « ' + o.recolte + ' »)');
+  o = await ouvreSur({ view: 'semaine', semaine: iso(lundi(-1)), semaineLe: iso(hier) });
+  verifie(o.titre.startsWith(cetteSem) && o.quand === 'Cette semaine', 'semaine dernière choisie hier : l\'appli s\'ouvre sur la semaine en cours (obtenu « ' + o.titre + ' »)');
+  o = await ouvreSur({ view: 'semaine', semaine: iso(lundi(3)) });
+  verifie(o.titre.startsWith(cetteSem), 'semaine lointaine gardée sans date du choix : l\'appli s\'ouvre sur la semaine en cours (obtenu « ' + o.titre + ' »)');
+  o = await ouvreSur({ view: 'semaine' });
+  verifie(o.titre.startsWith(cetteSem) && o.recolte.startsWith(cetteSem), 'premier lancement : semaine en cours, Semaine et Récolte');
+  const prochaine = 'Semaine ' + numSemaine(lundi(1)) + ' · ';
+  o = await ouvreSur({ view: 'semaine', semaine: iso(lundi(1)), semaineLe: iso(new Date()) });
+  verifie(o.titre.startsWith(prochaine) && o.quand === 'Semaine prochaine' && o.apres.startsWith(prochaine) && o.recolte.startsWith(prochaine), 'semaine prochaine choisie aujourd\'hui : gardée, même après un rechargement (obtenu « ' + o.apres + ' »)');
+
   verifie(erreurs.length === 0, 'aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));
   await nav.close(); site.close(); base.close();
   process.exit(echecs ? 1 : 0);
