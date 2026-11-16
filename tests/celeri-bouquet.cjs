@@ -67,7 +67,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   const ctx = await nav.newContext({ ...devices['Pixel 7'], serviceWorkers: 'block' });
   await ctx.addInitScript((w) => {
     localStorage.setItem('recolte.qui', JSON.stringify('Martin'));
-    if (!localStorage.getItem('recolte.ui')) localStorage.setItem('recolte.ui', JSON.stringify({ semaine: w }));
+    if (!localStorage.getItem('recolte.ui')) localStorage.setItem('recolte.ui', JSON.stringify({ semaineLe: ((d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'))(new Date()), semaine: w }));
   }, W);
   const T = await ctx.newPage();
   const capture = async (p, nom) => { if (CAPTURES) await p.screenshot({ path: path.join(CAPTURES, nom + '.png'), fullPage: true }); };

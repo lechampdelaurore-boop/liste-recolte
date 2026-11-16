@@ -102,7 +102,7 @@ const NON_COMPAREES = ['celeri-branche', 'persil', 'poireau'];
     const ctx = await nav.newContext({ ...devices['Pixel 7'], serviceWorkers: 'block' });
     await ctx.addInitScript(([n, w]) => {
       localStorage.setItem('recolte.qui', JSON.stringify(n));
-      if (!localStorage.getItem('recolte.ui')) localStorage.setItem('recolte.ui', JSON.stringify({ semaine: w }));
+      if (!localStorage.getItem('recolte.ui')) localStorage.setItem('recolte.ui', JSON.stringify({ semaineLe: ((d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'))(new Date()), semaine: w }));
     }, [nom, W]);
     const p = await ctx.newPage();
     p.on('pageerror', (e) => erreurs.push(nom + ' : ' + e.message));

@@ -132,7 +132,7 @@ const resume = (l) => l.map((x) => x.nom.split('\n')[0].slice(0, 30) + '→' + (
   const erreurs = [];
   const ouvrir = async (url, opts) => {
     const ctx = await nav.newContext({ ...opts, serviceWorkers: 'block' });
-    await ctx.addInitScript((w) => { localStorage.setItem('recolte.qui', JSON.stringify('François')); if (!localStorage.getItem('recolte.ui')) localStorage.setItem('recolte.ui', JSON.stringify({ semaine: w })); }, W);
+    await ctx.addInitScript((w) => { localStorage.setItem('recolte.qui', JSON.stringify('François')); if (!localStorage.getItem('recolte.ui')) localStorage.setItem('recolte.ui', JSON.stringify({ semaineLe: ((d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'))(new Date()), semaine: w })); }, W);
     const p = await ctx.newPage();
     p.on('pageerror', (e) => erreurs.push(url + ' : ' + e.message));
     p.on('dialog', (d) => d.accept());
