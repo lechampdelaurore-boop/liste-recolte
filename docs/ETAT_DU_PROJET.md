@@ -2,7 +2,9 @@
 
 ## Où on en est
 
-*Au 16 novembre 2026. Source : lecture du dépôt et demandes de François du 4/11 au 16/11.*
+*Au 17 novembre 2026. Source : lecture du dépôt et demandes de François du 4/11 au 17/11.*
+
+- **« Google Tasks en mieux » : plan rédigé (17/11)**, demande de François (cahier « Google Tasks : usage réel et besoins »). `docs/PLAN_TACHES.md` (étapes 36 et 38 à 46 de la feuille de route) : une page de tâches autonome (`taches.html`, même site, mêmes comptes, base sous `listes/taches`, donc sans règle à changer pour le socle), ajout en une ligne, zones RDV / P1 / P2, listes sans date, boîte « Semaine prochaine », récurrences posées par l'appli sans serveur, état « en attente », suivi par planche, reprise unique par fichier d'export ; le privé du foyer demandera une règle de base à part (étape 45). **Documentation seulement** : aucun code, rien dans la base, aucun service ouvert. Choix de conception notés dans `docs/DECISIONS.md` (17/11). **Cinq questions de fait restent pour François** (qui s'en sert, appareils, rappels, tâches terminées, manques). **Non vérifié** : la rapidité de saisie à l'essai, l'export de Google Tasks, ce qu'Ouvre ta ferme permet de lire. Le plan ne reprend rien de personnel du cahier (dépôt public).
 
 - **Semaine en cours par défaut (16/11)**, demande de François : vérifié dans le code que chaque écran s'ouvre sur la semaine en cours (Semaine et ses pages, Récolte, Préparation, boîte des commandes, page du magasin ; l'historique liste toutes les semaines). Un écart corrigé : une semaine à venir choisie un autre jour restait affichée ; maintenant toute autre semaine n'est gardée que le jour même. Vérifié : `tests/semaine.cjs` (cinq cas nouveaux : semaine prochaine ou dernière choisie hier → semaine en cours, premier lancement, semaine prochaine choisie aujourd'hui gardée après rechargement ; le test échoue sur l'ancien code), les autres tests. **Non vérifié en réel** : les vrais téléphones.
 

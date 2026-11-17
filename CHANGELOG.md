@@ -1,5 +1,9 @@
 # Historique des changements
 
+## 2026-11-17
+
+- **Plan « Google Tasks en mieux »** (demande de François, cahier d'usage de Google Tasks) : `docs/PLAN_TACHES.md`, étapes 36 et 38 à 46 de la feuille de route, choix de conception dans `docs/DECISIONS.md`. Documentation seulement : aucun code, rien dans la base, tests non concernés.
+
 ## 2026-11-16
 
 - **Semaine en cours par défaut** (demande de François : « l'affichage par défaut […] se fait pour la semaine qui est en cours »). Vérifié dans le code : Semaine (Répartir, Cumul, Stock, À récolter, grille), Récolte, Préparation et la boîte des commandes suivaient déjà la semaine choisie, et la page du magasin s'ouvre toujours sur la semaine en cours ; l'historique n'a pas de semaine par défaut (toutes les semaines, la plus récente en haut). Seul écart trouvé et corrigé dans `index.html` : une semaine **à venir** choisie un autre jour restait affichée les jours suivants ; désormais toute semaine autre que la semaine en cours n'est gardée que le jour où elle a été choisie. Test ajouté dans `tests/semaine.cjs`. CACHE v56.
