@@ -15,7 +15,7 @@
   {"id": "lv", "nom": "Locavore", "colis": "plastique", "portions": true, "couleur": "#0a5a1c", "livraisons": [
    {"id": "lv", "jours": ["mercredi"], "moment": "soir", "court": "Locavore"}
   ]},
-  {"id": "av", "nom": "Auvabio", "colis": "", "note": "Un débouché en deux livraisons : le 63 reprend le reste du 03.", "couleur": "#5e1a91", "livraisons": [
+  {"id": "av", "nom": "Auvabio", "colis": "plastique", "note": "Un débouché en deux livraisons : le 63 reprend le reste du 03.", "couleur": "#5e1a91", "livraisons": [
    {"id": "av03", "nom": "Auvabio 03", "jours": ["jeudi"], "court": "Auvabio 03"},
    {"id": "av63", "nom": "Auvabio 63", "jours": ["jeudi"], "court": "Auvabio 63", "reprend": "av03"}
   ]},

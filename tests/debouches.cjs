@@ -109,7 +109,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   verifie((await jours(A, 'ta', 'ta-mar')).join() === 'mardi' && (await jours(A, 'ta', 'ta-jeu')).join() === 'jeudi', 'Très Allier : deux livraisons, mardi et jeudi');
   verifie((await jours(A, 'lm', 'lm')).join() === 'mardi,jeudi', 'Panier La Magic : mardi ou jeudi (une livraison, jour selon la semaine)');
   verifie((await A.inputValue(`${fiche('ps')} [data-f="colis"]`)) === 'bois' && (await A.inputValue(`${livr('ps', 'ps')} [data-f="moment"]`)) === 'début d\'après-midi', 'Panier adéquat : colis bois, mercredi début d\'après-midi');
-  verifie((await A.inputValue(`${fiche('ta')} [data-f="colis"]`)) === 'plastique' && (await A.inputValue(`${fiche('av')} [data-f="colis"]`)) === '', 'Très Allier en caisses plastique ; Auvabio : colis non précisé');
+  verifie((await A.inputValue(`${fiche('ta')} [data-f="colis"]`)) === 'plastique' && (await A.inputValue(`${fiche('av')} [data-f="colis"]`)) === 'plastique', 'Très Allier et Auvabio en caisses plastique (Auvabio précisé par François le 18/11)');
   verifie((await A.inputValue(`${fiche('lv')} [data-f="colis"]`)) === 'plastique', 'Locavore en caisses plastique (demande de François du 18/11)');
   verifie((await A.inputValue(`${livr('av', 'av63')} [data-f="reprend"]`)) === 'av03', 'Auvabio : deux livraisons, la 63 reprend le reste de la 03');
   verifie((await jours(A, 'el', 'el')).join() === 'au choix', 'Élie : n\'importe quel jour');
