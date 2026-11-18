@@ -2629,7 +2629,13 @@ function nomStock(did){ var x = stocks().filter(function(s){ return s.id === did
 // « Stock chez … » montre la saisie la plus récente, de la ferme ou du magasin : la dernière saisie l'emporte.
 // Une case vidée par la ferme alors que le magasin a saisi garde la trace {vide:true, by, at}.
 // Lecture discrète : un refus de la base (règles pas encore publiées) ne change ni la pastille ni le reste.
-var mag = {w:null, d:{}, prec:{}, es:{}, coupe:{}, journal:{}};
+// Relu toutes les 3 s quand l'onglet Semaine est à l'écran, toutes les 15 s sinon, sans flux en direct : un flux par
+// magasin suivi, ajouté aux flux de la liste, de la semaine, des réglages et de l'ordre, dépassait les six connexions
+// qu'un navigateur garde vers une même adresse ; les envois (cocher, régler) attendaient alors plusieurs secondes
+// (trouvé le 18/11/2026 avec deux magasins suivis, Très Allier et Locavore).
+var MAG_DELAI = 2500;
+setInterval(function(){ if(ui.view === 'semaine' && document.visibilityState === 'visible' && mag.w) magSuivre(); }, 3000);
+var mag = {w:null, d:{}, prec:{}, lu:{}, lecture:{}, precLu:{}, coupe:{}, journal:{}, gen:0};
 function adresseMagasin(){ return location.href.replace(/[?#].*$/, '').replace(/[^\/]*$/, '') + 'magasin'; }
 function magCle(did, w){ return 'recolte.magasin.' + did + '.' + w; }
 function magLire(chemin){
@@ -2638,8 +2644,10 @@ function magLire(chemin){
     return fetch(dbUrl(chemin), {cache:'no-store'});
   }).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); });
 }
-function magFermer(){ Object.keys(mag.es).forEach(function(did){ mag.es[did].close(); }); mag.es = {}; }
-// Appelé à chaque affichage de l'onglet Semaine : suit le stock du magasin de chaque débouché qui suit son stock.
+// Oublie les lectures en cours (changement de semaine, reconnexion, déconnexion) : leur réponse sera ignorée.
+function magFermer(){ mag.gen++; mag.lu = {}; mag.lecture = {}; mag.precLu = {}; }
+// Appelé à chaque affichage de l'onglet Semaine, toutes les 3 s sur cet onglet et toutes les 15 s sinon : relit le
+// stock du magasin de chaque débouché qui suit son stock.
 function magSuivre(){
   if(!sem.id) return;
   if(mag.w !== sem.id){ magFermer(); mag.w = sem.id; mag.d = {}; mag.prec = {}; mag.coupe = {}; mag.journal = {}; }
@@ -2651,32 +2659,31 @@ function magSuivre(){
   });
 }
 function magConnecter(did){
-  if(!dbPret() || !window.EventSource || mag.es[did]) return;
-  // Flux fermé (réseau coupé ou accès refusé) : on réessaie au plus une fois par minute.
+  if(!dbPret() || mag.lecture[did]) return;
+  if(mag.lu[did] && Date.now() - mag.lu[did] < MAG_DELAI) return;
+  // Lecture refusée (accès pas encore ouvert) ou réseau coupé : on réessaie au plus une fois par minute.
   if(mag.coupe[did] && Date.now() - mag.coupe[did] < 60000) return;
-  var w = mag.w, flux = mag.es[did] = new EventSource(dbUrl('/magasins/' + did + '/semaines/' + w));
-  function appliquer(ev, patch){
-    if(mag.w !== w || mag.es[did] !== flux) return;
-    var m = JSON.parse(ev.data); if(!m) return;
-    var o = {d:mag.d[did] || {}};
-    var base = m.path.replace(/\/$/, '');
-    if(patch) Object.keys(m.data || {}).forEach(function(k){ semSetIn(o, 'd' + base + '/' + k, m.data[k]); });
-    else semSetIn(o, 'd' + base, m.data);
-    mag.d[did] = o.d || {}; ls(magCle(did, w), mag.d[did]); crCache = null;
+  var w = mag.w, gen = mag.gen;
+  mag.lecture[did] = true;
+  magLire('/magasins/' + did + '/semaines/' + w).then(function(v){
+    if(mag.gen !== gen || mag.w !== w) return;
+    mag.lecture[did] = false; mag.lu[did] = Date.now(); delete mag.coupe[did];
+    v = v && typeof v === 'object' ? v : {};
+    if(JSON.stringify(v) === JSON.stringify(mag.d[did] || {})) return;
+    mag.d[did] = v; ls(magCle(did, w), v); crCache = null;
     if(!drag && ui.view === 'semaine') render();
-  }
-  flux.addEventListener('put', function(ev){ appliquer(ev, false); });
-  flux.addEventListener('patch', function(ev){ appliquer(ev, true); });
-  function couper(){ flux.close(); if(mag.es[did] === flux){ delete mag.es[did]; mag.coupe[did] = Date.now(); } }
-  flux.addEventListener('error', function(){ if(flux.readyState === 2) couper(); });
-  flux.addEventListener('cancel', couper);
-  flux.addEventListener('auth_revoked', function(){ couper(); delete mag.coupe[did]; jetonRevoque(); });
+  }).catch(function(){
+    if(mag.gen !== gen) return;
+    mag.lecture[did] = false; mag.lu[did] = Date.now(); mag.coupe[did] = Date.now();
+  });
   // La semaine d'avant, une fois : ce que le magasin avait compté, montré en aide dans une case vide.
+  if(mag.precLu[did]) return;
+  mag.precLu[did] = true;
   var avant = decaler(w, -1);
   magLire('/magasins/' + did + '/semaines/' + avant).then(function(v){
-    if(mag.w !== w) return;
+    if(mag.gen !== gen || mag.w !== w) return;
     mag.prec[did] = v || {}; ls(magCle(did, avant), mag.prec[did]); if(ui.view === 'semaine') render();
-  }).catch(function(){});
+  }).catch(function(){ if(mag.gen === gen) mag.precLu[did] = false; });
 }
 // Un produit saisi par le magasin pour la semaine ouverte, absent de la semaine de la ferme : il y entre tout
 // seul (fiche du référentiel, signée « Igor (magasin) »), pour apparaître partout (Répartir, Cumul, Stock, grille).
