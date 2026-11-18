@@ -1,11 +1,10 @@
 # État du projet : Liste de récolte
 
-*Mise à jour du 18 novembre 2026.*
-
-- **Annuler une récolte (18/11) : proposition validée, code pas encore fait.** François a validé « un bouton ⋯ par ligne dans Récolte, sans motif, et la récolte annulée apparaît barrée dans Préparation » (`docs/DECISIONS.md`, feuille de route ligne 38). Le code attend la fin de la PR du colisage Locavore (même fichier) et se fera en Opus 5.5. **Rien de codé, non vérifié.**
 ## Où on en est
 
 *Au 16 novembre 2026. Source : lecture du dépôt et demandes de François du 4/11 au 16/11.*
+
+- **Annuler une récolte (18/11) : proposition validée, code pas encore fait.** François a validé « un bouton ⋯ par ligne dans Récolte, sans motif, et la récolte annulée apparaît barrée dans Préparation » (`docs/DECISIONS.md`, feuille de route ligne 38). Le code attend la fin de la PR du colisage Locavore (même fichier) et se fera en Opus 5.5. **Rien de codé, non vérifié.**
 
 - **Semaine en cours par défaut (16/11)**, demande de François : vérifié dans le code que chaque écran s'ouvre sur la semaine en cours (Semaine et ses pages, Récolte, Préparation, boîte des commandes, page du magasin ; l'historique liste toutes les semaines). Un écart corrigé : une semaine à venir choisie un autre jour restait affichée ; maintenant toute autre semaine n'est gardée que le jour même. Vérifié : `tests/semaine.cjs` (cinq cas nouveaux : semaine prochaine ou dernière choisie hier → semaine en cours, premier lancement, semaine prochaine choisie aujourd'hui gardée après rechargement ; le test échoue sur l'ancien code), les autres tests. **Non vérifié en réel** : les vrais téléphones.
 
