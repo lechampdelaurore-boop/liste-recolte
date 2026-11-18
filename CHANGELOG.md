@@ -2,6 +2,8 @@
 
 ## 2026-11-18
 
+- **Portions Locavore : plan validé, registres seulement** (demande de François : saisir le détail des commandes en portions, par exemple 3 × 1 kg + 500 g pour 3,5 kg de patates douces ; « Oui, code-le »). Ligne 40 de la feuille de route et décision du 18/11 dans `docs/DECISIONS.md`. Aucun code, aucune donnée touchée.
+
 - **Cumul modifiable sur le téléphone** (demande de François : « Dans la semaine, partie cumul […] je veux pouvoir modifier les valeurs, y compris sur téléphone »). Page « Cumul » de l'onglet Semaine : toucher une case ouvre une petite fenêtre avec la même case que dans « Répartir » (clavier, − et +, unité, « tout », coche du reste 03 → 63) et le reste du produit ; la valeur s'écrit au même endroit que dans « Répartir ». Sur ordinateur, rien ne change (la grille est déjà modifiable et tient lieu de Cumul). Les cases de « Répartir » et de la fenêtre viennent maintenant d'une même fonction (`champHtml`). Nouveau test `tests/cumul-modifiable.cjs`. `CACHE` recolte-v59.
 
 - **Annuler une récolte, étape 38** (demande de François : « que depuis la liste de récoltes, je puisse annuler une récolte […] qu'elle apparaisse après dans préparation de commande comme annulée »). Bouton « ⋯ » sur chaque ligne de l'onglet Récolte, confirmation, sans motif, « Rétablir » ; ligne grise barrée « Annulée par … à … » dans « Récoltes annulées » ; hors des caisses et de la barre « Récolté » ; Préparation : lignes barrées « Récolte annulée » en rouge, sans case, hors du compte ; historique : « Récolte annulée : … ». Donnée `listes/<jour>/annule/<produit>` {by, at}, règles inchangées. Nouveau test `tests/annuler.cjs`. `CACHE` recolte-v58.
