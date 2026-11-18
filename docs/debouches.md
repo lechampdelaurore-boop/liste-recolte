@@ -7,8 +7,8 @@ Source : message de François du 6/11/2026 (dicté à la voix ; les noms ci-dess
 | **Très Allier** (magasin) | **Prioritaire** | Caisses plastique (PB, PH, GB, GH) | Mardi et jeudi |
 | **Locavore** | Ensuite | Colis bois | Mercredi soir |
 | **Clients individuels** (par exemple **Élie**, avec un seul L) | | Non précisé | N'importe quel jour |
-| **Auvabio 03** | | Non précisé | Jeudi (le 63 reprend le reste) |
-| **Auvabio 63** | | Non précisé | Jeudi aussi (seconde livraison) |
+| **Auvabio 03** | | Colis plastique (précisé par François le 18/11/2026) | Jeudi (le 63 reprend le reste) |
+| **Auvabio 63** | | Colis plastique (précisé par François le 18/11/2026) | Jeudi aussi (seconde livraison) |
 | **Marché de Tronget** | | Colis plastique | Tous les vendredis |
 | **Panier La Magic** | | Colis plastique | Avec **l'une** des livraisons Très Allier : mardi ou jeudi, selon la semaine |
 | **Panier adéquat** | | Colis bois | Toujours le mercredi, début d'après-midi |
