@@ -127,6 +127,19 @@ li.t.vient{animation:vient 1.2s ease-out}
 .origine{flex-shrink:0;color:var(--sec);margin-top:3px}
 .origine svg.i{width:15px;height:15px}
 .puce{width:7px;height:7px;border-radius:50%;background:var(--anthracite);flex-shrink:0;margin:9px 7px 0}
+li.t.ast{flex-wrap:wrap;row-gap:2px}
+li.t.ast > .tx,li.t.ast > textarea.ed{flex-basis:0}
+.ast-info{flex:0 0 calc(100% - 32px);margin-left:32px;display:flex;flex-wrap:wrap;gap:4px;align-items:center;font-family:var(--f-ui);font-size:11px}
+.ast-info .j{border-radius:99px;padding:1px 7px;background:var(--vert-pale);color:var(--vert);font-weight:600}
+.ast-info .sans{color:var(--sec)}
+.ast-info .zone{border-radius:99px;padding:1px 7px;background:var(--gris);color:var(--anthracite);font-weight:600}
+.ast-info .pause{border-radius:99px;padding:1px 7px;background:var(--orange-pale);color:var(--orange-txt);font-weight:600}
+li.t.ast.en-pause > .tx{opacity:.5}
+.jours-choix{display:flex;gap:4px;flex-wrap:wrap}
+.jours-choix button{flex:1 1 0;min-width:40px;min-height:44px;border:1px solid var(--filet);background:#fff;border-radius:var(--r-bloc);font-family:var(--f-ui);font-weight:600;font-size:12px;color:var(--texte)}
+.jours-choix button[aria-pressed="true"]{border:2px solid var(--vert);background:var(--vert-pale);color:var(--vert)}
+.case-pause{flex-direction:row!important;align-items:center;gap:10px!important;min-height:44px}
+.case-pause input{width:22px;height:22px;accent-color:var(--vert)}
 li.t.fige{cursor:default}
 li.t.fige .tx{cursor:default}
 .pan.fige .plus,.pan.fige .ajout-ligne{display:none!important}
@@ -267,6 +280,7 @@ dialog.feuille{margin:auto 0 0;max-width:100%;border-radius:var(--r-feuille) var
   <main>
     <div class="outils">
       <h1>Planning</h1>
+      <button class="btn secondaire" type="button" data-a="repartir">Répartir les astreintes</button>
       <button class="btn principal" type="button" data-a="nouvelle-liste">Nouvelle liste</button>
     </div>
     <p class="message" id="message" hidden></p>
@@ -356,7 +370,7 @@ dialog.feuille{margin:auto 0 0;max-width:100%;border-radius:var(--r-feuille) var
 'use strict';
 /* ==========================================================================================================
    Aurore Task : les listes de tâches de la ferme (remplace Google Tasks). Cahier des charges :
-   docs/CAHIER_DES_CHARGES_AURORE_TASK.md. Étape 36A (le socle).
+   docs/CAHIER_DES_CHARGES_AURORE_TASK.md. Étapes 36A (le socle), 36B (encarts, personnes, verrou, Réglages) et 36C (astreintes).
    Page autonome, sans bibliothèque, comme magasin.html : elle recopie le code de connexion de index.html (même compte
    gardé sur l'appareil, clé recolte.compte : connecté au Cumul = connecté ici). Une correction de la connexion se fait
    dans les trois pages.
@@ -382,6 +396,7 @@ var SEP = /^\s*-{3,}\s*$/;
 // Étape 36B : encarts, personnes, couleur du texte, verrou. Noms des encarts, personnes et nom affiché : réglages
 // (taches/reglages), sinon le fichier de départ de la ferme (referentiel/taches-depart.json) ; rien de tout ça dans le code.
 var ENCARTS = ['rdv', 'p1', 'p2'];
+var JOURS_COURTS = ['Lun', 'Mar', 'Mer', 'Jeu', 'Ven', 'Sam', 'Dim'];
 var NOMS_ENCARTS = {rdv:'RDV', p1:'P1', p2:'P2'};
 var PALETTE = {rouge:['#fbe0e3', '#8f1d2a', 'Rouge'], rose:['#fbe3ef', '#9c2257', 'Rose'], bleu:['#e1eaff', '#2a3f8a', 'Bleu'], vert:['#d6ecdf', '#0f4d2b', 'Vert'], orange:['#fbe6cf', '#8a4302', 'Orange'], violet:['#efe3f7', '#6a2f8f', 'Violet'], gris:['#eeeeee', '#373737', 'Gris']};
 var COULEURS_TEXTE = [['', '#111111', 'Noir'], ['rouge', '#b02a37', 'Rouge'], ['orange', '#a14d06', 'Orange'], ['vert', '#0b694d', 'Vert'], ['violet', '#6a2f8f', 'Violet'], ['gris', '#5f5f5f', 'Gris']];
@@ -545,6 +560,71 @@ function aEncarts(L){ var e = encartsDe(L); return ENCARTS.some(function(k){ ret
 function encartPlus(L){ var e = encartsDe(L); return e.p1 ? 'p1' : ''; }
 function verrou(L){ var l = D.listes[L]; return l && l.verrou && typeof l.verrou === 'object' ? l.verrou : null; }
 function verrouDe(id){ var t = D.t[id]; return t ? verrou(t.liste) : null; }
+/* ---------- Astreintes (étape 36C) : modèles dans la liste Astreintes, recopiés dans les jours à la demande ----------
+   Champs d'une astreinte (tâche de premier niveau de la liste Astreintes) : jours ('024' = lundi, mercredi, vendredi),
+   zone ('rdv', 'p1', 'p2' ; P1 sinon), heure (RDV), pause (true = ignorée). Une copie porte origine 'a:<id du modèle>'. */
+function estAstreinte(id){ var t = D.t[id] || (IX.T && IX.T[id]); return !!t && !t.sep && !IX.par[id] && !!IX.ok[t.liste] && IX.ok[t.liste].type === 'astreintes'; }
+function joursDe(t){ var r = []; String(t.jours || '').split('').forEach(function(c){ var j = Number(c); if(/^[0-6]$/.test(c) && r.indexOf(j) < 0) r.push(j); }); return r.sort(); }
+function zoneDe(t){ return ENCARTS.indexOf(t.zone) >= 0 ? t.zone : 'p1'; }
+function astInfoHtml(t){
+  var j = joursDe(t), z = zoneDe(t), h = [];
+  if(j.length) j.forEach(function(k){ h.push('<span class="j">' + JOURS_COURTS[k] + '</span>'); });
+  else h.push('<span class="sans">Aucun jour</span>');
+  h.push('<span class="zone">' + esc(nomEncart(z)) + (z === 'rdv' && /^\d\d:\d\d$/.test(t.heure || '') ? ' ' + esc(t.heure) : '') + '</span>');
+  if(t.pause) h.push('<span class="pause">En pause</span>');
+  return '<div class="ast-info">' + h.join('') + '</div>';
+}
+function listeAstreintes(){ return IX.listes.filter(function(l){ return l.type === 'astreintes'; })[0] || null; }
+function listeDuJourN(j){ return IX.listes.filter(function(l){ return l.type === 'jour' && Number(l.jour) === j; })[0] || null; }
+// Recopie chaque astreinte (et ses sous-tâches) dans chacun de ses jours, à la fin de sa zone. Jamais toute seule.
+// Pas de doublon : une copie pas cochée du même modèle dans ce jour suffit. En pause : ignorée.
+function repartirAstreintes(){
+  var A = listeAstreintes(); if(!A) return;
+  var c = {}, encs = {}, fins = {}, pose = 0, deja = 0, pause = 0, sansJour = 0, fige = 0, t0 = Date.now();
+  var copies = {};
+  Object.keys(D.t).forEach(function(x){ var o = D.t[x] && D.t[x].origine; if(o && /^a:/.test(o)) copies[D.t[x].liste + '|' + o] = true; });
+  enfants(A.id, '').forEach(function(r){
+    var m = D.t[r]; if(!m || m.sep) return;
+    if(m.pause){ pause++; return; }
+    var js = joursDe(m); if(!js.length){ sansJour++; return; }
+    js.forEach(function(j){
+      var Lj = listeDuJourN(j); if(!Lj) return;
+      if(verrou(Lj.id)){ fige++; return; }
+      if(copies[Lj.id + '|a:' + r]){ deja++; return; }
+      var z = zoneDe(m);
+      if(!encs[Lj.id]) encs[Lj.id] = encartsDe(Lj.id);
+      if(!encs[Lj.id][z]){ encs[Lj.id][z] = true; c['listes/' + Lj.id + '/encarts'] = encs[Lj.id]; }
+      var k = Lj.id + '#' + z;
+      if(fins[k] == null){ var f = enfants(Lj.id, '', z), der = f[f.length - 1]; fins[k] = der ? Number(D.t[der].ordre) || 0 : 0; }
+      fins[k] += 1;
+      var nid = nouvelId();
+      var copie = {liste:Lj.id, parent:'', encart:z, ordre:fins[k], texte:String(m.texte || ''), origine:'a:' + r, by:qui(), at:t0};
+      if(z === 'rdv' && /^\d\d:\d\d$/.test(m.heure || '')) copie.heure = m.heure;
+      if(m.pour) copie.pour = m.pour;
+      if(m.couleur) copie.couleur = m.couleur;
+      c['t/' + nid] = copie;
+      (function sous(de, vers){
+        enfants(A.id, de).forEach(function(s){
+          var u = D.t[s], sid = nouvelId(), o = {liste:Lj.id, parent:vers, encart:z, ordre:Number(u.ordre) || 0, texte:String(u.texte || ''), by:qui(), at:t0};
+          if(u.sep){ o.sep = true; o.texte = ''; }
+          if(u.pour) o.pour = u.pour;
+          if(u.couleur) o.couleur = u.couleur;
+          c['t/' + sid] = o; sous(s, sid);
+        });
+      })(r, nid);
+      copies[Lj.id + '|a:' + r] = true;
+      pose++;
+    });
+  });
+  ecrire(c);
+  var m = [pose + ' tâche' + (pose > 1 ? 's' : '') + ' posée' + (pose > 1 ? 's' : '')];
+  if(deja) m.push(deja + ' déjà présente' + (deja > 1 ? 's' : ''));
+  if(pause) m.push(pause + ' en pause');
+  if(sansJour) m.push(sansJour + ' sans jour');
+  if(fige) m.push(fige + ' dans une liste verrouillée');
+  montrerBandeau(m.join(', '), null);
+  return {pose:pose, deja:deja, pause:pause, sansJour:sansJour, fige:fige};
+}
 function listeDuJour(){
   var j = (new Date().getDay() + 6) % 7;
   var l = IX.listes.filter(function(x){ return x.type === 'jour' && Number(x.jour) === j; })[0];
@@ -883,9 +963,10 @@ function ligneHtml(x){
     : '<div class="tx"' + (fige ? '' : ' data-a="modifier"') + (coul ? ' style="color:' + coul[1] + '"' : '') + '>' + heure + esc(texte) + '</div>';
   var pe = t.pour && personne(t.pour), pas = pe ? '<span class="pastille" style="background:' + PALETTE[pe.couleur][0] + ';color:' + PALETTE[pe.couleur][1] + '" title="Pour ' + esc(pe.nom) + '" aria-label="Pour ' + esc(pe.nom) + '">' + esc(pe.initiale) + '</span>' : '';
   var orig = t.origine ? '<span class="origine" title="' + (/^a:/.test(t.origine) ? 'Astreinte' : 'Agenda') + '" aria-label="' + (/^a:/.test(t.origine) ? 'Venue d\'une astreinte' : 'Venue de l\'agenda') + '">' + (/^a:/.test(t.origine) ? ICO.astreinte : ICO.agenda) + '</span>' : '';
-  if(fige) return '<li class="t fige" data-id="' + id + '" data-n="' + n + '"' + st + '><span class="puce" aria-hidden="true"></span>' + corps + orig + pas + '</li>';
-  return '<li class="t" data-id="' + id + '" data-n="' + n + '"' + st + '><button class="coche" type="button" data-a="cocher" aria-label="Cocher « ' + esc(texte) + ' »"></button>' + corps + orig + pas +
-    '<button class="pt" type="button" data-a="menu-tache" aria-label="Menu de la tâche « ' + esc(texte) + ' »">' + ICO.pt + '</button></li>';
+  var ast = estAstreinte(x.id), info = ast ? astInfoHtml(t) : '', cl = ast ? ' ast' + (t.pause ? ' en-pause' : '') : '';
+  if(fige) return '<li class="t fige' + cl + '" data-id="' + id + '" data-n="' + n + '"' + st + '><span class="puce" aria-hidden="true"></span>' + corps + orig + pas + info + '</li>';
+  return '<li class="t' + cl + '" data-id="' + id + '" data-n="' + n + '"' + st + '><button class="coche" type="button" data-a="cocher" aria-label="Cocher « ' + esc(texte) + ' »"></button>' + corps + orig + pas +
+    '<button class="pt" type="button" data-a="menu-tache" aria-label="Menu de la tâche « ' + esc(texte) + ' »">' + ICO.pt + '</button>' + info + '</li>';
 }
 var CLASSES_ENCART = {rdv:'info', p1:'warn', p2:'neutre'};
 function panneauHtml(l){
@@ -1148,6 +1229,15 @@ function reglagesTacheHtml(id){
       ENCARTS.filter(function(k){ return e[k]; }).map(function(k){ return '<button type="button" data-zone="' + k + '"' + (cur === k ? ' aria-pressed="true"' : '') + '>' + esc(nomEncart(k)) + '</button>'; }).join('') + '</div></div>');
     if(cur === 'rdv') h.push('<label class="menu-bloc"><span>Heure du rendez-vous</span><input class="heure-champ" type="time" id="tacheHeure" value="' + esc(/^\d\d:\d\d$/.test(t.heure || '') ? t.heure : '') + '"></label>');
   }
+  if(estAstreinte(id)){
+    var js = joursDe(t), z = zoneDe(t);
+    h.push('<div class="menu-bloc"><span>Jours</span><div class="jours-choix" role="group" aria-label="Jours de l\'astreinte">' +
+      JOURS_COURTS.map(function(n, j){ return '<button type="button" data-jour="' + j + '" aria-label="' + JOURS[j] + '"' + (js.indexOf(j) >= 0 ? ' aria-pressed="true"' : '') + '>' + n + '</button>'; }).join('') + '</div></div>');
+    h.push('<div class="menu-bloc"><span>Zone</span><div class="seg" role="group" aria-label="Zone de l\'astreinte">' +
+      ENCARTS.map(function(k){ return '<button type="button" data-azone="' + k + '"' + (z === k ? ' aria-pressed="true"' : '') + '>' + esc(nomEncart(k)) + '</button>'; }).join('') + '</div></div>');
+    if(z === 'rdv') h.push('<label class="menu-bloc"><span>Heure du rendez-vous</span><input class="heure-champ" type="time" id="tacheHeure" value="' + esc(/^\d\d:\d\d$/.test(t.heure || '') ? t.heure : '') + '"></label>');
+    h.push('<label class="menu-bloc case-pause"><input type="checkbox" id="tachePause"' + (t.pause ? ' checked' : '') + '><span>En pause (pas recopiée)</span></label>');
+  }
   h.push('<div class="menu-bloc"><span>Couleur du texte</span><div class="couleurs" role="group" aria-label="Couleur du texte">' +
     COULEURS_TEXTE.map(function(c){ return '<button type="button" data-coul="' + c[0] + '" aria-label="' + c[2] + '" style="color:' + c[1] + '"' + ((t.couleur || '') === c[0] ? ' aria-pressed="true"' : '') + '>Aa</button>'; }).join('') + '</div></div>');
   return h.join('');
@@ -1157,11 +1247,18 @@ $('#tacheRegl').addEventListener('click', function(e){
   if(b.dataset.pour !== undefined) changerTache(id, 'pour', b.dataset.pour);
   else if(b.dataset.zone !== undefined) changerEncart(id, b.dataset.zone);
   else if(b.dataset.coul !== undefined) changerTache(id, 'couleur', b.dataset.coul);
+  else if(b.dataset.azone !== undefined) changerTache(id, 'zone', b.dataset.azone);
+  else if(b.dataset.jour !== undefined){
+    var js = joursDe(D.t[id]), j = Number(b.dataset.jour), i = js.indexOf(j);
+    if(i >= 0) js.splice(i, 1); else js.push(j);
+    changerTache(id, 'jours', js.sort().join(''));
+  }
   else return;
   $('#tacheRegl').innerHTML = reglagesTacheHtml(id);
 });
 $('#tacheRegl').addEventListener('change', function(e){
   if(e.target.id === 'tacheHeure' && menuId && D.t[menuId]) changerTache(menuId, 'heure', /^\d\d:\d\d$/.test(e.target.value) ? e.target.value : '');
+  if(e.target.id === 'tachePause' && menuId && D.t[menuId]){ changerTache(menuId, 'pause', e.target.checked ? true : null); }
 });
 function fermerMenuTache(){
   var d = $('#tacheDlg');
@@ -1196,6 +1293,7 @@ function ouvrirMenuListe(L){
   var nf = nbFaites(L), a = [];
   a.push('<button class="act" type="button" data-a="renommer">' + ICO.crayon + 'Renommer la liste</button>');
   a.push('<button class="act" type="button" data-a="faites"' + (nf ? '' : ' disabled') + '>' + ICO.retour + 'Faites récemment<small>' + nf + '</small></button>');
+  if(l.type === 'astreintes') a.push('<button class="act" type="button" data-a="repartir">' + ICO.astreinte + 'Répartir les astreintes dans les jours</button>');
   var v = verrou(L), e = encartsDe(L), manque = ENCARTS.filter(function(k){ return !e[k]; });
   if(l.type !== 'astreintes' && !v) manque.forEach(function(k){ a.push('<button class="act" type="button" data-a="ajouter-encart" data-e="' + k + '">' + ICO.encart + 'Ajouter l\'encart ' + esc(nomEncart(k)) + '</button>'); });
   a.push(v ? '<button class="act" type="button" data-a="deverrouiller">' + ICO.ouvert + 'Déverrouiller la liste</button>'
@@ -1210,7 +1308,8 @@ $('#listeDlg').addEventListener('click', function(e){
   var L = menuListe, a = b.dataset.a;
   $('#listeDlg').close();
   if(!L || !IX.ok[L]) return;
-  if(a === 'ajouter-encart') ajouterEncart(L, b.dataset.e);
+  if(a === 'repartir') repartirAstreintes();
+  else if(a === 'ajouter-encart') ajouterEncart(L, b.dataset.e);
   else if(a === 'verrouiller') verrouiller(L, true);
   else if(a === 'deverrouiller') verrouiller(L, false);
   else if(a === 'renommer') demanderNom('Renommer la liste', IX.ok[L].nom, function(n){ renommerListe(L, n); });
@@ -1363,6 +1462,7 @@ document.addEventListener('click', function(e){
   else if(a === 'aller-astreintes'){ var as = IX.listes.filter(function(l){ return l.type === 'astreintes'; })[0]; if(as) allerA(as.id, true); }
   else if(a === 'compte'){ ouvrirCompte(); }
   else if(a === 'reglages'){ ouvrirReglages(); }
+  else if(a === 'repartir'){ repartirAstreintes(); }
 });
 document.addEventListener('change', function(e){
   var c = e.target.closest('[data-a="afficher"]'); if(!c) return;
