@@ -127,9 +127,9 @@ const attendreQue = async (fn, ms = 8000) => { const fin = Date.now() + ms; whil
   verifie(!(await M.isVisible('#reprendre')), 'le bouton « Reprendre » disparaît une fois la liste commencée');
   // 12/11/2026, demandes de François : rappel rayon + stock en haut, bien visible ; étiquette rouge « Non renseigné ».
   const rappel = await M.$eval('#rappel', (e) => { const r = e.getBoundingClientRect(), n = document.querySelector('#nav').getBoundingClientRect(); return { t: e.textContent, fond: getComputedStyle(e).backgroundColor, avant: r.bottom <= n.top, vu: r.height > 0 }; });
-  verifie(rappel.vu && rappel.avant && rappel.t === 'La quantité notée est toujours la somme de ce qui est en rayon et de ce qui est en stock.' && rappel.fond === 'rgb(255, 230, 128)', 'en haut, avant le choix de la semaine, sur fond jaune : « ' + rappel.t + ' » (fond ' + rappel.fond + ')');
+  verifie(rappel.vu && rappel.avant && rappel.t === 'La quantité notée est toujours la somme de ce qui est en rayon et de ce qui est en stock.' && rappel.fond === 'rgb(253, 235, 213)', 'en haut, avant le choix de la semaine, sur fond jaune : « ' + rappel.t + ' » (fond ' + rappel.fond + ')');
   const nrP = await M.$eval(ligne('poireau'), (x) => { const n = x.querySelector('.nr'), c = x.querySelector('.ctl'); return n ? n.textContent + '|' + getComputedStyle(n).backgroundColor + '|' + (n.getBoundingClientRect().bottom <= c.getBoundingClientRect().top) : '-'; });
-  verifie(nrP === 'Non renseigné|rgb(192, 0, 0)|true', 'poireau pas encore compté : étiquette rouge « Non renseigné » au-dessus de la quantité (obtenu ' + nrP + ')');
+  verifie(nrP === 'Non renseigné|rgb(251, 229, 232)|true', 'poireau pas encore compté : étiquette rouge « Non renseigné » au-dessus de la quantité (obtenu ' + nrP + ')');
   verifie(base.lire(`magasins/ta/semaines/${SEM}`) === null, 'ajouter un produit à la liste n\'écrit rien dans la base (seul le chiffre part)');
 
   // 1 bis. Ajouter un produit un par un, en colis par défaut

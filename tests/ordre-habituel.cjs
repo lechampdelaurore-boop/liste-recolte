@@ -104,7 +104,7 @@ const kg = (n) => ({ n, u: 'kg', by: 'François', at: AT });
   const attendre = (p, ms) => p.waitForTimeout(ms || 500);
   const ordre = (p) => p.$$eval('#todo li.item', (e) => e.map((x) => x.dataset.id));
   const info = async (p) => (await p.textContent('#ordreInfo')).trim();
-  const bouton = (p) => p.$eval('#ordreBtn', (b) => ({ texte: b.textContent.trim(), actif: !b.disabled, vu: !b.closest('[hidden]') && b.getBoundingClientRect().height > 0, h: Math.round(b.getBoundingClientRect().height) }));
+  const bouton = (p) => p.$eval('#ordreBtn', (b) => ({ texte: b.textContent.trim(), icone: !!b.querySelector('svg.ico'), actif: !b.disabled, vu: !b.closest('[hidden]') && b.getBoundingClientRect().height > 0, h: Math.round(b.getBoundingClientRect().height) }));
   const habitude = () => base.lire('listes/reglages/ordre');
   const ids = () => { const h = habitude(); return h ? (Array.isArray(h.ids) ? h.ids : Object.values(h.ids)) : []; };
   const enHaut = async (p, id) => { await p.hover(`#todo li.item[data-id="${id}"] .prod`); await p.click(`#todo li.item[data-id="${id}"] .bouger [data-a="haut"]`); await attendre(p, 400); };
@@ -138,7 +138,7 @@ const kg = (n) => ({ n, u: 'kg', by: 'François', at: AT });
   let h = habitude();
   verifie(h && ids().join() === 'carotte,poireau,bette,mesclun' && h.by === 'Aurore' && typeof h.at === 'number', 'clic : l\'ordre habituel est dans les réglages de la ferme (listes/reglages/ordre), avec le prénom et l\'heure');
   b = await bouton(A);
-  verifie(!b.actif && b.texte === '✓ Ordre habituel' && (await info(A)).startsWith('Cette liste suit l\'ordre habituel (enregistré par Aurore'), 'après le clic : « ✓ Ordre habituel », et la phrase dit qui l\'a enregistré');
+  verifie(!b.actif && b.texte === 'Ordre habituel' && b.icone && (await info(A)).startsWith('Cette liste suit l\'ordre habituel (enregistré par Aurore'), 'après le clic : « ✓ Ordre habituel », et la phrase dit qui l\'a enregistré');
   await capture(A, '2-ordinateur-ordre-enregistre');
 
   // 3. Le mercredi, pas encore trié, prend l'ordre habituel tout seul ; les nouveaux produits à la fin

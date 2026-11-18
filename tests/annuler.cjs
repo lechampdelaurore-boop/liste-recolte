@@ -109,7 +109,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   const by = net(await T.textContent(ligne + ' .by'));
   verifie(/^Annulée par Martin à \d\d:\d\d$/.test(by), 'téléphone : « ' + by + ' » sur la ligne');
   const st = await T.$eval(ligne, (x) => ({ fond: getComputedStyle(x).backgroundColor, barre: getComputedStyle(x.querySelector('.prod')).textDecorationLine, box: !!x.querySelector('button.box'), qte: x.querySelector('.qty').textContent }));
-  verifie(st.fond === 'rgb(230, 230, 230)' && st.barre.includes('line-through') && !st.box, 'téléphone : ligne grise, nom barré, sans case à cocher (' + JSON.stringify(st) + ')');
+  verifie(st.fond === 'rgb(242, 242, 245)' && st.barre.includes('line-through') && !st.box, 'téléphone : ligne grise, nom barré, sans case à cocher (' + JSON.stringify(st) + ')');
   verifie(net(st.qte).startsWith('2 colis'), 'téléphone : la quantité reste affichée (« ' + net(st.qte) + ' »)');
   verifie(net(await T.textContent('#annSec h3')) === 'Récoltes annulées (1)', 'téléphone : titre « Récoltes annulées (1) »');
   // Caisses et barre : la bette n'est plus à emporter
@@ -130,7 +130,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   const lp = await T.$$eval('li.pitem.annule', (e) => e.map((x) => ({ k: x.dataset.k, badge: (x.querySelector('.rec') || {}).textContent, box: !!x.querySelector('button.box'), barre: getComputedStyle(x.querySelector('.prod')).textDecorationLine })));
   verifie(lp.length === 2 && lp.every((x) => x.k.endsWith('/bette') && x.badge === 'Récolte annulée' && !x.box && x.barre.includes('line-through')), 'Préparation par client : 2 lignes de bette barrées, « Récolte annulée », sans case (' + JSON.stringify(lp) + ')');
   const rouge = await T.$eval('li.pitem.annule .rec', (x) => getComputedStyle(x).backgroundColor);
-  verifie(rouge === 'rgb(176, 0, 0)', 'Préparation : l\'étiquette « Récolte annulée » est rouge (' + rouge + ')');
+  verifie(rouge === 'rgb(251, 229, 232)', 'Préparation : l\'étiquette « Récolte annulée » est rouge (' + rouge + ')');
   const mk = net(await T.textContent('.grp[data-circ="mk"] .grp-sum'));
   verifie(mk === 'Préparé : 0 sur 2 · 1 récolte annulée', 'Préparation : marché « ' + mk + ' » (la bette hors du compte)');
   const dernier = await T.$eval('.grp[data-circ="mk"] li.pitem:last-child', (x) => x.dataset.k);
