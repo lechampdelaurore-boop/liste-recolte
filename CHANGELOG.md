@@ -2,6 +2,8 @@
 
 ## 2026-11-18
 
+- **Martin parmi les prénoms de « Qui récolte ? »** (demande de François : « rajoutes aussi par défaut un troisième nom, celui de Martin »). `index.html` : bouton Martin après François et Aurore. Un prénom tapé dans « Autre prénom » reste sur ce téléphone seulement, sans devenir un bouton (François : « on laisse comme ça »). `sw.js` : CACHE `recolte-v64`. Nouveau test `tests/noms.cjs`.
+
 - **Cahier des charges d'Aurore Task, l'outil de tâches qui remplace Google Tasks (documentation seulement, étape 36)** : discussion avec François du 18/11 au soir et maquette qu'il a corrigée (charte d'origine du module d'irrigation, pastilles d'univers retirées, couleur par personne, encarts supprimés à la main). Nouveau `docs/CAHIER_DES_CHARGES_AURORE_TASK.md` (remplace le plan de la PR #89, jamais fusionné) ; feuille de route : étape 36 précisée et découpée en 36A à 36E ; `docs/DECISIONS.md` : choix de François et choix de Claude ; « Où on en est » mis à jour. Aucun code, rien dans la base.
 
 - **Test des règles de la base remis à jour** : `tests/regles.cjs` prenait une semaine écrite en dur (lundi 9 novembre) ; dès la semaine suivante, l'essai de l'appli branchée sur les émulateurs ne voyait plus la commande déposée plus haut (« chiffre 2 sur l'onglet »). Il prend maintenant la semaine en cours. Lancé ici avec les émulateurs Firebase (109 sur 109), ainsi que `tests/porte.cjs` (40 sur 40). Aucun changement de l'appli ni des règles.
