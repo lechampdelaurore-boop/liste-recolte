@@ -442,6 +442,12 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 .sr-ctl button[data-a="moins"],.sr-ctl button[data-a="plus"]{font-size:1.5rem;padding:0}
 .sr-ctl input{min-width:0;width:100%;min-height:48px;padding:6px 10px;border:var(--bw) solid var(--line);border-radius:10px;background:var(--bg);font-size:1.15rem;font-weight:800;text-align:right;font-variant-numeric:tabular-nums}
 .tout{min-height:40px;font-size:.9rem}
+.sr-btns{display:flex;gap:6px}
+.sr-ctl.por input{text-align:left;font-size:1.05rem}
+.sr-ctl button:disabled{opacity:.35;cursor:default}
+.g-por{display:block;padding:2px 5px 3px;font-size:.72rem;line-height:1.15;font-weight:800;text-align:right;white-space:normal;border-top:1px solid var(--line)}
+#semTable .g-por{border:0;padding:0;font-size:.7rem}
+.pitem .portions{font-weight:800;font-size:.95rem;margin-top:2px}
 .tout[aria-pressed="true"]{background:var(--fg);color:var(--bg)}
 .sr-eq{font-size:.85rem;font-weight:600;color:var(--muted)}
 .sr-toutv{font-weight:800}
@@ -1553,22 +1559,24 @@ function recBadge(it){
 }
 function prepLineHtml(l, byClient){
   var name = byClient ? l.it.produit : l.ci.nom;
+  // Portions (Locavore…) : les sachets à faire, sous le nom.
+  var pt = l.it.portions && l.it.portions[l.ci.id], por = pt ? '<div class="portions">' + esc(pt) + '</div>' : '';
   // Récolte annulée (étape 38) : ligne barrée, sans case, hors du compte « Préparé ».
   if(l.ann) return '<li class="pitem annule" data-k="' + esc(l.k) + '"><span class="box vide" aria-hidden="true"></span>' +
-    '<div class="main"><div class="prod">' + (byClient ? miniHtml(name) : '') + esc(name) + '</div>' + (byClient ? recBadge(l.it) : '') + '</div>' +
+    '<div class="main"><div class="prod">' + (byClient ? miniHtml(name) : '') + esc(name) + '</div>' + por + (byClient ? recBadge(l.it) : '') + '</div>' +
     '<div class="qty">' + circQtyHtml(l.it, l.ci.id) + '</div></li>';
   // Produit annulé pour ce client : ligne barrée, sans case, hors du compte « Préparé » ; le « ⋯ » propose « Rétablir ».
   if(l.pann){
     var a = prepAnnInfo(l.k);
     return '<li class="pitem annule avecmenu" data-k="' + esc(l.k) + '"><span class="box vide" aria-hidden="true"></span>' +
-      '<div class="main"><div class="prod">' + (byClient ? miniHtml(name) : '') + esc(name) + '</div><span class="rec ann">Annulé pour ce client</span></div>' +
+      '<div class="main"><div class="prod">' + (byClient ? miniHtml(name) : '') + esc(name) + '</div>' + por + '<span class="rec ann">Annulé pour ce client</span></div>' +
       '<div class="qty">' + circQtyHtml(l.it, l.ci.id) + '</div>' + prepMenuHtml(l) +
       '<div class="by">Annulé' + (a.by ? ' par ' + esc(a.by) : '') + heure(a) + '</div></li>';
   }
   var info = prepInfo(l.k);
   return '<li class="pitem avecmenu' + (info ? ' done' : '') + '" data-k="' + esc(l.k) + '">' +
     '<button class="box" type="button" aria-label="' + (info ? 'Décocher ' : 'Cocher ') + esc(l.it.produit + ' pour ' + l.ci.nom) + '">' + CHECK + '</button>' +
-    '<div class="main"><div class="prod">' + (byClient ? miniHtml(name) : '') + esc(name) + '</div>' + (byClient ? recBadge(l.it) : '') + '</div>' +
+    '<div class="main"><div class="prod">' + (byClient ? miniHtml(name) : '') + esc(name) + '</div>' + por + (byClient ? recBadge(l.it) : '') + '</div>' +
     '<div class="qty">' + circQtyHtml(l.it, l.ci.id) + '</div>' + prepMenuHtml(l) +
     (info ? '<div class="by">Préparé' + (info.by ? ' par ' + esc(info.by) : '') + heure(info) + '</div>' : '') + '</li>';
 }
@@ -2719,6 +2727,7 @@ function creneauxDe(liste, tous){
       var c = {id:l.id, nom:l.nom || d.nom, jour:jourTxt(l) + (retire ? ' · retiré' : ''), court:l.court || l.nom || d.nom, circuit:d.id};
       if(l.reprend) c.reprend = l.reprend;
       if(d.colis) c.colis = d.colis;
+      if(d.portions) c.portions = true;
       if(retire) c.retire = true;
       c._o = [rangJour(l.jours), i, j];
       out.push(c);
@@ -2864,6 +2873,7 @@ function debouchesHtml(){
       '<label>Remarque<input type="text" data-f="note" value="' + esc(d.note || '') + '" autocomplete="off"></label></div>' +
       couleurHtml(d, coul[d.id]) +
       '<label class="dj db-stock"><input type="checkbox" data-f="stock"' + (d.stock ? ' checked' : '') + '><span>Suivre son stock au magasin (une case « Stock » par produit dans la semaine)</span></label>' +
+      '<label class="dj db-stock"><input type="checkbox" data-f="portions"' + (d.portions ? ' checked' : '') + '><span>Vendu en portions (un bouton « Portions » sur ses cases : 3 × 1 kg + 500 g)</span></label>' +
       '<h3 class="db-h3">' + (lv.length > 1 ? lv.length + ' livraisons' : 'Livraison') + '</h3>' +
       lv.map(function(l){ return livraisonHtml(d, l, lv); }).join('') +
       '<div class="db-pied"><button type="button" class="sem-act" data-a="ajouterL">＋ Ajouter une livraison</button>' +
@@ -3066,6 +3076,7 @@ $('#debView').addEventListener('change', function(e){
     else if(f === 'couleur'){ if(!couleurOk(val)) return; d.couleur = val; }
     else if(f === 'note') d.note = val;
     else if(f === 'stock') d.stock = val;
+    else if(f === 'portions') d.portions = val;
     else if(f === 'moment') l.moment = val;
     else if(f === 'lnom') l.nom = val;
     else if(f === 'court') l.court = val;
@@ -3215,6 +3226,44 @@ function lireSaisie(txt, f, defU){
   if(u !== 'colis' && !autreDe(f, u) && (!c || c.u !== u)) return {err:aideUnites(f)};
   return {n:Math.round(n * 1000) / 1000, u:u};
 }
+/* Portions (18/11/2026, demande de François pour Locavore : « 3,5 kg de patates douces, c'était 3 commandes de 1 kg
+   et une de 500 g »). Dans la case d'une livraison, on tape « 3 × 1 kg + 500 g » (ou « 3 x 1kg + 500g », ou dicté
+   « 3 fois 1 kg plus 500 g ») : l'appli en tire le total (3,5 kg), qui reste le vrai nombre utilisé partout, et garde
+   le détail à côté : {n:3.5, u:'kg', p:[{x:3, n:1, u:'kg'}, {x:1, n:0.5, u:'kg'}]}. Rien de propre à un débouché :
+   toute livraison l'accepte (grille de l'ordinateur) ; sur le téléphone, le bouton « Portions » (clavier complet) est sur
+   les débouchés réglés « Vendu en portions » (Réglages) et sur toute case qui a déjà des portions. */
+function estPortions(txt){
+  var t = sansAccent(String(txt).toLowerCase());
+  return /[+×*]|\d\s*x|\b(fois|plus|et)\b/.test(t);
+}
+function lirePortions(txt, f, defU){
+  var t = sansAccent(String(txt).trim().toLowerCase()).replace(/\b(plus|et)\b/g, '+').replace(/\bfois\b/g, 'x').replace(/[×*]/g, 'x');
+  var aide = 'Écrire les portions ainsi : 3 × 1 kg + 500 g.';
+  var termes = t.split('+').map(function(s){ return s.trim(); });
+  if(termes.some(function(s){ return !s; })) return {err:aide};
+  var p = [];
+  for(var i = 0; i < termes.length; i++){
+    var m = /^(\d+)\s*x\s*(.+)$/.exec(termes[i]), x = m ? +m[1] : 1;
+    if(!m && /(^|[\d\s])x(\s|$)/.test(termes[i])) return {err:aide}; // « 3 × » sans taille
+    var q = lireSaisie(m ? m[2] : termes[i], f, defU);
+    if(q.err || q.vide || q.tout || !(q.n > 0) || !(x >= 1)) return {err:q.err && !q.vide && !q.tout ? q.err : aide};
+    if(p.length && q.u !== p[0].u) return {err:'Toutes les portions dans la même unité, par exemple 3 × 1 kg + 500 g.'};
+    var meme = p.filter(function(y){ return Math.abs(y.n - q.n) < EPS; })[0];
+    if(meme) meme.x += x; else p.push({x:x, n:q.n, u:q.u});
+  }
+  var n = 0; p.forEach(function(y){ n += y.x * y.n; });
+  return {n:Math.round(n * 1000) / 1000, u:p[0].u, p:p};
+}
+// Taille d'une portion : « 1 kg », « 500 g », « 2 bottes », « 1 PB ».
+function taillePortion(y, f){ return y.u === 'kg' && y.n < 1 ? nb(Math.round(y.n * 1000)) + ' g' : qTxt(y.n, y.u, f); }
+// « 3 × 1 kg + 500 g » : ce qui se retape dans la case.
+function portionsTxt(p, f){ return tableau(p).map(function(y){ return (y.x > 1 ? y.x + ' × ' : '') + taillePortion(y, f); }).join(' + '); }
+// « 3 portions de 1 kg et 1 portion de 500 g » : pour la Préparation (les sachets à faire).
+function portionsLong(p, f){
+  var l = tableau(p).map(function(y){ return y.x + ' portion' + (y.x > 1 ? 's' : '') + ' de ' + taillePortion(y, f); });
+  return l.length > 1 ? l.slice(0, -1).join(', ') + ' et ' + l[l.length - 1] : (l[0] || '');
+}
+function aPortions(q){ return !!(q && tableau(q.p).length); }
 // « PH (petite haute) ou CB (caisse bleue) »
 function caissesTxt(f){
   var l = [f.caisse].concat(autresDe(f).map(function(a){ return a.caisse; })).filter(Boolean)
@@ -3618,12 +3667,15 @@ function caseHtml(pid, f, k, q, opts){
   opts = opts || {};
   var cle = pid + '|' + k, u = q ? (q.u || 'colis') : (semUnite[cle] || uniteParDefaut(pid, f));
   var val = opts.tout ? 'tout' : (q ? nb(q.n) : '');
-  var titre = opts.titre || (q ? [qTxt(q.n, u, f), equiv(q, f), quiQuand(q)].filter(Boolean).join(' · ') : '');
+  var por = !opts.tout && k.indexOf('q/') === 0 && aPortions(q);
+  var titre = opts.titre || (q ? [qTxt(q.n, u, f), por ? 'portions : ' + portionsTxt(q.p, f) : '', equiv(q, f), quiQuand(q)].filter(Boolean).join(' · ') : '');
   var us = unitesDe(f);
   return '<input type="text" class="g-in' + (semErr[cle] ? ' err' : '') + (opts.auto ? ' auto' : '') + (opts.tout ? ' tout' : '') + '" data-cell="' + esc(cle) + '" data-pid="' + esc(pid) + '" data-k="' + esc(k) + '"' +
     ' value="' + esc(val) + '"' + (opts.ph ? ' placeholder="' + esc(opts.ph) + '"' : '') + ' title="' + esc(titre) + '" aria-label="' + esc(opts.aria || '') + '" autocomplete="off" spellcheck="false">' +
     (opts.tout ? '' : '<select class="g-u" data-a="unite-g" data-cell="' + esc(cle) + '" data-pid="' + esc(pid) + '" data-k="' + esc(k) + '" tabindex="-1"' + (us.length < 2 ? ' disabled' : '') +
-      ' aria-label="' + esc('Unité, ' + (opts.aria || '')) + '">' + us.map(function(x){ return '<option value="' + x + '"' + (x === u ? ' selected' : '') + '>' + esc(nomUnite(x, f, 2)) + '</option>'; }).join('') + '</select>');
+      ' aria-label="' + esc('Unité, ' + (opts.aria || '')) + '">' + us.map(function(x){ return '<option value="' + x + '"' + (x === u ? ' selected' : '') + '>' + esc(nomUnite(x, f, 2)) + '</option>'; }).join('') + '</select>') +
+    // Portions : le total dans la case, le détail dessous (taper « 3 × 1 kg + 500 g » dans la case pour le changer).
+    (por ? '<span class="g-por">' + esc(portionsTxt(q.p, f)) + '</span>' : '');
 }
 function grilleHtml(prods, calc, cr){
   var reports = cr.filter(function(c){ return c.reprend && visibleC(c); });
@@ -3668,17 +3720,20 @@ function ligneHtml(pid, f, k, nom, q, opts){
   var cle = pid + '|' + k, u = q ? (q.u || 'colis') : (semUnite[cle] || uniteParDefaut(pid, f));
   var err = semErr[cle];
   var h = '<div class="sr' + (opts.cls ? ' ' + opts.cls : '') + (opts.dc ? ' dc' : '') + '"' + (opts.dc ? dc(opts.dc) : '') + ' data-k="' + esc(k) + '">' +
-    '<div class="sr-top"><span class="sr-nom">' + nom + '</span>' + (opts.tout !== undefined ?
-      '<button type="button" class="tout" data-a="tout" aria-pressed="' + !!opts.tout + '">tout</button>' : '') + '</div>';
+    '<div class="sr-top"><span class="sr-nom">' + nom + '</span>' + (opts.tout !== undefined ? '<span class="sr-btns">' +
+      (opts.portions && !opts.tout ? '<button type="button" class="tout" data-a="portions" aria-pressed="' + !!(aPortions(q) || semPort[cle]) + '">Portions</button>' : '') +
+      '<button type="button" class="tout" data-a="tout" aria-pressed="' + !!opts.tout + '">tout</button></span>' : '') + '</div>';
   if(opts.tout){
     h += '<div class="sr-toutv">Tout ce qui reste' + (opts.toutV !== null && opts.toutV !== undefined ? ' : ' + esc(deux(opts.toutV, f)) : '') + '</div>';
   } else {
-    var unites = unitesDe(f);
-    h += '<div class="sr-ctl"><button type="button" data-a="moins" aria-label="Moins">−</button>' +
-      '<input type="text" inputmode="decimal" enterkeyhint="done" value="' + (q ? esc(nb(q.n)) : '') + '" placeholder="' + (opts.ph || '') + '" aria-label="' + esc(opts.aria || '') + '">' +
+    var unites = unitesDe(f), por = opts.portions && aPortions(q), saisiePor = opts.portions && (por || semPort[cle]);
+    // Portions : clavier complet (+ et ×), le détail dans la case ; − et + n'ont plus de sens (quelle portion ?).
+    h += '<div class="sr-ctl' + (saisiePor ? ' por' : '') + '"><button type="button" data-a="moins" aria-label="Moins"' + (por ? ' disabled' : '') + '>−</button>' +
+      '<input type="text" inputmode="' + (saisiePor ? 'text' : 'decimal') + '" enterkeyhint="done" value="' + (por ? esc(portionsTxt(q.p, f)) : q && !saisiePor ? esc(nb(q.n)) : '') + '" placeholder="' + (saisiePor ? '3 × 1 kg + 500 g' : (opts.ph || '')) + '" aria-label="' + esc((opts.aria || '') + (saisiePor ? ', portions' : '')) + '">' +
       '<button type="button" data-a="unite"' + (unites.length < 2 ? ' disabled' : '') + ' aria-label="Changer d\'unité">' + esc(nomUnite(u, f, q ? q.n : 2)) + '</button>' +
-      '<button type="button" data-a="plus" aria-label="Plus">+</button></div>';
-    var eq = q ? equiv(q, f) : '', qui = q && opts.qui !== false ? (opts.cls === 'stock' && q.at ? quiQuandDate(q) : quiQuand(q)) : '';
+      '<button type="button" data-a="plus" aria-label="Plus"' + (por ? ' disabled' : '') + '>+</button></div>';
+    if(saisiePor && !por) h += '<div class="sr-eq">Taper les portions, par exemple 3 × 1 kg + 500 g. Le total se calcule seul.</div>';
+    var eq = q ? (por ? 'Total ' + qTxt(q.n, q.u || 'colis', f) + (equiv(q, f) ? ' (' + equiv(q, f).replace(/^= /, '') + ')' : '') : equiv(q, f)) : '', qui = q && opts.qui !== false ? (opts.cls === 'stock' && q.at ? quiQuandDate(q) : quiQuand(q)) : '';
     if(eq || qui || opts.note) h += '<div class="sr-eq">' + esc([eq, opts.note, qui].filter(Boolean).join(' · ')) + '</div>';
   }
   if(err) h += '<p class="sr-err" role="alert">' + esc(err) + '</p>';
@@ -3739,7 +3794,7 @@ function champHtml(pid, f, r, cr, k){
   }
   var nom = esc(c.nom) + (c.jour ? ' <small>' + esc(c.jour) + '</small>' : '');
   var q = semLire('q/' + pid + '/' + c.id), tout = r.toutC === c.id;
-  return ligneHtml(pid, f, k, nom, tout ? null : q, {tout:tout, toutV:r.toutV, dc:c.circuit, aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom});
+  return ligneHtml(pid, f, k, nom, tout ? null : q, {tout:tout, toutV:r.toutV, dc:c.circuit, portions:!!c.portions || aPortions(q), aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom});
 }
 function resteHtml(f, r){ return '<div class="sr total"><span class="sr-nom">Reste</span><span class="reste ' + r.etat + '">' + esc(etiquette(r, f)) + '</span></div>'; }
 
@@ -3796,7 +3851,7 @@ function tableHtml(prods, calc, cr, modifiable){
       var c = o.c;
       if(o.s){ var qs = stockVu(p.id, o.s.id); return '<td class="stk dc"' + ed('stock/' + o.s.id) + dc(o.s.id) + '>' + (qs ? esc(qCourt(qs, f)) + (qs.at ? '<small class="g-qui">' + esc(quiCourt(qs)) + '</small>' : '') : '') + '</td>'; }
       if(r.toutC === c.id) return '<td class="dc"' + ed('q/' + c.id) + dc(c.circuit) + '>tout</td>';
-      var q = semLire('q/' + p.id + '/' + c.id); return '<td class="dc"' + ed('q/' + c.id) + dc(c.circuit) + '>' + (q ? esc(qCourt(q, f)) : '') + '</td>';
+      var q = semLire('q/' + p.id + '/' + c.id); return '<td class="dc"' + ed('q/' + c.id) + dc(c.circuit) + '>' + (q ? esc(qCourt(q, f)) + (aPortions(q) ? '<small class="g-por">' + esc(portionsTxt(q.p, f)) + '</small>' : '') : '') + '</td>';
     }).join('') + '<td class="r-' + r.etat + '">' + (r.reste === null ? (r.etat === 'place' ? '0' : '') : esc(deux(r.reste, f))) + '</td>' + reports.map(function(c){
       if(!propose(p.id, c)) return '<td class="rep dc"' + ed('report/' + c.id) + dc(c.circuit) + '></td>';
       var man = semLire('report/' + p.id + '/' + c.id), auto = reportAuto(p.id, f, c, r);
@@ -3823,6 +3878,16 @@ function poser(pid, k, val){
   if(val && k.indexOf('q/') === 0 && t && t.c === k.split('/')[1]) ch['tout/' + pid] = null;
   semEcrire(ch);
 }
+// Changer d'unité garde la même quantité : le détail des portions reste vrai.
+function avecPortions(o, q){
+  if(!aPortions(q)) return o;
+  o.p = tableau(q.p);
+  // De retour dans l'unité des portions : le total exact (3,5 kg, pas 3,48 après un passage en caisses arrondi).
+  if(o.p[0].u === o.u){ var n = 0; o.p.forEach(function(y){ n += y.x * y.n; }); o.n = Math.round(n * 1000) / 1000; }
+  return o;
+}
+// Cases passées en saisie de portions sur le téléphone (bouton « Portions ») : clavier complet, pour + et ×.
+var semPort = {};
 function produitDe(pid){ return complet(pid, semLire('produits/' + pid)); }
 
 // Choix de la semaine, au-dessus des trois pages de l'onglet.
@@ -3887,13 +3952,14 @@ $('#semView').addEventListener('click', function(e){
     var us = unitesDe(f), u2 = us[(us.indexOf(u) + 1) % us.length];
     if(!q || (k.indexOf('report/') === 0 && !semLire(cible(pid, k)))){ semUnite[cle] = u2; render(); return; }
     var n2 = deColis(enColis(q, f), u2, f);
-    avecNom(function(){ poser(pid, k, signe({n:Math.round(n2 * 100) / 100, u:u2})); });
+    avecNom(function(){ poser(pid, k, signe(avecPortions({n:Math.round(n2 * 100) / 100, u:u2}, q))); });
     return;
   }
+  if(a === 'portions'){ semPort[cle] = !semPort[cle]; render(); var ip = document.querySelector('#semView [data-pid="' + pid + '"] .sr[data-k="' + k + '"] .sr-ctl input'); if(ip) ip.focus(); return; }
   if(a === 'plus' || a === 'moins'){
     var st = pas(u), n = q ? q.n : 0;
     n = a === 'plus' ? Math.floor(n / st + EPS) * st + st : Math.ceil(n / st - EPS) * st - st;
-    if(n < 0) return;
+    if(n < 0 || aPortions(q)) return; // des portions : on retape le détail, le total suit
     avecNom(function(){ poser(pid, k, signe({n:Math.round(n * 1000) / 1000, u:u})); });
     if(navigator.vibrate) navigator.vibrate(10);
   }
@@ -3927,14 +3993,15 @@ $('#semView').addEventListener('change', function(e){
     delete semErr[cc];
     if(!qq || (kk.indexOf('report/') === 0 && !semLire(cible(pid, kk)))){ semUnite[cc] = u2; render(); return; }
     var n2 = deColis(enColis(qq, f), u2, f);
-    avecNom(function(){ poser(pid, kk, signe({n:Math.round(n2 * 100) / 100, u:u2})); });
+    avecNom(function(){ poser(pid, kk, signe(avecPortions({n:Math.round(n2 * 100) / 100, u:u2}, qq))); });
     return;
   }
   if(inp.tagName !== 'INPUT') return;
   var k = inp.dataset.k || inp.closest('.sr').dataset.k, cle = pid + '|' + k, q = k.indexOf('stock/') === 0 ? stockVu(pid, k.split('/')[1]) : semLire(cible(pid, k));
   // Un nombre seul est dans l'unité affichée à côté de la case (menu de la grille, bouton du téléphone).
   var u = q ? (q.u || 'colis') : (semUnite[cle] || uniteParDefaut(pid, f));
-  var v = lireSaisie(inp.value, f, u), slot = k.indexOf('q/') === 0 ? k.split('/')[1] : null, t = semLire('tout/' + pid);
+  var slot = k.indexOf('q/') === 0 ? k.split('/')[1] : null, t = semLire('tout/' + pid);
+  var v = estPortions(inp.value) ? (slot ? lirePortions(inp.value, f, u) : {err:'Les portions se notent seulement dans une livraison.'}) : lireSaisie(inp.value, f, u);
   if(v.tout && !slot) v = {err:'« tout » se met seulement dans un créneau de vente.'};
   if(v.err){ semErr[cle] = v.err; if(grille) plusTard(render); else semAttente = true; return; }
   delete semErr[cle];
@@ -3951,7 +4018,8 @@ $('#semView').addEventListener('change', function(e){
       if(q) ch[cible(pid, k)] = k.indexOf('stock/') === 0 && stockMag(pid, k.split('/')[1]) ? signe({vide:true}) : null;
       return Object.keys(ch).length ? semEcrire(ch) : render();
     }
-    poser(pid, k, signe({n:v.n, u:v.u}));
+    delete semPort[cle];
+    poser(pid, k, signe(v.p ? {n:v.n, u:v.u, p:v.p} : {n:v.n, u:v.u}));
   }); });
 });
 $('#semView').addEventListener('keydown', function(e){
@@ -4146,7 +4214,7 @@ function listeCalculee(j){
   });
   var items = [], fiches = semLire('produits') || {}, sansFiche = [];
   produitsSem().forEach(function(p){
-    var f = p.f, r = calcul(p.id, f), circ = {};
+    var f = p.f, r = calcul(p.id, f), circ = {}, por = {};
     circuits.forEach(function(ci){
       var parts = [];
       ci.livs.forEach(function(c){
@@ -4156,8 +4224,12 @@ function listeCalculee(j){
       });
       var v = fusion(parts, f);
       if(v !== null) circ[ci.id] = v;
+      // Portions : le détail suit la ligne du client (« 3 portions de 1 kg et 1 portion de 500 g »). Deux livraisons
+      // d'un même débouché le même jour : chacune dit le sien, une quantité sans portions est nommée telle quelle.
+      if(v !== null && v !== 'tout' && parts.some(aPortions))
+        por[ci.id] = parts.map(function(q){ return aPortions(q) ? portionsLong(q.p, f) : qTxt(q.n, q.u || 'colis', f); }).join(', plus ');
     });
-    if(Object.keys(circ).length) items.push(ligneCalculee(p.id, f, circ));
+    if(Object.keys(circ).length){ var li = ligneCalculee(p.id, f, circ); if(Object.keys(por).length) li.portions = por; items.push(li); }
   });
   // Une quantité sans fiche de produit n'entre pas dans la liste (rien n'est inventé) : c'est signalé.
   var q = semLire('q') || {};
@@ -4234,6 +4306,10 @@ function choisirListe(){
   if(mirror.fige){
     var fg = deFige(mirror.fige);
     ecarts = comparer(fg, calc);
+    // Portions : le détail du client suit la semaine tant que sa quantité ne change pas (un détail corrigé après la
+    // première coche, même total, n'est pas un écart) ; une quantité changée passe par l'écart habituel.
+    var parId = {}; calc.items.forEach(function(it){ parId[it.id] = it; });
+    fg.items.forEach(function(it){ var c = parId[it.id]; if(c && canon(c.circ) === canon(it.circ)){ if(c.portions) it.portions = c.portions; else delete it.portions; } });
     poserListe(fg);
     return;
   }
