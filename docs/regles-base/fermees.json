@@ -9,6 +9,10 @@
         }
       }
     },
+    "taches": {
+      ".read": "auth != null && (root.child('profils').child(auth.uid).val() === 'ferme' || root.child('profils').child(auth.uid).val() === 'equipe')",
+      ".write": "auth != null && (root.child('profils').child(auth.uid).val() === 'ferme' || root.child('profils').child(auth.uid).val() === 'equipe')"
+    },
     "profils": {
       "$uid": {
         ".read": "auth != null && auth.uid === $uid"

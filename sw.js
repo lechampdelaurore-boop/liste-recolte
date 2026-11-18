@@ -1,10 +1,15 @@
 // Hors ligne : la page et la liste passent d'abord par le réseau, sinon la dernière copie.
 // La base Firebase (autre domaine) n'est jamais mise en cache.
-var CACHE = 'recolte-v64';
+// Aurore Task (taches.html, servie à l'adresse /taches) : gardée à sa première ouverture ; sans réseau, une page des
+// tâches jamais gardée retombe sur elle-même, pas sur le Cumul.
+var CACHE = 'recolte-v65';
 var SHELL = ['./', './index.html', './config.js', './cle-web.js', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './listes/actuelle.json', './referentiel/conditionnements.json', './referentiel/debouches.json', './especes/plants.svg', './especes/modifies.svg', './polices/bricolage-grotesque.woff2', './polices/dm-sans.woff2', './polices/open-sans.woff2'];
 
 self.addEventListener('install', function (e) {
-  e.waitUntil(caches.open(CACHE).then(function (c) { return c.addAll(SHELL); }).then(function () { return self.skipWaiting(); }));
+  e.waitUntil(caches.open(CACHE).then(function (c) {
+    // La page des tâches à part : son absence (ancien site, serveur de test) ne bloque pas le reste.
+    return c.addAll(SHELL).then(function () { return c.add('./taches').catch(function () {}); });
+  }).then(function () { return self.skipWaiting(); }));
 });
 self.addEventListener('activate', function (e) {
   e.waitUntil(caches.keys().then(function (keys) {
@@ -18,6 +23,6 @@ self.addEventListener('fetch', function (e) {
     if (res.ok) { var copy = res.clone(); caches.open(CACHE).then(function (c) { c.put(req, copy); }); }
     return res;
   }).catch(function () {
-    return caches.match(req, { ignoreSearch: req.mode === 'navigate' }).then(function (hit) { return hit || caches.match('./index.html'); });
+    return caches.match(req, { ignoreSearch: req.mode === 'navigate' }).then(function (hit) { return hit || (url.pathname.indexOf('/taches') >= 0 ? caches.match('./taches').then(function (t) { return t || caches.match('./taches.html'); }) : caches.match('./index.html')); });
   }));
 });

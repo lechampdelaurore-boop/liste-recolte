@@ -18,10 +18,11 @@ Hébergée sur Cloudflare Pages, relié à ce dépôt : chaque envoi sur `main` 
 5. [Barre de progression](#barre-de-progression)
 6. [Préparation de commandes](#préparation-de-commandes)
 7. [Répartition de la semaine (onglet Semaine)](#répartition-de-la-semaine-onglet-semaine)
-8. [Licence](#licence)
-9. [Fichiers du dépôt](#fichiers-du-dépôt)
-10. [Tests](#tests)
-11. [Limites connues](#limites-connues)
+8. [Aurore Task : les tâches de la ferme](#aurore-task--les-tâches-de-la-ferme)
+9. [Licence](#licence)
+10. [Fichiers du dépôt](#fichiers-du-dépôt)
+11. [Tests](#tests)
+12. [Limites connues](#limites-connues)
 
 ## Utilisation au champ
 
@@ -171,6 +172,16 @@ Onglet **Semaine** (étape 13A, « vas-y » de François du 06/11/2026). Remplac
 - **À récolter, jour par jour** (page « À récolter » de l'onglet Semaine) : les jours de récolte de la semaine (voir [La liste de récolte de chaque jour](#la-liste-de-récolte-de-chaque-jour)), repliés ; pour chacun, sous sa flèche, ses livraisons à cocher, « Chaque semaine », chaque produit avec sa quantité totale (« 3 GH (15 kg) ») et le détail par livraison (« Locavore 2 · Ferme Deschamps 1 »), et le bouton « Voir la liste de récolte ». Les « tout » y sont comptés ; le reste proposé à Auvabio 63 n'y entre que s'il est saisi comme quantité.
 - Les débouchés de départ sont dans `referentiel/debouches.json` (une autre ferme y met les siens) ; dès la première modification dans l'appli, la base garde sa propre fiche. Chaque semaine garde sa copie des colonnes.
 
+## Aurore Task : les tâches de la ferme
+
+Depuis le 18/11/2026 (étape 36A), https://liste-recolte.pages.dev/taches (`taches.html`) remplace Google Tasks. Cahier des charges : [docs/CAHIER_DES_CHARGES_AURORE_TASK.md](docs/CAHIER_DES_CHARGES_AURORE_TASK.md).
+
+- **S'installe comme une appli** (« Ajouter à l'écran d'accueil ») : icône verte « Aurore Task », plein écran, marche sans réseau (`taches.webmanifest`, icônes `icons/taches-*`).
+- **Mêmes comptes que le Cumul** : connecté au Cumul sur un appareil = connecté ici. Les comptes « ferme » (François, Aurore) et le compte « équipe » (Martin) ouvrent les tâches ; le compte de l'équipe n'ouvre pas les listes de vente.
+- **Téléphone** : la liste du jour s'ouvre d'abord ; on passe d'une liste à l'autre en balayant l'écran ou en touchant son nom dans la bande du bas (« + Liste » au bout pour en créer une ; appui long sur un nom pour déplacer la liste). Le « + » vert ajoute une tâche en haut : on écrit, « Entrée » enregistre et ouvre la suivante. Toucher un texte le modifie. Cocher : la tâche reste un instant en vert puis disparaît (bandeau « Annuler » ; toucher de nouveau la case la remet). Appui long sur une tâche (0,45 s) puis glisser : la monter, la descendre, la décaler vers la droite pour en faire une sous-tâche, ou la tenir contre le bord de l'écran pour passer à la liste voisine. Le « ⋯ » de la tâche : sous-tâche, décaler à droite ou à gauche, déplacer vers une autre liste, séparateur en dessous, supprimer. Le « ⋯ » de la liste : renommer, « Faites récemment » (7 jours, pour remettre une tâche), supprimer (listes simples seulement).
+- **Ordinateur** (fenêtre d'au moins 1000 px) : les listes en colonnes côte à côte ; menu à gauche avec « Listes affichées » (cases gardées sur l'ordinateur) ; on glisse les tâches à la souris d'une colonne à l'autre, on déplace une colonne par son titre ; clic droit sur une tâche = son menu.
+- **Données** dans la base sous `taches/` (`listes`, `t`, `faites`) ; un seul flux en direct ; les actions faites sans réseau partent au retour (la dernière action gagne). Listes de départ : les sept jours et « Astreintes ». Rien de propre à une ferme dans le code.
+
 ## Licence
 
 Le code de ce dépôt est publié sous la licence **PolyForm Noncommercial 1.0.0** (fichier [`LICENSE`](LICENSE)), choisie par François le 08/11/2026. En clair : on peut l'utiliser, le copier et le modifier **à titre non commercial** (usage personnel, étude, association, recherche…) ; tout **usage commercial est interdit** sans accord écrit du Champ de l'Aurore. Ce n'est donc pas une licence « open source » au sens strict. Les copies faites avant cette date n'étaient couvertes par aucune licence. Ce résumé n'est pas un conseil juridique : seul le texte de `LICENSE` fait foi.
@@ -184,7 +195,7 @@ Le code de ce dépôt est publié sous la licence **PolyForm Noncommercial 1.0.0
 | `index.html` | Toute l'appli (HTML, CSS, JavaScript), sans bibliothèque ni dépendance. |
 | `config.js` | Adresse de la base Firebase. Vide = pas de partage. |
 | `cle-web.js` | Clé web du projet Firebase, collée par François lui-même (étape 5). Vide = pas de compte, base ouverte. Les agents IA ne l'ouvrent pas. |
-| `docs/regles-base/` | Règles de la base : `fermees.json` (profils « ferme », « magasin:… » et, depuis l'étape 31, « agent »), `fermees-sans-porte.json`, `fermees-sans-commandes.json` et `fermees-sans-notifications.json` (règles d'avant les étapes 32, 31 et 25, pour revenir en arrière) et `ouvertes.json` (anciennes). |
+| `docs/regles-base/` | Règles de la base : `fermees.json` (profils « ferme », « magasin:… » et, depuis l'étape 31, « agent »), `fermees-sans-taches.json` (règles d'avant l'étape 36A), `fermees-sans-porte.json`, `fermees-sans-commandes.json` et `fermees-sans-notifications.json` (règles d'avant les étapes 32, 31 et 25, pour revenir en arrière) et `ouvertes.json` (anciennes). |
 | `listes/actuelle.json` | Ancienne liste ouverte par défaut (avant l'étape 13D) ; ne sert plus à l'appli. |
 | `listes/AAAA-MM-JJ.json` | Listes faites à la main avant l'étape 13D (une par jour de récolte) ; une liste en fichier l'emporte pour sa date. Format : [docs/format-liste.md](docs/format-liste.md). |
 | `referentiel/conditionnements.json` | Pour chaque produit : type de caisse (PB, PH, GB, GH) et contenu d'un colis (kg, ou nombre de bottes, bouquets, pièces, sachets). Source : onglet « Liste produits » du cumul. Aussi : les colisages (colis bois) et les circuits qui les utilisent. Un produit marqué `"masque": true` n'est plus proposé à l'ajout mais reste lisible dans les semaines qui l'ont déjà ; `"remplace_par"` donne le produit qui le remplace quand on reprend la semaine précédente (exemple : l'ancien « Persil frisé (bouquet) », remplacé le 9/11/2026). Ne pas renommer un produit déjà utilisé : son nom fait son identifiant dans la base. `"autres_colis"` : autres caisses où le produit peut partir, avec leur contenu (`[{"caisse": "CB", "kg": 16}]`) ; `"recolte_en"` : caisse où il est récolté, si ce n'est pas la sienne (`{"caisse": "CB", "kg": 16}`). Exemple : la carotte lavée (9/11/2026). |
@@ -192,9 +203,10 @@ Le code de ce dépôt est publié sous la licence **PolyForm Noncommercial 1.0.0
 | `especes/` | Dessins des espèces d'Ouvre ta ferme (`plants.svg`, 183 dessins, copie sans modification, licence AGPL-3.0) : la miniature devant le nom de chaque produit. Voir `especes/LISEZMOI.md`. |
 | `functions/agent/[[chemin]].js` | La porte de l'agent (étape 32) : Pages Function servie par Cloudflare sous `/agent/…` seulement. |
 | `magasin.html` | Page du magasin (étape 13C) : saisie du stock avec le compte du magasin. Autonome, même charte. |
+| `taches.html`, `taches.webmanifest`, `icons/taches*` | Aurore Task (étape 36A) : les listes de tâches de la ferme, installable à part. Autonome, charte d'origine du module d'irrigation. |
 | `sw.js` | Hors ligne : la page et la liste passent par le réseau, sinon la dernière copie. Changer `CACHE` à chaque modification de l'appli. Ne met jamais la base Firebase en cache. |
 | `manifest.webmanifest`, `icons/` | Installation sur l'écran d'accueil. |
-| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`), débouchés et livraisons (`debouches.cjs`), connexion par compte (`connexion.cjs`), listes calculées depuis la semaine (`listes-calculees.cjs`), couleur des débouchés (`couleurs.cjs`), filtre par jour de récolte et impression (`filtre.cjs`), flèches du clavier dans la grille (`fleches.cjs`), tri de l'onglet Récolte sur ordinateur (`tri-ordinateur.cjs`), aromatiques (`aromatiques.cjs`), miniatures des légumes (`miniatures.cjs`), animation de la coche (`animation-coche.cjs`), ordre de récolte habituel (`ordre-habituel.cjs`), historique des semaines (`historique.cjs`), caisses d'endives hors du total (`endives-sur-place.cjs`), céleri-branche en bouquet (`celeri-bouquet.cjs`), cloche des notifications (`notifications.cjs`), commandes à valider (`commandes.cjs`) ; règles de la base sur l'émulateur officiel de Firebase (`regles.cjs`) ; la porte de l'agent sur ce même émulateur (`porte.cjs`). |
+| `tests/` | Tests de bout en bout avec deux téléphones et un faux Firebase : liste de récolte (`deux-telephones.cjs`), onglet Semaine (`semaine.cjs`), débouchés et livraisons (`debouches.cjs`), connexion par compte (`connexion.cjs`), listes calculées depuis la semaine (`listes-calculees.cjs`), couleur des débouchés (`couleurs.cjs`), filtre par jour de récolte et impression (`filtre.cjs`), flèches du clavier dans la grille (`fleches.cjs`), tri de l'onglet Récolte sur ordinateur (`tri-ordinateur.cjs`), aromatiques (`aromatiques.cjs`), miniatures des légumes (`miniatures.cjs`), animation de la coche (`animation-coche.cjs`), ordre de récolte habituel (`ordre-habituel.cjs`), historique des semaines (`historique.cjs`), caisses d'endives hors du total (`endives-sur-place.cjs`), céleri-branche en bouquet (`celeri-bouquet.cjs`), cloche des notifications (`notifications.cjs`), commandes à valider (`commandes.cjs`), Aurore Task (`taches.cjs`) ; règles de la base sur l'émulateur officiel de Firebase (`regles.cjs`) ; la porte de l'agent sur ce même émulateur (`porte.cjs`). |
 | `docs/` | Format des listes, fonctionnement de la base partagée. |
 | `LICENSE` | Licence PolyForm Noncommercial 1.0.0 : usage non commercial seulement. |
 | `AGENTS.md` | Consignes pour les agents IA qui modifient ce dépôt (`CLAUDE.md` y renvoie). |
@@ -213,6 +225,7 @@ node tests/listes-calculees.cjs
 node tests/magasin.cjs
 node tests/couleurs.cjs
 node tests/filtre.cjs
+node tests/taches.cjs
 node tests/fleches.cjs
 node tests/aromatiques.cjs
 node tests/tri-ordinateur.cjs
@@ -268,6 +281,8 @@ Le test ouvre deux téléphones simulés (François et Aurore) reliés à un fau
 `tests/listes-calculees.cjs` vérifie l'étape 13D avec deux téléphones : « Le cumul de cette semaine est vide » (Récolte et Préparation) ; la liste du 4/11 refaite par l'outil dans une semaine et comparée ligne à ligne au fichier (19 lignes sur 22, total et kilos identiques ; les trois autres mêlent deux unités pour un même produit, ce que la semaine ne porte pas) ; un circuit par débouché, colis bois ; le menu des jours de récolte et le jour ouvert par défaut ; « Rien à récolter ce jour-là » ; la liste figée à la première coche, les écarts signalés sur la ligne et dans l'encadré, « Mettre la liste à jour » ; la Préparation qui suit le même jour ; dans la page « À récolter », jour ajouté avec ses livraisons proposées, livraison déplacée d'un jour à l'autre, « Chaque semaine » coché puis décoché (rien d'effacé, rien de copié à l'avance), jour retiré pour une semaine ; « Aucun jour de récolte cette semaine » ; la liste en fichier du 4/11 qui l'emporte pour sa date ; une coche faite hors ligne qui part dans la bonne liste après un changement de jour ; et que ni les quantités de la semaine ni la liste du 4/11 ne bougent. Les quatre autres tests ouvrent la liste du 4/11 par `?liste=2026-11-04`.
 
 `tests/magasin.cjs` vérifie la page du magasin et son effet côté ferme (faux Firebase qui imite les nouvelles règles) : avant leur publication, la ferme reste « Partagé » et le magasin est prévenu ; connexion puis « Qui saisit ? » obligatoire, prénom remis en forme et sans doublon, proposé sur un autre téléphone ; saisie en kilos et en caisses avec prénom, heure et journal ; texte refusé ; le compte du magasin refusé pour les listes, le journal, un autre magasin, les profils ; deuxième téléphone en direct ; la ferme voit le stock (page Stock, Cumul, grille de l'ordinateur), l'aide de la semaine d'avant, « Qui a saisi » ; la dernière saisie l'emporte dans les deux sens ; case vidée par la ferme ; saisie hors ligne envoyée au retour ; comptes de la ferme et sans profil sur la page du magasin ; déconnexion.
+
+`tests/taches.cjs` vérifie Aurore Task avec deux téléphones, un ordinateur et le faux Firebase (règle « taches ») : manifeste, icônes et service hors ligne ; connexion partagée avec le Cumul ; listes de départ créées une seule fois ; ouverture sur la liste du jour ; « + » et Entrée en rafale ; texte modifié et jamais coupé ; sous-tâches sur quatre niveaux, décalées à droite et à gauche ; séparateurs ; cocher avec animation, « Annuler », case touchée pendant l'animation, « Faites récemment », effacement après 7 jours ; glisser au doigt (appui long, sous-tâche, liste voisine par le bord), glisser rapide qui ne déplace rien ; balayage et bande du bas ; listes créées, renommées, déplacées, supprimées ; déplacer vers une autre liste ; hors ligne ; colonnes de l'ordinateur, glisser à la souris, clic droit, colonne déplacée et cachée ; compte de l'équipe (lit et écrit les tâches, pas les listes de vente) ; compte du magasin refusé ; charte d'origine.
 
 `tests/connexion.cjs` vérifie la base fermée par des comptes (faux Firebase qui imite les règles et la connexion) : fenêtre « Se connecter » au premier lancement, qui ne se ferme pas sans connexion, aucun appel à la base avant ; mauvais mot de passe ; identifiant court ; mot de passe jamais gardé ; deux téléphones qui partagent leurs coches ; connexion gardée après rechargement ; Semaine et débouchés avec le jeton ; jeton expiré renouvelé tout seul ; coche faite hors ligne envoyée malgré un jeton expiré pendant la coupure ; compte sans profil refusé, puis accepté dès que le profil est donné ; déconnexion ; compte supprimé ; clé web fausse.
 
