@@ -458,6 +458,15 @@ dialog input{width:100%;padding:11px;border-radius:10px;border:var(--bw) solid v
 #semTable th{font-weight:800;background:var(--surface2)}
 #semTable th:first-child,#semTable td:first-child{text-align:left;position:sticky;left:0;background:var(--surface);font-weight:800;white-space:normal;min-width:7.5em}
 #semTable th:first-child{background:var(--surface2)}
+#semTable td[data-a="ed-ouvrir"]{cursor:pointer}
+.sem-tab-hint{margin:0;padding:8px 12px;border-bottom:1.5px solid var(--line)}
+#semEd{padding:0}
+#semEd .ed-tete{padding:16px 16px 10px}
+#semEd .ed-tete h2{display:flex;align-items:center;gap:8px}
+#semEd .sp-colis{display:block}
+#semEd .ed-corps{display:grid;border-top:var(--bw) solid var(--line)}
+#semEd .ed-corps > .sr:first-child,#semEd .ed-corps > .sr-opt:first-child{border-top:0}
+#semEd .btns{margin:0;padding:12px 16px 16px}
 #semTable td.r-place{background:var(--accent);color:#fff;font-weight:900}
 #semTable td.r-aplacer{background:#ffb000;font-weight:900}
 #semTable td.r-manque{background:#b00000;color:#fff;font-weight:900}
@@ -739,7 +748,10 @@ button.notif-i{cursor:pointer}
       </div>
     </div>
     <div class="card sem-page sem-tab" id="semTab" hidden>
+      <p class="hint sem-tab-hint">Toucher une case pour la modifier.</p>
       <div class="sem-scroll"><table id="semTable"></table></div>
+      <!-- Modifier une case du Cumul (demande de François du 18/11) : mêmes réglages que dans « Répartir ». -->
+      <dialog id="semEd" class="big" aria-labelledby="semEdTitre"><div id="semEdCorps"></div></dialog>
     </div>
     <div class="sem-page" id="semRec" hidden>
       <div id="semRecList"></div>
@@ -3250,6 +3262,8 @@ function renderSemaine(){
   var hc = cmdHtml(); $('#semCmd').innerHTML = hc; $('#semCmd').hidden = !hc;
   if(cmdActif() && cmd.depuis && id < cmd.depuis) cmdRelancer(true);
   var pc = PC.matches;
+  // Fenêtre du Cumul ouverte et page changée (ou écran élargi) : on la ferme avant tout, même pendant une saisie.
+  if(semEd && (pc || ui.semPage !== 'cumul')) fermerEd();
   // Téléphone : ne pas redessiner pendant une saisie, on le fera en quittant la case.
   // Ordinateur (grille) : on redessine, puis on remet le curseur dans la même case, avec ce qui y était tapé.
   var actif = document.activeElement, garde = null;
@@ -3296,6 +3310,7 @@ function renderSemaine(){
   $('#semRec').hidden = page !== 'recolter';
   if(page === 'recolter') renderARecolter(prods, calc, cr); else $('#semRecList').innerHTML = '';
   if(pc){
+    if(semEd) fermerEd();
     $('#semList').innerHTML = ''; $('#semTable').innerHTML = '';
     $('#semGrid').innerHTML = prods.length ? grilleHtml(prods, calc, cr) : '';
     grilleMesures();
@@ -3311,7 +3326,9 @@ function renderSemaine(){
     return;
   }
   $('#semList').innerHTML = prods.map(function(p){ return carteHtml(p.id, p.f, calc[p.id], cr); }).join('');
-  $('#semTable').innerHTML = prods.length ? tableHtml(prods, calc, cr) : '<tr><td>Aucun produit.</td></tr>';
+  $('#semTable').innerHTML = prods.length ? tableHtml(prods, calc, cr, true) : '<tr><td>Aucun produit.</td></tr>';
+  // Fenêtre de modification ouverte : elle suit les changements (les siens et ceux de l'autre téléphone).
+  if(semEd){ if(page !== 'cumul' || !produitDe(semEd.pid)) fermerEd(); else $('#semEdCorps').innerHTML = edHtml(); }
 }
 
 /* À récolter, jour par jour (étape 13D) : les jours de récolte de cette semaine, avec les livraisons qu'on y
@@ -3631,34 +3648,70 @@ function carteHtml(pid, f, r, cr){
     '<span class="sp-resume">' + esc(resume.join(' · ')) + '</span></button>';
   if(!ouvert) return h + '</section>';
   h += '<div class="sp-body">';
-  h += ligneHtml(pid, f, 'dispo', 'Disponible', d, {cls:'dispo', aria:'Disponible de ' + f.nom, ph:'?'});
+  h += champHtml(pid, f, r, cr, 'dispo');
   colonnes(cr.filter(visibleC), st).forEach(function(o){
-    var c = o.c, x = o.s;
-    if(x){
-      h += ligneHtml(pid, f, 'stock/' + x.id, 'Stock chez ' + esc(x.nom) + ' <small>au magasin, hors du reste</small>', stockVu(pid, x.id), {cls:'stock', dc:x.id, aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?', note: stockVu(pid, x.id) ? '' : avantTxt(pid, f, x.id)});
-      return;
-    }
-    var nom = esc(c.nom) + (c.jour ? ' <small>' + esc(c.jour) + '</small>' : '');
-    if(c.reprend){
-      var avant = cr.filter(function(x){ return x.id === c.reprend; })[0], prop = propose(pid, c);
-      h += '<label class="sr-opt"><input type="checkbox" data-a="propose" data-s="' + esc(c.id) + '"' + (prop ? ' checked' : '') + '> Proposé à ' + esc(nomDebouche(c, avant)) + ' (le reste de ' + esc(avant ? avant.nom : c.reprend) + ' est proposé à ' + esc(c.nom) + ')</label>';
-      if(prop){
-        var auto = reportAuto(pid, f, c, r), man = semLire('report/' + pid + '/' + c.id);
-        var note = auto === null ? 'Calcul : saisir le disponible' : 'Calcul : ' + deux(auto, f);
-        h += ligneHtml(pid, f, 'report/' + c.id, 'Reste de ' + esc(avant ? avant.nom : c.reprend) + ', proposé à ' + esc(c.nom) + (man ? ' <small>modifié</small>' : ' <small>calculé</small>'), valeurCase(pid, f, 'report/' + c.id),
-          {cls:'report', dc:c.circuit, aria:'Reste proposé à ' + c.nom + ', ' + f.nom, note:note + ' · hors du reste', qui:!!man,
-           extra: man ? '<button type="button" class="sem-act" data-a="auto">Revenir au calcul</button>' : ''});
-      }
-    }
-    var q = semLire('q/' + pid + '/' + c.id), tout = r.toutC === c.id;
-    h += ligneHtml(pid, f, 'q/' + c.id, nom, tout ? null : q, {tout:tout, toutV:r.toutV, dc:c.circuit, aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom});
+    if(o.s){ h += champHtml(pid, f, r, cr, 'stock/' + o.s.id); return; }
+    if(o.c.reprend) h += champHtml(pid, f, r, cr, 'report/' + o.c.id);
+    h += champHtml(pid, f, r, cr, 'q/' + o.c.id);
   });
-  h += '<div class="sr total"><span class="sr-nom">Reste</span><span class="reste ' + r.etat + '">' + esc(etiquette(r, f)) + '</span></div>';
+  h += resteHtml(f, r);
   var der = derniere(pid);
   h += '<div class="sp-foot">' + (der ? '<span class="sp-by">Dernière modification : ' + esc(quiQuand(der)) + '</span>' : '') +
     '<button type="button" class="sem-act" data-a="retirer">Retirer ce produit de la semaine</button></div>';
   return h + '</div></section>';
 }
+// Une case de la semaine, avec ses boutons − et +, son unité et « tout » : dans la fiche d'un produit (page « Répartir »)
+// et dans la fenêtre qui s'ouvre en touchant une case du Cumul. k : 'dispo', 'stock/<débouché>', 'q/<créneau>' ou 'report/<créneau>'.
+function champHtml(pid, f, r, cr, k){
+  var genre = k.split('/')[0], id = k.split('/')[1];
+  if(genre === 'dispo') return ligneHtml(pid, f, 'dispo', 'Disponible', semLire('dispo/' + pid), {cls:'dispo', aria:'Disponible de ' + f.nom, ph:'?'});
+  if(genre === 'stock'){
+    var x = stocks().filter(function(s){ return s.id === id; })[0] || {id:id, nom:id}, qs = stockVu(pid, id);
+    return ligneHtml(pid, f, k, 'Stock chez ' + esc(x.nom) + ' <small>au magasin, hors du reste</small>', qs, {cls:'stock', dc:x.id, aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?', note: qs ? '' : avantTxt(pid, f, x.id)});
+  }
+  var c = cr.filter(function(y){ return y.id === id; })[0];
+  if(!c) return '';
+  if(genre === 'report'){
+    var avant = cr.filter(function(y){ return y.id === c.reprend; })[0], prop = propose(pid, c);
+    var h = '<label class="sr-opt"><input type="checkbox" data-a="propose" data-s="' + esc(c.id) + '"' + (prop ? ' checked' : '') + '> Proposé à ' + esc(nomDebouche(c, avant)) + ' (le reste de ' + esc(avant ? avant.nom : c.reprend) + ' est proposé à ' + esc(c.nom) + ')</label>';
+    if(!prop) return h;
+    var auto = reportAuto(pid, f, c, r), man = semLire('report/' + pid + '/' + c.id);
+    var note = auto === null ? 'Calcul : saisir le disponible' : 'Calcul : ' + deux(auto, f);
+    return h + ligneHtml(pid, f, k, 'Reste de ' + esc(avant ? avant.nom : c.reprend) + ', proposé à ' + esc(c.nom) + (man ? ' <small>modifié</small>' : ' <small>calculé</small>'), valeurCase(pid, f, k),
+      {cls:'report', dc:c.circuit, aria:'Reste proposé à ' + c.nom + ', ' + f.nom, note:note + ' · hors du reste', qui:!!man,
+       extra: man ? '<button type="button" class="sem-act" data-a="auto">Revenir au calcul</button>' : ''});
+  }
+  var nom = esc(c.nom) + (c.jour ? ' <small>' + esc(c.jour) + '</small>' : '');
+  var q = semLire('q/' + pid + '/' + c.id), tout = r.toutC === c.id;
+  return ligneHtml(pid, f, k, nom, tout ? null : q, {tout:tout, toutV:r.toutV, dc:c.circuit, aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom});
+}
+function resteHtml(f, r){ return '<div class="sr total"><span class="sr-nom">Reste</span><span class="reste ' + r.etat + '">' + esc(etiquette(r, f)) + '</span></div>'; }
+
+/* Modifier le Cumul sur le téléphone (demande de François du 18/11 : « je veux pouvoir modifier les valeurs, y compris
+   sur téléphone »). Toucher une case du tableau ouvre une petite fenêtre avec la même case que dans « Répartir »
+   (− et +, unité, « tout », clavier) et le reste du produit, qui se met à jour. La valeur s'écrit au même endroit que
+   dans « Répartir » : le Cumul n'est qu'une autre façon de voir la même répartition. Sur ordinateur, la grille est
+   déjà modifiable et tient lieu de Cumul. */
+var semEd = null;
+function edHtml(){
+  var f = semEd && produitDe(semEd.pid);
+  if(!f) return '';
+  var r = calcul(semEd.pid, f);
+  return '<div data-pid="' + esc(semEd.pid) + '"><div class="ed-tete"><h2 id="semEdTitre">' + miniHtml(f.nom) + esc(f.nom) + '</h2><span class="sp-colis">' + esc(colisTxt(f)) + '</span></div>' +
+    '<div class="ed-corps">' + champHtml(semEd.pid, f, r, creneaux(), semEd.k) + resteHtml(f, r) + '</div>' +
+    '<div class="btns"><button type="button" data-a="ed-fermer">Fermer</button></div></div>';
+}
+function ouvrirEd(pid, k){
+  var dlg = $('#semEd');
+  semEd = {pid:pid, k:k};
+  $('#semEdCorps').innerHTML = edHtml();
+  if(!dlg.open) dlg.showModal();
+  // Une case à chiffre : le clavier s'ouvre tout de suite, chiffre sélectionné (on tape par-dessus).
+  var inp = $('#semEdCorps .sr-ctl input');
+  if(inp){ inp.focus(); try{ inp.select(); }catch(x){} } else { var b = $('#semEdCorps [data-a="ed-fermer"]'); if(b) b.focus(); }
+}
+function fermerEd(){ semEd = null; var dlg = $('#semEd'); if(dlg.open) dlg.close(); $('#semEdCorps').innerHTML = ''; }
+$('#semEd').addEventListener('close', function(){ if(semEd){ semEd = null; $('#semEdCorps').innerHTML = ''; } });
 function nomDebouche(c, avant){
   // « Auvabio 63 » reprend « Auvabio 03 » : le débouché est la partie commune des deux noms.
   if(!avant) return c.nom;
@@ -3673,7 +3726,9 @@ function derniere(pid){
   ['q', 'report', 'propose', 'stock'].forEach(function(k){ var o = semLire(k + '/' + pid) || {}; Object.keys(o).forEach(function(c){ voir(o[c]); }); });
   return best;
 }
-function tableHtml(prods, calc, cr){
+// modifiable : cases à toucher (page « Cumul » du téléphone) ; l'impression reprend le même tableau, sans.
+function tableHtml(prods, calc, cr, modifiable){
+  var ed = function(k){ return modifiable ? ' data-a="ed-ouvrir" data-k="' + esc(k) + '"' : ''; };
   var reports = cr.filter(function(c){ return c.reprend && visibleC(c); });
   var st = stocksVisibles(stocks(), cr);
   var cols = colonnes(cr.filter(visibleC), st);
@@ -3681,15 +3736,15 @@ function tableHtml(prods, calc, cr){
     reports.map(function(c){ var a = cr.filter(function(x){ return x.id === c.reprend; })[0]; return '<th class="rep dc"' + dc(c.circuit) + '>' + esc('Reste ' + (a ? a.court || a.nom : '') + ' → ' + (c.court || c.nom)) + '</th>'; }).join('') + '</tr></thead><tbody>';
   prods.forEach(function(p){
     var r = calc[p.id], f = p.f, d = semLire('dispo/' + p.id);
-    h += '<tr data-pid="' + esc(p.id) + '"><td>' + miniHtml(f.nom) + esc(f.nom) + '</td><td>' + (d ? esc(qCourt(d, f)) : '') + '</td>' + cols.map(function(o){
+    h += '<tr data-pid="' + esc(p.id) + '"><td>' + miniHtml(f.nom) + esc(f.nom) + '</td><td' + ed('dispo') + '>' + (d ? esc(qCourt(d, f)) : '') + '</td>' + cols.map(function(o){
       var c = o.c;
-      if(o.s){ var qs = stockVu(p.id, o.s.id); return '<td class="stk dc"' + dc(o.s.id) + '>' + (qs ? esc(qCourt(qs, f)) + (qs.at ? '<small class="g-qui">' + esc(quiCourt(qs)) + '</small>' : '') : '') + '</td>'; }
-      if(r.toutC === c.id) return '<td class="dc"' + dc(c.circuit) + '>tout</td>';
-      var q = semLire('q/' + p.id + '/' + c.id); return '<td class="dc"' + dc(c.circuit) + '>' + (q ? esc(qCourt(q, f)) : '') + '</td>';
+      if(o.s){ var qs = stockVu(p.id, o.s.id); return '<td class="stk dc"' + ed('stock/' + o.s.id) + dc(o.s.id) + '>' + (qs ? esc(qCourt(qs, f)) + (qs.at ? '<small class="g-qui">' + esc(quiCourt(qs)) + '</small>' : '') : '') + '</td>'; }
+      if(r.toutC === c.id) return '<td class="dc"' + ed('q/' + c.id) + dc(c.circuit) + '>tout</td>';
+      var q = semLire('q/' + p.id + '/' + c.id); return '<td class="dc"' + ed('q/' + c.id) + dc(c.circuit) + '>' + (q ? esc(qCourt(q, f)) : '') + '</td>';
     }).join('') + '<td class="r-' + r.etat + '">' + (r.reste === null ? (r.etat === 'place' ? '0' : '') : esc(deux(r.reste, f))) + '</td>' + reports.map(function(c){
-      if(!propose(p.id, c)) return '<td class="rep dc"' + dc(c.circuit) + '></td>';
+      if(!propose(p.id, c)) return '<td class="rep dc"' + ed('report/' + c.id) + dc(c.circuit) + '></td>';
       var man = semLire('report/' + p.id + '/' + c.id), auto = reportAuto(p.id, f, c, r);
-      return '<td class="rep dc"' + dc(c.circuit) + '>' + (man ? esc(qCourt(man, f)) + ' (modifié)' : auto === null ? '' : esc(nb(auto))) + '</td>';
+      return '<td class="rep dc"' + ed('report/' + c.id) + dc(c.circuit) + '>' + (man ? esc(qCourt(man, f)) + ' (modifié)' : auto === null ? '' : esc(nb(auto))) + '</td>';
     }).join('') + '</tr>';
   });
   return h + '</tbody>';
@@ -3723,6 +3778,7 @@ $('#semView').addEventListener('click', function(e){
   e.stopPropagation(); // les gestes de la liste de récolte (cocher, glisser) ne concernent pas cet onglet
   var b = e.target.closest('[data-a]');
   var carte = e.target.closest('[data-pid]'), pid = carte && carte.dataset.pid, f = pid && produitDe(pid);
+  if(e.target.id === 'semEd'){ fermerEd(); return; } // toucher le fond grisé ferme la fenêtre du Cumul
   if(!b){
     var tete = e.target.closest('.sp-head');
     if(tete){ semOuvert[pid] = !semOuvert[pid]; render(); }
@@ -3749,7 +3805,9 @@ $('#semView').addEventListener('click', function(e){
     return;
   }
   if(a.indexOf('cmd-') === 0){ cmdAction(a, b); return; }
+  if(a === 'ed-fermer'){ fermerEd(); return; }
   if(a === 'propose' || !f) return;
+  if(a === 'ed-ouvrir'){ ouvrirEd(pid, k); return; }
   var cle = pid + '|' + k;
   delete semErr[cle];
   if(a === 'retirer'){
