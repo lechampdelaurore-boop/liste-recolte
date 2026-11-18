@@ -188,7 +188,7 @@ const heure = (t) => { const d = new Date(t); return d.getHours() + ' h ' + Stri
   await attendreQue(async () => (await badge(F)) === '1' && (await badge(A)) === '1' && (await badge(PC)) === '1', 25000);
   verifie((await badge(F)) === '1' && (await badge(A)) === '1' && (await badge(PC)) === '1', 'la notification arrive sans recharger : chiffre rouge 1 chez François, Aurore et sur l\'ordinateur (en ' + Math.round((Date.now() - t0) / 1000) + ' s, relue toutes les 15 s)');
   const pastille = await F.$eval('#clocheN', (b) => getComputedStyle(b).backgroundColor + '|' + getComputedStyle(b).color);
-  verifie(pastille === 'rgb(224, 0, 0)|rgb(255, 255, 255)', 'chiffre blanc sur pastille rouge vif (' + pastille + ')');
+  verifie(pastille === 'rgb(220, 53, 69)|rgb(255, 255, 255)', 'chiffre blanc sur pastille rouge vif (' + pastille + ')');
   const { p: N, ctx: ctxN } = await ferme('François', 'francois', MDP_F);
   await N.waitForTimeout(1000);
   verifie((await badge(N)) === '', 'un nouveau téléphone part de « tout lu » : pas de chiffre pour les anciennes notifications');
@@ -198,7 +198,7 @@ const heure = (t) => { const d = new Date(t); return d.getHours() + ' h ' + Stri
   const item = await F.$eval('#notifListe .notif-i', (b) => ({ t: b.querySelector('.notif-t').textContent, s: b.querySelector('small').textContent, nouv: b.classList.contains('notif-nouv'), bord: getComputedStyle(b).borderTopWidth }));
   verifie((await badge(F)) === '' && (await badge(A)) === '1', 'à l\'ouverture de la feuille, le chiffre de François retombe à zéro ; celui d\'Aurore reste à 1');
   verifie(item.t === `Igor a fini le stock de Très Allier · semaine ${NUM} · 3 produits` && item.s === 'Igor, aujourd\'hui à ' + heure(nMain.at), 'texte : « ' + item.t + ' », puis « ' + item.s + ' »');
-  verifie(item.nouv && item.bord === '4px' && !(await F.isVisible('#notifRien')), 'la nouveauté est encadrée en gras (trait de 4 px) (' + JSON.stringify(item) + ', « Rien de nouveau » ' + (await F.isVisible('#notifRien') ? 'affiché' : 'caché') + ')');
+  verifie(item.nouv && item.bord === '2px' && !(await F.isVisible('#notifRien')), 'la nouveauté est encadrée en gras (trait de 2 px, charte douce) (' + JSON.stringify(item) + ', « Rien de nouveau » ' + (await F.isVisible('#notifRien') ? 'affiché' : 'caché') + ')');
   await capture(F, '5-ferme-feuille');
   await F.click('#notifLu');
   verifie(!(await F.$eval('#notifListe .notif-i', (b) => b.classList.contains('notif-nouv'))) && await F.isVisible('#notifRien'), '« Tout marquer comme lu » : plus de gras, « Rien de nouveau »');

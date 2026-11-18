@@ -65,7 +65,7 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   }, ligne(id));
   const ordre = (p) => p.$$eval('#todo li.item', (e) => e.map((x) => x.dataset.id));
   const dansFaites = (p, id) => p.$$eval('#done li.item', (e, i) => e.some((x) => x.dataset.id === i), id);
-  const VERT = 'rgb(10, 90, 28)';
+  const VERT = 'rgb(11, 105, 77)'; // vert de la charte douce (#0b694d, étape 42)
 
   // 1. Téléphone : la ligne cochée reste à sa place, en vert, environ 3 secondes
   const ids = await ordre(A);

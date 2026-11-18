@@ -110,7 +110,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   verifie(base.lire(`listes/${MER}/annule`) === null && base.lire(`listes/${MER}/done`) === null, 'base : ni récolte annulée ni coche de récolte écrite');
   const L = 'li.pitem.annule[data-k="mk/bette"]';
   const st = await T.$eval(L, (x) => ({ badge: (x.querySelector('.rec') || {}).textContent, rouge: getComputedStyle(x.querySelector('.rec')).backgroundColor, barre: getComputedStyle(x.querySelector('.prod')).textDecorationLine, box: !!x.querySelector('button.box'), menu: !!x.querySelector('button.menu'), by: x.querySelector('.by').textContent, qte: x.querySelector('.qty').textContent }));
-  verifie(st.badge === 'Annulé pour ce client' && st.rouge === 'rgb(176, 0, 0)' && st.barre.includes('line-through') && !st.box && st.menu, 'téléphone : ligne barrée, étiquette rouge « Annulé pour ce client », sans case, « ⋯ » gardé (' + JSON.stringify(st) + ')');
+  verifie(st.badge === 'Annulé pour ce client' && st.rouge === 'rgb(251, 229, 232)' && st.barre.includes('line-through') && !st.box && st.menu, 'téléphone : ligne barrée, étiquette rouge « Annulé pour ce client », sans case, « ⋯ » gardé (' + JSON.stringify(st) + ')');
   verifie(/^Annulé par Martin à \d\d:\d\d$/.test(net(st.by)), 'téléphone : « ' + net(st.by) + ' »');
   verifie(net(st.qte).startsWith('1 colis'), 'téléphone : la quantité reste affichée (« ' + net(st.qte) + ' »)');
   const mk = net(await T.textContent('.grp[data-circ="mk"] .grp-sum'));

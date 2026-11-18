@@ -186,7 +186,7 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   const nLignes = await B.$$eval('#prepList li.pitem', (e) => e.length);
   verifie(nLignes === 38, 'une ligne par produit et par client : 38 lignes (obtenu ' + nLignes + ')');
   const ligne = (p, k) => p.$(`li.pitem[data-k="${k}"]`);
-  verifie((await (await ligne(B, 'av/endive')).textContent()).includes('✓ Récolté'), 'l\'endive (récoltée) porte « Récolté »');
+  verifie((await (await ligne(B, 'av/endive')).textContent()).includes('Récolté') && !!(await (await ligne(B, 'av/endive')).$('.rec.ok svg.ico')), 'l\'endive (récoltée) porte « Récolté »');
   verifie((await (await ligne(B, 'ta/bette')).textContent()).includes('Pas encore récolté'), 'la bette (pas récoltée) porte « Pas encore récolté »');
   const qPs = await (await ligne(B, 'ps/bette')).$eval('.qty', (x) => x.textContent);
   verifie(qPs === '3,5 grands colis boisde 5 kg · 17,5 kg', 'Panier adéquat, bette : 3,5 grands colis bois de 5 kg, 17,5 kg (obtenu ' + qPs + ')');
