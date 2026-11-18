@@ -33,6 +33,8 @@ module.exports = function fauxFirebase(port, options = {}) {
   const permis = (uid, m, p, v) => {
     const profil = root.profils && root.profils[uid];
     if (p[0] === 'listes') return profil === 'ferme';
+    // Étape 36A (Aurore Task) : taches/ lu et écrit par les profils « ferme » et « equipe » ; reglesAvantTaches : refusé.
+    if (p[0] === 'taches') return !serveur.reglesAvantTaches && (profil === 'ferme' || profil === 'equipe');
     if (serveur.reglesAvant13C) return false; // règles de l'étape 5 seules (avant la publication des nouvelles)
     if (p[0] === 'profils') return m === 'GET' && p.length === 2 && p[1] === uid;
     if (p[0] === 'notifs') {
