@@ -80,7 +80,9 @@ const compte = async (email, mdp) => {
   // Étape 13C : le compte du magasin (profil « magasin:ta »)
   const m = await compte('tresallier@ferme.invalid', 'essai-magasin');
   await fetch(`${DB}/profils/${m.localId}.json?ns=${NS}`, { method: 'PUT', headers: admin, body: '"magasin:ta"' });
-  const W = '2026-11-09', ecrit = (chemin, corps, jeton = m.idToken, methode = 'PATCH') => appel(chemin, jeton, { method: methode, body: JSON.stringify(corps) });
+  // Semaine en cours (lundi) : la boîte des commandes de l'appli ne montre que la semaine ouverte et les suivantes
+  // (avant le 18/11/2026, une date fixe faisait échouer l'essai de l'appli dès la semaine suivante).
+  const W = (() => { const d = new Date(); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); })(), ecrit = (chemin, corps, jeton = m.idToken, methode = 'PATCH') => appel(chemin, jeton, { method: methode, body: JSON.stringify(corps) });
   r = await appel('profils/' + m.localId, m.idToken);
   verifie(r.s === 200 && r.j === 'magasin:ta', 'magasin : il lit son propre profil (« magasin:ta »)');
   r = await appel('profils/' + f.localId, m.idToken);
