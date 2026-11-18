@@ -237,6 +237,10 @@ li.pitem.done .prod{text-decoration:line-through;text-decoration-thickness:2px}
 .rec.ann{background:#b00000;color:#fff;border-color:#b00000}
 li.pitem.annule{cursor:default;background:var(--surface2)}
 li.pitem.annule .prod,li.pitem.annule .qty{text-decoration:line-through;text-decoration-thickness:2px}
+/* « ⋯ » d'une ligne de Préparation (18/11) : annuler ce produit pour ce client seulement, ou le rétablir. */
+li.pitem.avecmenu{grid-template-columns:auto 1fr auto auto}
+li.pitem .menu{grid-column:4;grid-row:1}
+li.pitem.annule .by{color:#b00000;font-weight:800}
 .box.vide{visibility:hidden}
 .grp-head .rec{border-color:var(--bg)}
 .note{background:var(--warn-bg);color:var(--warn-fg);border:var(--bw) solid #000;border-radius:10px;padding:10px 12px;font-size:.9rem;font-weight:600;margin:0}
@@ -1057,7 +1061,7 @@ function ouvrirListe(id){
   if(lid === id) return;
   lid = id; MKEY = 'recolte.liste.' + id;
   var saved = ls(MKEY) || {};
-  mirror = {order: saved.order || null, done: saved.done || {}, prep: saved.prep || {}, prepClient: saved.prepClient || {}, annule: saved.annule || {}, fige: saved.fige || null};
+  mirror = {order: saved.order || null, done: saved.done || {}, prep: saved.prep || {}, prepClient: saved.prepClient || {}, prepAnnule: saved.prepAnnule || {}, annule: saved.annule || {}, fige: saved.fige || null};
   pending = ls('recolte.pending.' + id) || [];
   repOpen = {};
   if(lance && dbPret()){ ouvrir(); flush(); }
@@ -1065,7 +1069,7 @@ function ouvrirListe(id){
 function fermerListe(){
   list = null; byId = {}; document.title = 'Cumul';
   if(lid === null) return;
-  lid = null; MKEY = null; mirror = {order:null, done:{}, prep:{}, prepClient:{}, annule:{}, fige:null}; pending = [];
+  lid = null; MKEY = null; mirror = {order:null, done:{}, prep:{}, prepClient:{}, prepAnnule:{}, annule:{}, fige:null}; pending = [];
   if(es){ es.close(); es = null; }
 }
 // Contenu de la liste affichée (produits, circuits) ; les coches restent celles de ouvrirListe.
@@ -1528,13 +1532,19 @@ function prepLines(){
     list.circuits.forEach(function(ci){
       var v = it.circ[ci.id];
       if(v === undefined || v === 0 || (ui.circ && ci.id !== ui.circ)) return;
-      r.push({it:it, ci:ci, k:ci.id + '/' + it.id, ann:isAnnule(it.id)});
+      var k = ci.id + '/' + it.id, ann = isAnnule(it.id);
+      r.push({it:it, ci:ci, k:k, ann:ann, pann:!ann && isPrepAnnule(k)});
     });
   });
   return r;
 }
 function infoAt(path){ return path.split('/').reduce(function(o, k){ return o && typeof o === 'object' ? o[k] : null; }, mirror) || null; }
 function prepInfo(k){ return infoAt('prep/' + k); }
+// Produit annulé pour un client (18/11/2026, demande de François) : prepAnnule/<circuit>/<produit> = {by, at}, à part des
+// coches. Seul ce client est touché : la récolte, les autres clients et les quantités de la semaine ne changent pas.
+function prepAnnInfo(k){ return infoAt('prepAnnule/' + k); }
+function isPrepAnnule(k){ return !!prepAnnInfo(k); }
+function prepMenuHtml(l){ return '<button class="menu" type="button" aria-label="Autres actions pour ' + esc(l.it.produit + ' pour ' + l.ci.nom) + '" title="Annuler ou rétablir ce produit pour ce client">⋯</button>'; }
 function clientInfo(c){ return infoAt('prepClient/' + c); }
 function heure(info){ return info && info.at ? ' à ' + new Date(info.at).toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'}) : ''; }
 function recBadge(it){
@@ -1547,11 +1557,19 @@ function prepLineHtml(l, byClient){
   if(l.ann) return '<li class="pitem annule" data-k="' + esc(l.k) + '"><span class="box vide" aria-hidden="true"></span>' +
     '<div class="main"><div class="prod">' + (byClient ? miniHtml(name) : '') + esc(name) + '</div>' + (byClient ? recBadge(l.it) : '') + '</div>' +
     '<div class="qty">' + circQtyHtml(l.it, l.ci.id) + '</div></li>';
+  // Produit annulé pour ce client : ligne barrée, sans case, hors du compte « Préparé » ; le « ⋯ » propose « Rétablir ».
+  if(l.pann){
+    var a = prepAnnInfo(l.k);
+    return '<li class="pitem annule avecmenu" data-k="' + esc(l.k) + '"><span class="box vide" aria-hidden="true"></span>' +
+      '<div class="main"><div class="prod">' + (byClient ? miniHtml(name) : '') + esc(name) + '</div><span class="rec ann">Annulé pour ce client</span></div>' +
+      '<div class="qty">' + circQtyHtml(l.it, l.ci.id) + '</div>' + prepMenuHtml(l) +
+      '<div class="by">Annulé' + (a.by ? ' par ' + esc(a.by) : '') + heure(a) + '</div></li>';
+  }
   var info = prepInfo(l.k);
-  return '<li class="pitem' + (info ? ' done' : '') + '" data-k="' + esc(l.k) + '">' +
+  return '<li class="pitem avecmenu' + (info ? ' done' : '') + '" data-k="' + esc(l.k) + '">' +
     '<button class="box" type="button" aria-label="' + (info ? 'Décocher ' : 'Cocher ') + esc(l.it.produit + ' pour ' + l.ci.nom) + '">' + CHECK + '</button>' +
     '<div class="main"><div class="prod">' + (byClient ? miniHtml(name) : '') + esc(name) + '</div>' + (byClient ? recBadge(l.it) : '') + '</div>' +
-    '<div class="qty">' + circQtyHtml(l.it, l.ci.id) + '</div>' +
+    '<div class="qty">' + circQtyHtml(l.it, l.ci.id) + '</div>' + prepMenuHtml(l) +
     (info ? '<div class="by">Préparé' + (info.by ? ' par ' + esc(info.by) : '') + heure(info) + '</div>' : '') + '</li>';
 }
 var ALPHA = typeof Intl !== 'undefined' && Intl.Collator ? new Intl.Collator('fr', {sensitivity:'base', numeric:true}) : null;
@@ -1570,15 +1588,18 @@ function renderPrep(){
   // les groupes (clients ou produits) et les lignes de chaque groupe.
   function nomL(l){ return byClient ? l.it.produit : l.ci.nom; }
   function nomG(g){ return byClient ? circById[g.key].nom : byId[g.key].produit; }
-  // Les lignes annulées vont en bas de leur groupe.
-  groups.forEach(function(g){ g.lines.sort(function(a, b){ return (a.ann ? 1 : 0) - (b.ann ? 1 : 0) || alpha(nomL(a), nomL(b)); }); });
+  // Les lignes annulées vont en bas de leur groupe (produit annulé pour le client, puis récolte annulée).
+  function bas(l){ return l.ann ? 2 : l.pann ? 1 : 0; }
+  groups.forEach(function(g){ g.lines.sort(function(a, b){ return bas(a) - bas(b) || alpha(nomL(a), nomL(b)); }); });
   groups.sort(function(a, b){ return alpha(nomG(a), nomG(b)); });
   var nDone = 0, ready = 0, nAnn = 0;
   function groupHtml(g){
-    var vives = g.lines.filter(function(l){ return !l.ann; }), na = g.lines.length - vives.length;
+    var vives = g.lines.filter(function(l){ return !l.ann && !l.pann; });
+    var na = g.lines.filter(function(l){ return l.ann; }).length, np = g.lines.filter(function(l){ return l.pann; }).length;
     var n = vives.filter(function(l){ return prepInfo(l.k); }).length, t = vives.length, head;
-    nDone += n; nAnn += na;
-    var annTxt = na ? ' · ' + na + ' récolte' + (na > 1 ? 's' : '') + ' annulée' + (na > 1 ? 's' : '') : '';
+    nDone += n; nAnn += na + np;
+    var annTxt = (np ? ' · ' + np + ' annulé' + (np > 1 ? 's' : '') : '') +
+      (na ? ' · ' + na + ' récolte' + (na > 1 ? 's' : '') + ' annulée' + (na > 1 ? 's' : '') : '');
     if(byClient){
       var ci = circById[g.key], info = clientInfo(g.key);
       if(info) ready++;
@@ -1592,7 +1613,7 @@ function renderPrep(){
     }
     var it = byId[g.key];
     head = '<div class="grp-head nobox"><div><div class="grp-name">' + miniHtml(it.produit) + esc(it.produit) + '</div>' + recBadge(it) +
-      (t ? '<div class="grp-sum">' + countTxt(n, t) + '</div>' : '') + '</div></div>';
+      (t ? '<div class="grp-sum">' + countTxt(n, t) + (np ? ' · ' + np + ' annulé' + (np > 1 ? 's' : '') : '') + '</div>' : '') + '</div></div>';
     return {ready:false, html:'<section class="card grp" data-item="' + esc(it.id) + '">' + head + '<ul class="plist">' + g.lines.map(function(l){ return prepLineHtml(l, false); }).join('') + '</ul></section>'};
   }
   var out = groups.map(groupHtml);
@@ -1742,6 +1763,8 @@ function prepToggle(path){
 document.addEventListener('click', function(e){
   var c = e.target.closest('.box[data-client]');
   if(c){ prepToggle('prepClient/' + c.dataset.client); return; }
+  var pm = e.target.closest('li.pitem .menu');
+  if(pm){ menuPrep(pm.closest('li').dataset.k); return; }
   var p = e.target.closest('li.pitem');   // toute la ligne se touche (gants)
   if(p){ if(!p.classList.contains('annule')) prepToggle('prep/' + p.dataset.k); return; }
   var mn = e.target.closest('li.item .menu');
@@ -1785,6 +1808,39 @@ function menuRecolte(id){
   }
   if(d.showModal){ if(!d.open) d.showModal(); }
   else if(confirm('Annuler ou rétablir la récolte de ' + it.produit + ' ?')) ecrire(!isAnnule(id));
+}
+
+/* ---------- Annuler un produit pour un client, dans Préparation (18/11/2026, demande de François) ---------- */
+// « ⋯ » d'une ligne : « Annuler pour ce client » puis une confirmation, sans motif ; sur une ligne annulée, « Rétablir ».
+// Seule écriture : prepAnnule/<circuit>/<produit> ({by, at}, ou rien pour rétablir). La coche de préparation est gardée.
+function menuPrep(k){
+  var l = prepLines().filter(function(x){ return x.k === k; })[0], d = $('#annDlg'); if(!l) return;
+  var oui = $('#annOui'), non = $('#annNon'), it = l.it, ci = l.ci, qui = it.produit + ' pour ' + ci.nom;
+  $('#annTitre').textContent = it.produit + ' · ' + ci.nom;
+  function fermer(){ if(d.open) d.close(); }
+  function ecrire(val){
+    fermer();
+    if(!me){ askName(function(){ write('prepAnnule/' + k, val ? {by: me, at: Date.now()} : null); }); return; }
+    write('prepAnnule/' + k, val ? {by: me, at: Date.now()} : null);
+    if(navigator.vibrate) navigator.vibrate(30);
+  }
+  non.onclick = fermer;
+  if(l.pann){
+    var a = prepAnnInfo(k);
+    $('#annTexte').textContent = 'Annulé pour ce client' + (a.by ? ' par ' + a.by : '') + heure(a) + '. Le rétablir le remet dans la commande à préparer.';
+    oui.textContent = 'Rétablir pour ce client'; non.textContent = 'Fermer';
+    oui.onclick = function(){ ecrire(false); };
+  } else {
+    $('#annTexte').textContent = 'Si ce produit ne part pas chez ' + ci.nom + ', vous pouvez l\'annuler pour ce client seulement. La récolte et les autres clients ne changent pas.';
+    oui.textContent = 'Annuler pour ce client'; non.textContent = 'Fermer';
+    oui.onclick = function(){
+      $('#annTexte').textContent = 'Annuler ' + qui + ' ? La quantité est gardée : vous pourrez le rétablir.';
+      oui.textContent = 'Oui, annuler'; non.textContent = 'Non, garder';
+      oui.onclick = function(){ ecrire(true); };
+    };
+  }
+  if(d.showModal){ if(!d.open) d.showModal(); }
+  else if(confirm('Annuler ou rétablir ' + qui + ' ?')) ecrire(!l.pann);
 }
 
 /* ---------- Nom ---------- */
@@ -4342,13 +4398,13 @@ function heureBase(srv, path){
 
 function setAt(path, val){
   var parts = path.split('/').filter(Boolean);
-  if(!parts.length){ mirror = {order: (val && val.order) || null, done: (val && val.done) || {}, prep: (val && val.prep) || {}, prepClient: (val && val.prepClient) || {}, annule: (val && val.annule) || {}, fige: (val && val.fige) || null}; return; }
+  if(!parts.length){ mirror = {order: (val && val.order) || null, done: (val && val.done) || {}, prep: (val && val.prep) || {}, prepClient: (val && val.prepClient) || {}, prepAnnule: (val && val.prepAnnule) || {}, annule: (val && val.annule) || {}, fige: (val && val.fige) || null}; return; }
   if(parts[0] === 'maj') return;
   var o = mirror;
   for(var i = 0; i < parts.length - 1; i++){ if(!o[parts[i]] || typeof o[parts[i]] !== 'object') o[parts[i]] = {}; o = o[parts[i]]; }
   var last = parts[parts.length - 1];
   if(val === null) delete o[last]; else o[last] = val;
-  ['done', 'prep', 'prepClient', 'annule'].forEach(function(k){ if(!mirror[k]) mirror[k] = {}; });
+  ['done', 'prep', 'prepClient', 'prepAnnule', 'annule'].forEach(function(k){ if(!mirror[k]) mirror[k] = {}; });
 }
 function persist(){ if(!lid) return; ls(MKEY, mirror); ls('recolte.pending.' + lid, pending); }
 
@@ -4562,7 +4618,7 @@ function histoCharger(){
   }, function(){ histo.etat = 'err'; }).then(function(){ if(ui.view === 'historique') render(); });
 }
 // Ce qu'on garde d'un jour (sans « maj », qui ne sert qu'à l'envoi).
-function histoGarde(v){ v = v || {}; return {fige:v.fige || null, done:v.done || {}, prep:v.prep || {}, prepClient:v.prepClient || {}, annule:v.annule || {}}; }
+function histoGarde(v){ v = v || {}; return {fige:v.fige || null, done:v.done || {}, prep:v.prep || {}, prepClient:v.prepClient || {}, prepAnnule:v.prepAnnule || {}, annule:v.annule || {}}; }
 function histoNoeud(d){
   if(lid === d) return mirror;   // le jour ouvert dans l'onglet Récolte : ses coches en direct
   return histo.jours[d] || ls('recolte.histo.' + d) || ls('recolte.liste.' + d);
@@ -4600,7 +4656,7 @@ function ajouterQ(t, it){ var q = itemQty(it); t.kg += q.kg; Object.keys(q.u).fo
 function histoJour(d){
   var n = histoNoeud(d); if(!n) return null;
   var l = fichierDe(d) || (n.fige ? deFige(n.fige) : null);
-  var items = l ? tableau(l.items) : [], parId = {}, done = n.done || {}, prep = n.prep || {}, pc = n.prepClient || {}, an = n.annule || {};
+  var items = l ? tableau(l.items) : [], parId = {}, done = n.done || {}, prep = n.prep || {}, pc = n.prepClient || {}, an = n.annule || {}, pa = n.prepAnnule || {};
   items.forEach(function(it){ parId[it.id] = it; });
   var faits = Object.keys(done).filter(function(k){ return done[k] && !an[k]; }).map(function(k){ return {it:parId[k] || {id:k, produit:nomProduit(k), circ:{}}, info:done[k]}; });
   faits.sort(function(a, b){ return (a.info.at || 0) - (b.info.at || 0); });
@@ -4613,6 +4669,7 @@ function histoJour(d){
       var v = it.circ && it.circ[ci.id];
       if(v === undefined || v === null || v === 0 || v === '') return;
       if(an[it.id]) return;   // récolte annulée : hors du compte
+      if(pa[ci.id] && pa[ci.id][it.id]) return;   // produit annulé pour ce client : hors du compte
       lignes++; if(prep[ci.id] && prep[ci.id][it.id]) prets++;
     });
   });
