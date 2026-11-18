@@ -226,7 +226,10 @@ node tests/endives-sur-place.cjs
 node tests/celeri-bouquet.cjs
 node tests/notifications.cjs
 node tests/commandes.cjs
+node tests/noms.cjs
 ```
+
+`tests/noms.cjs` vérifie, sur un téléphone, que la fenêtre « Qui récolte ? » propose François, Aurore et Martin, que toucher Martin signe la coche à son nom et reste retenu sur le téléphone, et qu'un prénom tapé dans « Autre prénom » sert sur ce téléphone sans devenir un bouton.
 
 `tests/porte.cjs` (émulateurs Firebase lancés, comme `tests/regles.cjs`) vérifie la porte de l'agent (étape 32) : porte fermée sans réglages, clé absente ou fausse refusée, aide, état sans clé, livraisons des réglages de la base ou du fichier de départ, produits, dépôt d'une commande sur deux livraisons (forme acceptée par les vraies règles), « DÉJÀ VU », nouvelle version et annulation, erreurs sans rien déposer, noms jamais devinés, mauvais mot de passe et compte sans profil, 60 appels par minute ; puis la vraie appli reçoit la proposition déposée par la porte et la valide.
 

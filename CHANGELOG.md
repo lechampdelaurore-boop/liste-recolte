@@ -2,6 +2,8 @@
 
 ## 2026-11-18
 
+- **Martin parmi les prénoms de « Qui récolte ? »** (demande de François : « rajoutes aussi par défaut un troisième nom, celui de Martin »). `index.html` : bouton Martin après François et Aurore. Un prénom tapé dans « Autre prénom » reste sur ce téléphone seulement, sans devenir un bouton (François : « on laisse comme ça »). `sw.js` : CACHE `recolte-v64`. Nouveau test `tests/noms.cjs`.
+
 - **Test des règles de la base remis à jour** : `tests/regles.cjs` prenait une semaine écrite en dur (lundi 9 novembre) ; dès la semaine suivante, l'essai de l'appli branchée sur les émulateurs ne voyait plus la commande déposée plus haut (« chiffre 2 sur l'onglet »). Il prend maintenant la semaine en cours. Lancé ici avec les émulateurs Firebase (109 sur 109), ainsi que `tests/porte.cjs` (40 sur 40). Aucun changement de l'appli ni des règles.
 
 - **Stock des magasins relu au lieu d'une connexion permanente** (demande de François : « règle tous les problèmes que tu peux »). Avec deux magasins suivis, l'appli ouvrait six connexions permanentes vers la base et les envois attendaient leur tour (échec de `tests/debouches.cjs`, « stock de Locavore décoché »). `index.html` : `magConnecter` lit `magasins/<débouché>/semaines/<lundi>` toutes les 3 s sur l'onglet Semaine (15 s sinon) ; `CACHE` v63. `AGENTS.md` : pas plus de cinq flux en direct.

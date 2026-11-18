@@ -4,6 +4,8 @@
 
 *Au 18 novembre 2026. Source : lecture du dépôt et demandes de François du 4/11 au 18/11.*
 
+- **Martin parmi les prénoms (18/11, soir)**, demande de François : la fenêtre « Qui récolte ? » propose François, Aurore et Martin sur tous les appareils. Un prénom tapé dans « Autre prénom » sert sur ce seul téléphone (gardé pour les fois suivantes) et ne devient pas un bouton : François préfère laisser ainsi. Vérifié : `tests/noms.cjs`. **Non vérifié** sur de vrais téléphones.
+
 - **Réglages de Locavore et d'Auvabio vérifiés (18/11, soir)**, demande de François : dans la vraie appli (navigateur de l'appli Claude, compte d'Aurore déjà connecté), Locavore est en caisses plastique avec « Vendu en portions » coché : rien à faire pour François. La base n'a pas encore de copie des débouchés (« Réglages de départ (pas encore modifiés) ») : l'appli prend le fichier de départ. Auvabio, « Non précisé » à l'écran, passe en caisses plastiques dans ce fichier (« Oui, précise en caisse plastique »), par PR, sans rien écrire dans la base. Vérifié : `tests/debouches.cjs`. **Non vérifié** : l'écran de la vraie appli après le déploiement.
 
 - **Tests des règles et de la porte relancés (18/11, soir)** avec les émulateurs Firebase installés dans le bac à sable : `tests/porte.cjs` 40 sur 40 ; `tests/regles.cjs` 109 sur 109 après correction d'une date écrite en dur dans le test (la semaine du 9 novembre ; maintenant la semaine en cours). Les règles elles-mêmes ne changent pas.
