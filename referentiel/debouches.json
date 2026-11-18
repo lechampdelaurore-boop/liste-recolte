@@ -12,7 +12,7 @@
   {"id": "ps", "nom": "Panier adéquat", "colis": "bois", "couleur": "#6e3900", "livraisons": [
    {"id": "ps", "jours": ["mercredi"], "moment": "début d'après-midi", "court": "Panier adéq."}
   ]},
-  {"id": "lv", "nom": "Locavore", "colis": "bois", "couleur": "#0a5a1c", "livraisons": [
+  {"id": "lv", "nom": "Locavore", "colis": "plastique", "couleur": "#0a5a1c", "livraisons": [
    {"id": "lv", "jours": ["mercredi"], "moment": "soir", "court": "Locavore"}
   ]},
   {"id": "av", "nom": "Auvabio", "colis": "", "note": "Un débouché en deux livraisons : le 63 reprend le reste du 03.", "couleur": "#5e1a91", "livraisons": [

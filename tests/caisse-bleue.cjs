@@ -56,7 +56,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   const A0 = 1793730000000, q = (n, u) => ({ n, u: u || 'colis', by: 'Aurore', at: A0 });
   const put = (p, v) => fetch(`${BASE}/${p}.json`, { method: 'PUT', body: JSON.stringify(v) });
   // Une semaine saisie comme avant le 9/11 : fiche de la carotte sans autre conditionnement ni caisse de récolte.
-  // Mercredi (jour habituel) : Très Allier jeudi 1 CB, marché 3 PH, Locavore (colis bois) 2 PH = 56 kg.
+  // Mercredi (jour habituel) : Très Allier jeudi 1 CB, marché 3 PH, Locavore 2 PH = 56 kg (Locavore en caisses plastiques depuis le 18/11).
   await put('listes/semaines/' + W, {
     produits: {
       'carotte-lavee': { nom: 'Carotte lavée', caisse: 'PH', unite: '8 kg', kg: 8, by: 'Aurore', at: A0 },
@@ -96,7 +96,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   await T.waitForTimeout(200);
   const tuiles = await T.$$eval('.crate', (e) => e.map((x) => x.dataset.c + '=' + x.querySelector('b').textContent));
   verifie(tuiles.includes('CB=4'), 'caisses : 4 caisses bleues pour 56 kg de carotte (obtenu ' + tuiles.join(', ') + ')');
-  verifie(tuiles.includes('PH=0') && tuiles.includes('GH=1') && tuiles.includes('Moyen colis bois=0'), 'la carotte n\'est plus comptée en PH ni en moyen colis bois ; la bette reste en GH');
+  verifie(tuiles.includes('PH=0') && tuiles.includes('GH=1') && !tuiles.some((t) => t.includes('bois')), 'la carotte n\'est plus comptée en PH ; la bette reste en GH ; aucun colis bois (obtenu ' + tuiles.join(', ') + ')');
   verifie((await T.textContent('.crate[data-c="CB"] .nm')) === 'Caisse bleue (CB)', 'la tuile s\'appelle « Caisse bleue (CB) »');
   const sum = net(await T.textContent('#crateSum'));
   verifie(sum === '· 5 à remplir', 'total des caisses : 4 CB + 1 GH = 5 (obtenu « ' + sum + ' »)');
@@ -115,7 +115,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   const ligne = (n) => prep.find((x) => x.startsWith(n + ' : ')) || '';
   verifie(ligne('Très Allier') === 'Très Allier : 1 CB16 kg', 'Préparation : Très Allier « 1 CB », 16 kg (obtenu « ' + ligne('Très Allier') + ' »)');
   verifie(ligne('Marché de Tronget') === 'Marché de Tronget : 3 PH24 kg', 'Préparation : marché « 3 PH », 24 kg (obtenu « ' + ligne('Marché de Tronget') + ' »)');
-  verifie(ligne('Locavore') === 'Locavore : 2 moyens colis boisde 8 kg · 16 kg', 'Préparation : Locavore en colis bois comme avant, 16 kg (obtenu « ' + ligne('Locavore') + ' »)');
+  verifie(ligne('Locavore') === 'Locavore : 2 PH16 kg', 'Préparation : Locavore en caisses plastiques, « 2 PH », 16 kg (obtenu « ' + ligne('Locavore') + ' »)');
   await capture(T, '2-preparation');
 
   // 4. Semaine (téléphone) : fiche, bouton d'unité et « À récolter »

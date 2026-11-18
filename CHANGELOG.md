@@ -1,5 +1,9 @@
 # Historique des changements
 
+## 2026-11-18
+
+- **Locavore en caisses plastiques** (demande de François : « comme pour Auvabio »). Fichier de départ : Locavore passe de « colis bois » à « caisses plastique » dans `referentiel/debouches.json` et sort de `circuits_colisage` dans `referentiel/conditionnements.json` ; Panier adéquat et Ferme Deschamps restent en colis bois. Aucun changement de code : le colis se règle déjà par débouché dans l'onglet Réglages, où la fiche de Locavore gardée dans la base se change d'un choix dans le menu « Colis ». Tests mis à jour : `caisse-bleue`, `celeri-bouquet` (Locavore en PH et GB, plus de colis bois), `debouches` (Locavore en caisses plastique au départ). `sw.js` : CACHE v57.
+
 ## 2026-11-16
 
 - **Semaine en cours par défaut** (demande de François : « l'affichage par défaut […] se fait pour la semaine qui est en cours »). Vérifié dans le code : Semaine (Répartir, Cumul, Stock, À récolter, grille), Récolte, Préparation et la boîte des commandes suivaient déjà la semaine choisie, et la page du magasin s'ouvre toujours sur la semaine en cours ; l'historique n'a pas de semaine par défaut (toutes les semaines, la plus récente en haut). Seul écart trouvé et corrigé dans `index.html` : une semaine **à venir** choisie un autre jour restait affichée les jours suivants ; désormais toute semaine autre que la semaine en cours n'est gardée que le jour où elle a été choisie. Test ajouté dans `tests/semaine.cjs`. CACHE v56.
