@@ -146,7 +146,7 @@ li.item.annule .by{color:#b00000;font-weight:800}
 .poignee,.bouger,.hint .pc{display:none}
 @media (min-width:1000px) and (hover:hover) and (pointer:fine){
   .hint .tel{display:none} .hint .pc{display:inline}
-  li.item{grid-template-columns:auto auto minmax(9em,1fr) auto auto auto auto;grid-template-areas:"poi box main qty bou menu more";gap:4px 10px;padding:4px 8px 4px 4px;min-height:48px;box-sizing:border-box}
+  li.item{grid-template-columns:auto auto minmax(7em,1fr) auto auto auto auto;grid-template-areas:"poi box main qty bou menu more";gap:4px 8px;padding:4px 8px 4px 4px;min-height:48px;box-sizing:border-box}
   li.item .poignee{grid-area:poi}
   li.item .box{grid-area:box;width:34px;height:34px;border-radius:8px}
   li.item .box svg{width:22px;height:22px}
@@ -692,10 +692,6 @@ button.notif-i{cursor:pointer}
 
   <p class="hint" id="dragHint"><span class="tel">Appui long sur une ligne pour la déplacer.</span><span class="pc">Pour ranger dans l'ordre de récolte : glissez une ligne par sa poignée (les six points à gauche), ou passez la souris sur la ligne pour ses boutons tout en haut, monter, descendre, tout en bas.</span></p>
   <ul class="list" id="todo"></ul>
-  <section class="annsec" id="annSec" hidden>
-    <h3>Récoltes annulées (<span id="annCount">0</span>)</h3>
-    <ul class="list" id="annList"></ul>
-  </section>
   <div class="ordre-hab" id="ordreBox" hidden>
     <button type="button" class="sem-act" id="ordreBtn">Enregistrer cet ordre</button>
     <p class="hint" id="ordreInfo"></p>
@@ -705,6 +701,10 @@ button.notif-i{cursor:pointer}
     <summary><span class="chev">›</span><span>Récoltes déjà effectuées (<span id="doneCount">0</span>)</span></summary>
     <ul class="list" id="done"></ul>
   </details>
+  <section class="annsec" id="annSec" hidden>
+    <h3>Récoltes annulées (<span id="annCount">0</span>)</h3>
+    <ul class="list" id="annList"></ul>
+  </section>
 
   <div id="prepView" hidden>
     <p class="hint" id="prepSum"></p>
@@ -1477,7 +1477,7 @@ function render(){
   var o = order().map(function(id){ return byId[id]; }).filter(visible);
   // Une ligne qu'on vient de cocher reste à sa place, dans « à récolter », le temps de son animation ;
   // elle compte déjà dans « Récoltes déjà effectuées ».
-  // Une récolte annulée quitte « à récolter » et « déjà effectuées » : elle a sa propre liste, sous la liste à récolter.
+  // Une récolte annulée quitte « à récolter » et « déjà effectuées » : elle a sa propre liste.
   var todo = o.filter(function(it){ return !isAnnule(it.id) && (!isDone(it.id) || enCoche(it.id)); });
   var done = o.filter(function(it){ return isDone(it.id) && !isAnnule(it.id); });
   var anns = o.filter(function(it){ return isAnnule(it.id); });
