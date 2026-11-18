@@ -2,6 +2,8 @@
 
 ## 2026-11-18
 
+- **Annuler une récolte, étape 38** (demande de François : « que depuis la liste de récoltes, je puisse annuler une récolte […] qu'elle apparaisse après dans préparation de commande comme annulée »). Bouton « ⋯ » sur chaque ligne de l'onglet Récolte, confirmation, sans motif, « Rétablir » ; ligne grise barrée « Annulée par … à … » dans « Récoltes annulées » ; hors des caisses et de la barre « Récolté » ; Préparation : lignes barrées « Récolte annulée » en rouge, sans case, hors du compte ; historique : « Récolte annulée : … ». Donnée `listes/<jour>/annule/<produit>` {by, at}, règles inchangées. Nouveau test `tests/annuler.cjs`. `CACHE` recolte-v58.
+
 - **Locavore en caisses plastiques** (demande de François : « comme pour Auvabio »). Fichier de départ : Locavore passe de « colis bois » à « caisses plastique » dans `referentiel/debouches.json` et sort de `circuits_colisage` dans `referentiel/conditionnements.json` ; Panier adéquat et Ferme Deschamps restent en colis bois. Aucun changement de code : le colis se règle déjà par débouché dans l'onglet Réglages, où la fiche de Locavore gardée dans la base se change d'un choix dans le menu « Colis ». Tests mis à jour : `caisse-bleue`, `celeri-bouquet` (Locavore en PH et GB, plus de colis bois), `debouches` (Locavore en caisses plastique au départ). `sw.js` : CACHE v57.
 
 - **Annuler une récolte : proposition validée, registres seulement** (demande de François ; « Ça me va, on lance comme ça »). Ligne 38 de la feuille de route et décision du 18/11 dans `docs/DECISIONS.md`. Aucun code, aucune donnée touchée. **Non vérifié** : tout le code est encore à faire.
