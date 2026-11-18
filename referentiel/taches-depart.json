@@ -1,0 +1,10 @@
+{
+  "_lisezmoi": "Réglages de départ d'Aurore Task (taches.html), propres à cette ferme : lus seulement tant que la base n'a pas ses propres réglages (taches/reglages). Une autre ferme remplace ce fichier. Couleurs possibles : rouge, rose, bleu, vert, orange, violet, gris.",
+  "nom": "Le Champ de l'Aurore",
+  "personnes": {
+    "francois": {"nom": "François", "initiale": "F", "couleur": "rouge", "ordre": 1},
+    "aurore": {"nom": "Aurore", "initiale": "A", "couleur": "rose", "ordre": 2},
+    "martin": {"nom": "Martin", "initiale": "M", "couleur": "bleu", "ordre": 3}
+  },
+  "encarts": {"rdv": "RDV", "p1": "P1", "p2": "P2"}
+}

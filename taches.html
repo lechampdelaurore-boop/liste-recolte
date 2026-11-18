@@ -112,6 +112,40 @@ li.t.vient-coche.sep .trait{border-color:#fff}
 li.t.appuye{background:var(--gris)}
 li.t.vient{animation:vient 1.2s ease-out}
 @keyframes vient{from{background:var(--vert-ok)}to{background:transparent}}
+.encart{padding-bottom:4px}
+.encart + .encart{border-top:1px solid var(--filet-pale);margin-top:2px}
+.encart-tete{display:flex;align-items:center;gap:8px;min-height:40px}
+.encart-tete .etiq{margin-right:auto}
+.etiq{font-family:var(--f-ui);font-weight:600;font-size:11px;border-radius:99px;padding:2px 9px;-webkit-user-select:none;user-select:none}
+.etiq.info{background:#e1eaff;color:#2a3f8a} .etiq.warn{background:var(--orange-pale);color:var(--orange-txt)} .etiq.neutre{background:var(--gris);color:var(--anthracite)}
+.pt.mini svg.i{width:16px;height:16px}
+.suppr-encart{min-height:32px;border:0;background:transparent;color:var(--sec);border-radius:var(--r-btn);font-family:var(--f-ui);font-weight:500;font-size:11.5px;padding:0 8px;text-decoration:underline;text-underline-offset:2px}
+.suppr-encart:hover{color:var(--rouge-txt)}
+.encart ul.taches:empty{min-height:8px}
+.heure{font-weight:700;color:#2a3f8a}
+.pastille{width:22px;height:22px;flex-shrink:0;margin-top:1px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;font-family:var(--f-ui);font-weight:600;font-size:11px}
+.origine{flex-shrink:0;color:var(--sec);margin-top:3px}
+.origine svg.i{width:15px;height:15px}
+.puce{width:7px;height:7px;border-radius:50%;background:var(--anthracite);flex-shrink:0;margin:9px 7px 0}
+li.t.fige{cursor:default}
+li.t.fige .tx{cursor:default}
+.pan.fige .plus,.pan.fige .ajout-ligne{display:none!important}
+.verrou-info{display:flex;align-items:center;gap:8px;margin:0 0 10px;background:var(--gris);color:var(--anthracite);border-radius:var(--r-bloc);padding:8px 12px;font-size:12px}
+.verrou-info[hidden]{display:none}
+.seg{display:flex;flex-wrap:wrap;background:#eeeeee;border-radius:22px;padding:3px;gap:2px}
+.seg button{flex:1 1 auto;min-height:40px;border:0;border-radius:99px;background:transparent;font-family:var(--f-ui);font-weight:500;font-size:12px;color:var(--texte);display:inline-flex;align-items:center;justify-content:center;gap:5px;padding:0 10px}
+.seg button[aria-pressed="true"]{background:var(--vert);color:#fff}
+.seg .pastille{width:18px;height:18px;font-size:10px;margin:0}
+.menu-bloc{display:flex;flex-direction:column;gap:5px;margin-bottom:12px}
+.menu-bloc > span{font-family:var(--f-ui);font-weight:500;font-size:14px}
+.couleurs{display:flex;gap:8px;flex-wrap:wrap}
+.couleurs button{width:48px;height:44px;border:1px solid var(--filet);background:#fff;border-radius:var(--r-bloc);font-family:var(--f-ui);font-weight:600;font-size:14px}
+.couleurs button[aria-pressed="true"]{border:2px solid var(--vert);background:var(--vert-pale)}
+.heure-champ{min-height:44px;border:1px solid rgba(0,0,0,.13);border-radius:var(--r-bloc);padding:0 10px;font-size:16px;max-width:160px}
+.regl-pers{display:grid;grid-template-columns:1fr 54px 92px 40px;gap:6px;align-items:center;margin-bottom:6px}
+.regl-pers input,.regl-pers select,.regl-enc input,.regl-nom{min-height:40px;border:1px solid rgba(0,0,0,.13);border-radius:var(--r-bloc);padding:0 8px;font-size:15px;background:#fff;min-width:0}
+.regl-enc{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+dialog.large{max-width:min(520px,94vw)}
 textarea.ed{flex-grow:1;min-width:0;border:0;border-bottom:2px solid var(--vert);outline:0;background:transparent;resize:none;font-family:var(--f-texte);font-size:16px;font-weight:600;line-height:1.4;padding:0 0 2px;overflow:hidden;-webkit-user-select:text;user-select:text}
 
 /* Bande des listes, en bas (téléphone) */
@@ -141,6 +175,18 @@ dialog p{margin:0 0 8px}
 dialog.feuille{margin:auto 0 0;max-width:100%;border-radius:var(--r-feuille) var(--r-feuille) 0 0;padding:8px 14px calc(16px + env(safe-area-inset-bottom));max-height:88dvh;overflow-y:auto}
 .poignee-f{width:40px;height:4px;border-radius:2px;background:var(--filet);margin:0 auto 10px}
 .champ{display:flex;flex-direction:column;gap:3px;margin-bottom:10px}
+#reglDlg{width:min(460px,calc(100vw - 32px))}
+.regl-h{margin:14px 0 4px;font-family:var(--f-ui);font-weight:600;font-size:13px}
+.regl-aide{margin:0 0 6px;font-size:12px;color:var(--sec)}
+.pers-l{display:flex;align-items:center;gap:6px;margin-bottom:6px}
+.pers-l input,.pers-l select,.enc-l input{min-height:40px;border:1px solid var(--bord, #cccccc);border-radius:8px;padding:0 8px;font:inherit;font-size:14px;background:#fff;min-width:0}
+.pers-l .p-nom{flex:1 1 auto}
+.pers-l .p-ini{width:3.2em;flex:0 0 auto;text-align:center}
+.pers-l .p-coul{flex:0 0 auto}
+.pers-l .p-suppr{flex:0 0 auto;width:40px;height:40px;border:0;border-radius:50%;background:transparent;font-size:20px;color:var(--sec)}
+.enc-l{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.enc-l span{width:3.5em;font-size:12px;color:var(--sec)}
+.enc-l input{flex:1 1 auto}
 .champ span{font-size:11.7px;color:var(--sec)}
 .champ input:focus,.champ textarea:focus{outline:2px solid var(--vert);outline-offset:0}
 .poignee-f:focus{outline:0}
@@ -214,7 +260,7 @@ dialog.feuille{margin:auto 0 0;max-width:100%;border-radius:var(--r-feuille) var
     <div class="menu-nom">Aurore Task</div>
     <button class="nav on" type="button" data-a="planning">Planning</button>
     <button class="nav" type="button" data-a="aller-astreintes">Astreintes</button>
-    <button class="nav" type="button" data-a="compte">Réglages</button>
+    <button class="nav" type="button" data-a="reglages">Réglages</button>
     <h3>Listes affichées</h3>
     <div id="affichees"></div>
   </nav>
@@ -248,6 +294,7 @@ dialog.feuille{margin:auto 0 0;max-width:100%;border-radius:var(--r-feuille) var
 <dialog id="tacheDlg" class="feuille" aria-label="Menu de la tâche">
   <div class="poignee-f" tabindex="-1" autofocus></div>
   <label class="champ" id="tacheChamp"><span>Tâche</span><textarea id="tacheTexte" rows="2"></textarea></label>
+  <div id="tacheRegl"></div>
   <div class="actions-l" id="tacheActions"></div>
   <div class="btns">
     <button type="button" class="btn danger" data-a="supprimer-tache">Supprimer la tâche</button>
@@ -286,7 +333,21 @@ dialog.feuille{margin:auto 0 0;max-width:100%;border-radius:var(--r-feuille) var
 <dialog id="compteDlg">
   <h2>Compte</h2>
   <p id="compteTexte"></p>
-  <div class="btns"><button type="button" class="btn outil" id="deconnecter">Se déconnecter</button><button type="button" class="btn principal" data-a="fermer">Fermer</button></div>
+  <div class="btns"><button type="button" class="btn outil" id="deconnecter">Se déconnecter</button><button type="button" class="btn outil" id="versReglages">Réglages</button><button type="button" class="btn principal" data-a="fermer">Fermer</button></div>
+</dialog>
+
+<dialog id="reglDlg" aria-label="Réglages">
+  <h2>Réglages</h2>
+  <form id="reglForm">
+    <label class="champ"><span>Nom affiché en haut</span><input id="reglNom" autocomplete="off" maxlength="60"></label>
+    <h3 class="regl-h">Personnes</h3>
+    <p class="regl-aide">Prénom, initiale de la pastille et couleur.</p>
+    <div id="reglPers"></div>
+    <button type="button" class="btn outil" id="reglAjPers">Ajouter une personne</button>
+    <h3 class="regl-h">Noms des encarts</h3>
+    <div id="reglEnc"></div>
+    <div class="btns"><button type="button" class="btn outil" data-a="fermer">Annuler</button><button type="submit" class="btn principal">Enregistrer</button></div>
+  </form>
 </dialog>
 
 <script src="cle-web.js"></script>
@@ -318,6 +379,13 @@ var IDS_JOURS = ['lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi', 'd
 var LONG = 450, SLOP = 10, DECAL = 24, NIVEAUX_VUS = 5, GARDE_FAITES = 7 * 864e5;
 var PC = window.matchMedia ? matchMedia('(min-width: 1000px)') : {matches:false};
 var SEP = /^\s*-{3,}\s*$/;
+// Étape 36B : encarts, personnes, couleur du texte, verrou. Noms des encarts, personnes et nom affiché : réglages
+// (taches/reglages), sinon le fichier de départ de la ferme (referentiel/taches-depart.json) ; rien de tout ça dans le code.
+var ENCARTS = ['rdv', 'p1', 'p2'];
+var NOMS_ENCARTS = {rdv:'RDV', p1:'P1', p2:'P2'};
+var PALETTE = {rouge:['#fbe0e3', '#8f1d2a', 'Rouge'], rose:['#fbe3ef', '#9c2257', 'Rose'], bleu:['#e1eaff', '#2a3f8a', 'Bleu'], vert:['#d6ecdf', '#0f4d2b', 'Vert'], orange:['#fbe6cf', '#8a4302', 'Orange'], violet:['#efe3f7', '#6a2f8f', 'Violet'], gris:['#eeeeee', '#373737', 'Gris']};
+var COULEURS_TEXTE = [['', '#111111', 'Noir'], ['rouge', '#b02a37', 'Rouge'], ['orange', '#a14d06', 'Orange'], ['vert', '#0b694d', 'Vert'], ['violet', '#6a2f8f', 'Violet'], ['gris', '#5f5f5f', 'Gris']];
+var DEPART = null;
 
 function $(s){ return document.querySelector(s); }
 function ls(k, v){ try{ if(v === undefined){ var x = localStorage.getItem(k); return x ? JSON.parse(x) : null; } localStorage.setItem(k, JSON.stringify(v)); }catch(e){ return null; } }
@@ -335,6 +403,12 @@ var ICO = {
   crayon:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 20h4L19 9l-4-4L4 16v4zM13.5 6.5l4 4"/></svg>',
   poubelle:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg>',
   ok:'<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
+  cadenas:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 8 0v3"/></svg>',
+  ouvert:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="10" rx="2"/><path d="M8 10.5V7.5a4 4 0 0 1 7.7-1.5"/></svg>',
+  encart:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="14" rx="2"/><path d="M4 9.5h16M12 12v4M10 14h4"/></svg>',
+  reglages:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M3 12h2M19 12h2M5.6 5.6l1.4 1.4M17 17l1.4 1.4M5.6 18.4L7 17M17 7l1.4-1.4"/></svg>',
+  astreinte:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12a8 8 0 1 1-2.3-5.7M20 4v4h-4"/></svg>',
+  agenda:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="15" rx="2"/><path d="M4 10h16M9 3v4M15 3v4"/></svg>',
   retour:'<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg>'
 };
 
@@ -403,16 +477,28 @@ function indexer(){
     var vu = {}, x = id;
     while(x && par[x] !== undefined){ if(vu[x]){ par[id] = ''; break; } vu[x] = 1; x = par[x]; }
   });
+  // Encart d'une tâche : celui de sa tâche racine, s'il est présent dans la liste (sinon : hors encart).
+  var encs = {}, enc = {};
+  listes.forEach(function(l){ encs[l.id] = encartsDe(l.id); });
+  function encDe(id){
+    if(enc[id] !== undefined) return enc[id];
+    var x = id, n = 0; while(par[x] && n++ < 500) x = par[x];
+    var e = TT[x].encart, L = TT[x].liste;
+    return (enc[id] = e && encs[L] && encs[L][e] ? e : '');
+  }
   Object.keys(par).forEach(function(id){
-    var k = TT[id].liste + '/' + par[id];
+    var k = TT[id].liste + '/' + (par[id] || '#' + encDe(id));
     (enf[k] = enf[k] || []).push(id);
   });
-  Object.keys(enf).forEach(function(k){ enf[k].sort(function(a, b){ return (Number(TT[a].ordre) || 0) - (Number(TT[b].ordre) || 0) || (Number(TT[a].at) || 0) - (Number(TT[b].at) || 0) || (a < b ? -1 : 1); }); });
-  IX = {listes:listes, ok:ok, enf:enf, par:par, anim:anim, T:TT};
+  function h(id){ return /^\d\d:\d\d$/.test(TT[id].heure || '') ? TT[id].heure : '99:99'; }
+  Object.keys(enf).forEach(function(k){ var rdv = /\/#rdv$/.test(k); enf[k].sort(function(a, b){ return (rdv ? (h(a) < h(b) ? -1 : h(a) > h(b) ? 1 : 0) : 0) || (Number(TT[a].ordre) || 0) - (Number(TT[b].ordre) || 0) || (Number(TT[a].at) || 0) - (Number(TT[b].at) || 0) || (a < b ? -1 : 1); }); });
+  Object.keys(par).forEach(encDe);
+  IX = {listes:listes, ok:ok, enf:enf, par:par, anim:anim, T:TT, enc:enc};
 }
 // Les enfants vivants (dans la base) ; enfantsTous : avec ceux en animation de coche, pour l'affichage seulement.
-function enfantsTous(L, parent){ return (IX.enf[L + '/' + (parent || '')] || []).slice(); }
-function enfants(L, parent){ return enfantsTous(L, parent).filter(function(x){ return !!D.t[x]; }); }
+// Les tâches racines sont rangées par encart (e : 'rdv', 'p1', 'p2' ou '' hors encart) ; une sous-tâche suit sa mère.
+function enfantsTous(L, parent, e){ return (IX.enf[L + '/' + (parent || '#' + (e || ''))] || []).slice(); }
+function enfants(L, parent, e){ return enfantsTous(L, parent, e).filter(function(x){ return !!D.t[x]; }); }
 function descendants(id){
   var t = D.t[id]; if(!t) return [];
   var r = [];
@@ -420,21 +506,45 @@ function descendants(id){
   return r;
 }
 function profondeur(id){ var n = 0, x = IX.par[id]; while(x){ n++; x = IX.par[x]; if(n > 500) break; } return n; }
-function aplatir(L){
-  var r = [], edVu = false;
-  function edLigne(n){ edVu = true; r.push({ed:true, n:n}); }
+function aplatir(L, e){
+  var r = [];
+  function ici(parent){ return ed && ed.mode === 'nouveau' && ed.liste === L && ed.parent === parent && (parent || (ed.encart || '') === (e || '')); }
+  function edLigne(n){ ed.vu = true; r.push({ed:true, n:n}); }
   (function f(parent, n){
-    if(ed && ed.mode === 'nouveau' && ed.liste === L && ed.parent === parent && !ed.apres) edLigne(n);
-    enfantsTous(L, parent).forEach(function(id){
+    if(ici(parent) && !ed.apres) edLigne(n);
+    enfantsTous(L, parent, e).forEach(function(id){
       r.push({id:id, n:n, t:IX.T[id], anim:IX.anim[id]});
       f(id, n + 1);
-      if(ed && ed.mode === 'nouveau' && ed.liste === L && ed.parent === parent && ed.apres === id) edLigne(n);
+      if(ici(parent) && ed.apres === id) edLigne(n);
     });
   })('', 0);
-  if(ed && ed.mode === 'nouveau' && ed.liste === L && !edVu){ ed.parent = ''; ed.apres = null; r.unshift({ed:true, n:0}); }
   return r;
 }
 function nomListe(L){ var l = IX.ok[L]; return l ? l.nom : ''; }
+// Réglages : ceux de la base, sinon ceux du fichier de départ de la ferme.
+function reglages(){
+  var r = D.reglages || {}, d = DEPART || {};
+  var pers = r.personnes || d.personnes || {}, enc = r.encarts || d.encarts || {};
+  return {nom:r.nom != null ? String(r.nom) : (d.nom || ''), personnes:pers, encarts:enc};
+}
+function personnes(){
+  var p = reglages().personnes;
+  return Object.keys(p).filter(function(k){ return p[k] && p[k].nom; }).map(function(k){ var x = p[k]; return {id:k, nom:String(x.nom), initiale:String(x.initiale || x.nom.slice(0, 1)).slice(0, 2), couleur:PALETTE[x.couleur] ? x.couleur : 'gris', ordre:Number(x.ordre) || 0}; })
+    .sort(function(a, b){ return a.ordre - b.ordre || a.nom.localeCompare(b.nom, 'fr'); });
+}
+function personne(id){ return personnes().filter(function(x){ return x.id === id; })[0] || null; }
+function nomEncart(e){ var n = reglages().encarts[e]; return n ? String(n) : NOMS_ENCARTS[e]; }
+// Encarts présents dans une liste : un jour a les trois tant qu'on n'y a pas touché ; les autres listes, aucun.
+function encartsDe(L){
+  var l = D.listes[L] || {}, e = l.encarts, r = {};
+  ENCARTS.forEach(function(k){ r[k] = e && typeof e === 'object' ? !!e[k] : (l.type === 'jour'); });
+  if(l.type === 'astreintes') ENCARTS.forEach(function(k){ r[k] = false; });
+  return r;
+}
+function aEncarts(L){ var e = encartsDe(L); return ENCARTS.some(function(k){ return e[k]; }); }
+function encartPlus(L){ var e = encartsDe(L); return e.p1 ? 'p1' : ''; }
+function verrou(L){ var l = D.listes[L]; return l && l.verrou && typeof l.verrou === 'object' ? l.verrou : null; }
+function verrouDe(id){ var t = D.t[id]; return t ? verrou(t.liste) : null; }
 function listeDuJour(){
   var j = (new Date().getDay() + 6) % 7;
   var l = IX.listes.filter(function(x){ return x.type === 'jour' && Number(x.jour) === j; })[0];
@@ -450,8 +560,8 @@ function ecrire(c){
 }
 function qui(){ return compte && compte.id ? String(compte.id) : ''; }
 // Place entre deux frères : ordre = milieu des deux ; s'il n'y a plus de place, les frères sont renumérotés.
-function ordrePour(L, parent, apres, sauf){
-  var f = enfants(L, parent).filter(function(x){ return x !== sauf; });
+function ordrePour(L, parent, apres, sauf, e){
+  var f = enfants(L, parent, e).filter(function(x){ return x !== sauf; });
   var i = apres ? f.indexOf(apres) + 1 : 0;
   if(apres && i === 0) i = f.length;
   var a = i > 0 ? Number(D.t[f[i - 1]].ordre) || 0 : null, b = i < f.length ? Number(D.t[f[i]].ordre) || 0 : null;
@@ -463,23 +573,26 @@ function ordrePour(L, parent, apres, sauf){
   f.forEach(function(x, j){ c['t/' + x + '/ordre'] = j < i ? j + 1 : j + 2; });
   return {ordre:i + 1, c:c};
 }
-// Déplacer une tâche (et ses sous-tâches) : dans la liste L, sous « parent », juste après le frère « apres » (null = en premier).
-function cheminsDeplacer(id, L, parent, apres){
+// Déplacer une tâche (et ses sous-tâches) : dans la liste L, sous « parent » (ou à la racine de l'encart e),
+// juste après le frère « apres » (null = en premier).
+function cheminsDeplacer(id, L, parent, apres, e){
   var t = D.t[id]; if(!t) return {};
-  var o = ordrePour(L, parent, apres, id), c = o.c;
-  c['t/' + id + '/liste'] = L; c['t/' + id + '/parent'] = parent || ''; c['t/' + id + '/ordre'] = o.ordre;
+  if(parent) e = IX.enc[parent] || '';
+  var o = ordrePour(L, parent, apres, id, e), c = o.c;
+  c['t/' + id + '/liste'] = L; c['t/' + id + '/parent'] = parent || ''; c['t/' + id + '/ordre'] = o.ordre; c['t/' + id + '/encart'] = e || '';
   if(t.liste !== L) descendants(id).forEach(function(d){ c['t/' + d + '/liste'] = L; });
   return c;
 }
 function frerePrecedent(id){
-  var t = D.t[id], f = enfants(t.liste, IX.par[id]), i = f.indexOf(id);
+  var t = D.t[id], f = enfants(t.liste, IX.par[id], IX.enc[id]), i = f.indexOf(id);
   return i > 0 ? f[i - 1] : null;
 }
 
 /* ---------- Actions sur les tâches ---------- */
-function creer(L, parent, apres, texte){
-  var id = nouvelId(), o = ordrePour(L, parent, apres, null), c = o.c;
-  var t = {liste:L, parent:parent || '', ordre:o.ordre, by:qui(), at:Date.now()};
+function creer(L, parent, apres, texte, e){
+  if(parent) e = IX.enc[parent] || '';
+  var id = nouvelId(), o = ordrePour(L, parent, apres, null, e), c = o.c;
+  var t = {liste:L, parent:parent || '', encart:e || '', ordre:o.ordre, by:qui(), at:Date.now()};
   if(SEP.test(texte)){ t.sep = true; t.texte = ''; } else t.texte = texte;
   c['t/' + id] = t;
   ecrire(c);
@@ -496,7 +609,7 @@ function modifierTexte(id, texte){
 }
 // Cocher (ou supprimer) : la tâche et ses sous-tâches partent dans « Faites récemment » (7 jours), d'où on peut les remettre.
 function retirer(id, mot){
-  var t = D.t[id]; if(!t) return;
+  var t = D.t[id]; if(!t || verrou(t.liste)) return;
   var ids = [id].concat(descendants(id)), rec = {at:Date.now(), by:qui(), liste:t.liste, texte:t.sep ? '------' : String(t.texte || ''), t:{}}, c = {};
   if(mot !== 'Faite') rec.supprime = true;
   ids.forEach(function(x){ rec.t[x] = copie(D.t[x]); c['t/' + x] = null; });
@@ -518,18 +631,33 @@ function remettre(fid){
 function decalerDroite(id){
   var p = frerePrecedent(id); if(!p || D.t[p].sep) return;
   var der = enfants(D.t[id].liste, p).slice(-1)[0] || null;
-  ecrire(cheminsDeplacer(id, D.t[id].liste, p, der));
+  ecrire(cheminsDeplacer(id, D.t[id].liste, p, der, IX.enc[id]));
 }
 function decalerGauche(id){
   var p = IX.par[id]; if(!p) return;
-  ecrire(cheminsDeplacer(id, D.t[id].liste, IX.par[p] || '', p));
+  ecrire(cheminsDeplacer(id, D.t[id].liste, IX.par[p] || '', p, IX.enc[id]));
 }
 function ajouterSeparateur(id){
   var t = D.t[id]; if(!t) return;
-  var nid = nouvelId(), o = ordrePour(t.liste, IX.par[id], id, null), c = o.c;
-  c['t/' + nid] = {liste:t.liste, parent:IX.par[id] || '', ordre:o.ordre, sep:true, texte:'', by:qui(), at:Date.now()};
+  var nid = nouvelId(), o = ordrePour(t.liste, IX.par[id], id, null, IX.enc[id]), c = o.c;
+  c['t/' + nid] = {liste:t.liste, parent:IX.par[id] || '', encart:IX.enc[id] || '', ordre:o.ordre, sep:true, texte:'', by:qui(), at:Date.now()};
   ecrire(c);
 }
+
+function changerTache(id, champ, v){ if(!D.t[id]) return; var c = {}; c['t/' + id + '/' + champ] = v; ecrire(c); }
+// Changer d'encart : la tâche (racine) passe à la fin de l'encart choisi.
+function changerEncart(id, e){
+  var t = D.t[id]; if(!t || IX.par[id]) return;
+  var der = enfants(t.liste, '', e).filter(function(x){ return x !== id; }).slice(-1)[0] || null;
+  ecrire(cheminsDeplacer(id, t.liste, '', der, e));
+}
+function poserEncarts(L, e){ var c = {}; c['listes/' + L + '/encarts'] = e; ecrire(c); }
+function ajouterEncart(L, k){ var e = encartsDe(L); e[k] = true; poserEncarts(L, e); }
+function supprimerEncart(L, k){
+  if(enfants(L, '', k).length) return; // seulement un encart vide, et à la main
+  var e = encartsDe(L); e[k] = false; poserEncarts(L, e);
+}
+function verrouiller(L, oui){ var c = {}; c['listes/' + L + '/verrou'] = oui ? {by:qui(), at:Date.now()} : null; if(oui) ed = null; ecrire(c); }
 
 /* ---------- Listes ---------- */
 function listesDeDepart(){
@@ -561,7 +689,7 @@ function deplacerListe(L, avant){
   c['listes/' + L + '/ordre'] = o;
   ecrire(c);
 }
-function peutSupprimer(L){ var l = IX.ok[L]; return !!l && l.type === 'simple'; }
+function peutSupprimer(L){ var l = IX.ok[L]; return !!l && l.type === 'simple' && !verrou(L); }
 
 /* ---------- Compte (Firebase Authentication, API web, sans bibliothèque ; même code que index.html et magasin.html) ---------- */
 function dbPret(){ return !!DB && !!CLE && !!(compte && compte.jeton && compte.fin > Date.now()); }
@@ -746,17 +874,46 @@ function ligneHtml(x){
     if(t.sep) return '<li class="t sep vient-coche" data-anim="' + esc(x.anim.r) + '" data-n="' + n + '"' + sta + '><span class="trait"></span></li>';
     return '<li class="t vient-coche" data-anim="' + esc(x.anim.r) + '" data-n="' + n + '"' + sta + '><button class="coche" type="button" data-a="decocher" aria-label="Remettre « ' + esc(t.texte) + ' »">' + ICO.ok + '</button><div class="tx">' + esc(t.texte) + '</div><span class="pt"></span></li>';
   }
-  if(t.sep) return '<li class="t sep" data-id="' + id + '" data-n="' + n + '"' + st + '><span class="trait" role="separator" aria-label="Séparateur"></span><button class="pt" type="button" data-a="menu-tache" aria-label="Menu du séparateur">' + ICO.pt + '</button></li>';
-  var texte = String(t.texte || '');
+  var fige = !!verrou(t.liste);
+  if(t.sep) return '<li class="t sep" data-id="' + id + '" data-n="' + n + '"' + st + '><span class="trait" role="separator" aria-label="Séparateur"></span>' + (fige ? '' : '<button class="pt" type="button" data-a="menu-tache" aria-label="Menu du séparateur">' + ICO.pt + '</button>') + '</li>';
+  var texte = String(t.texte || ''), coul = COULEURS_TEXTE.filter(function(c){ return c[0] && c[0] === t.couleur; })[0];
+  var heure = /^\d\d:\d\d$/.test(t.heure || '') && IX.enc[x.id] === 'rdv' && !IX.par[x.id] ? '<b class="heure">' + esc(t.heure) + '</b> ' : '';
   var corps = ed && ed.mode === 'modif' && ed.id === x.id
     ? '<textarea class="ed" rows="1" enterkeyhint="enter" aria-label="Texte de la tâche"></textarea>'
-    : '<div class="tx" data-a="modifier">' + esc(texte) + '</div>';
-  return '<li class="t" data-id="' + id + '" data-n="' + n + '"' + st + '><button class="coche" type="button" data-a="cocher" aria-label="Cocher « ' + esc(texte) + ' »"></button>' + corps +
+    : '<div class="tx"' + (fige ? '' : ' data-a="modifier"') + (coul ? ' style="color:' + coul[1] + '"' : '') + '>' + heure + esc(texte) + '</div>';
+  var pe = t.pour && personne(t.pour), pas = pe ? '<span class="pastille" style="background:' + PALETTE[pe.couleur][0] + ';color:' + PALETTE[pe.couleur][1] + '" title="Pour ' + esc(pe.nom) + '" aria-label="Pour ' + esc(pe.nom) + '">' + esc(pe.initiale) + '</span>' : '';
+  var orig = t.origine ? '<span class="origine" title="' + (/^a:/.test(t.origine) ? 'Astreinte' : 'Agenda') + '" aria-label="' + (/^a:/.test(t.origine) ? 'Venue d\'une astreinte' : 'Venue de l\'agenda') + '">' + (/^a:/.test(t.origine) ? ICO.astreinte : ICO.agenda) + '</span>' : '';
+  if(fige) return '<li class="t fige" data-id="' + id + '" data-n="' + n + '"' + st + '><span class="puce" aria-hidden="true"></span>' + corps + orig + pas + '</li>';
+  return '<li class="t" data-id="' + id + '" data-n="' + n + '"' + st + '><button class="coche" type="button" data-a="cocher" aria-label="Cocher « ' + esc(texte) + ' »"></button>' + corps + orig + pas +
     '<button class="pt" type="button" data-a="menu-tache" aria-label="Menu de la tâche « ' + esc(texte) + ' »">' + ICO.pt + '</button></li>';
 }
+var CLASSES_ENCART = {rdv:'info', p1:'warn', p2:'neutre'};
 function panneauHtml(l){
-  var lignes = aplatir(l.id);
-  return lignes.map(ligneHtml).join('');
+  var L = l.id, e = encartsDe(L), fige = !!verrou(L);
+  if(ed && ed.mode === 'nouveau' && ed.liste === L) ed.vu = false;
+  var blocs = [];
+  if(!aEncarts(L)){
+    blocs.push({e:'', lignes:aplatir(L, '')});
+  } else {
+    var hors = aplatir(L, '');
+    if(hors.length) blocs.push({e:'', lignes:hors});
+    ENCARTS.forEach(function(k){ if(e[k]) blocs.push({e:k, lignes:aplatir(L, k), tete:true}); });
+  }
+  // Ligne d'écriture qui n'a plus sa place (tâche d'à côté partie) : en haut de la liste.
+  if(ed && ed.mode === 'nouveau' && ed.liste === L && !ed.vu){
+    ed.parent = ''; ed.apres = null; ed.encart = blocs[0] ? blocs[0].e : '';
+    if(blocs[0]) blocs[0].lignes.unshift({ed:true, n:0}); else blocs.push({e:'', lignes:[{ed:true, n:0}]});
+  }
+  return blocs.map(function(b){
+    var tete = '';
+    if(b.tete){
+      var vide = !b.lignes.some(function(x){ return x.id && D.t[x.id]; });
+      tete = '<div class="encart-tete"><span class="etiq ' + CLASSES_ENCART[b.e] + '">' + esc(nomEncart(b.e)) + '</span>' +
+        (fige ? '' : (vide ? '<button class="suppr-encart" type="button" data-a="suppr-encart" data-e="' + b.e + '">Supprimer l\'encart</button>' : '') +
+        '<button class="pt mini" type="button" data-a="ajouter" data-e="' + b.e + '" aria-label="Ajouter une tâche dans ' + esc(nomEncart(b.e)) + '">' + ICO.plus + '</button>') + '</div>';
+    }
+    return '<div class="encart" data-e="' + b.e + '">' + tete + '<ul class="taches" data-e="' + b.e + '">' + b.lignes.map(ligneHtml).join('') + '</ul></div>';
+  }).join('');
 }
 function panneau(L){ return document.querySelector('.pan[data-l="' + CSS.escape(L) + '"]'); }
 function creerPanneau(l){
@@ -766,7 +923,7 @@ function creerPanneau(l){
     '<button class="rond contour menu-l" type="button" data-a="menu-liste" aria-haspopup="dialog">' + ICO.pt + '</button>' +
     '<button class="rond plein plus" type="button" data-a="ajouter">' + ICO.plus + '</button></div>' +
     '<div class="pan-corps"><button class="ajout-ligne" type="button" data-a="ajouter">' + ICO.plus + 'Ajouter une tâche</button>' +
-    '<div class="bloc"><ul class="taches"></ul></div><p class="vide">Aucune tâche.</p>' +
+    '<p class="verrou-info" hidden></p><div class="bloc"></div><p class="vide">Aucune tâche.</p>' +
     '<button class="faites-lien" type="button" data-a="faites" hidden></button></div>';
   return s;
 }
@@ -779,8 +936,12 @@ function rendrePanneau(l, force){
   p.querySelector('.menu-l').setAttribute('aria-label', 'Menu de la liste ' + l.nom);
   p.querySelector('.plus').setAttribute('aria-label', 'Ajouter une tâche dans ' + l.nom);
   p.classList.toggle('cachee', cachees.indexOf(l.id) >= 0);
+  var v = verrou(l.id);
+  p.classList.toggle('fige', !!v);
+  var vi = p.querySelector('.verrou-info');
+  vi.hidden = !v; if(v) vi.innerHTML = ICO.cadenas + '<span>Liste verrouillée' + (v.by ? ' par ' + esc(v.by) : '') + '. Pour la changer : « ⋯ », Déverrouiller.</span>';
   var html = panneauHtml(l);
-  var ul = p.querySelector('ul.taches');
+  var ul = p.querySelector('.bloc');
   // Pendant l'écriture d'une tâche, on ne refait pas la liste (le clavier du téléphone se fermerait) : plus tard.
   if(edIci && !force && ul.querySelector('textarea.ed')){ sales[l.id] = true; return; }
   if(p._html !== html || force){
@@ -789,7 +950,7 @@ function rendrePanneau(l, force){
     rendu = false;
   }
   delete sales[l.id];
-  var vide = !ul.children.length;
+  var vide = !ul.querySelector('li.t, .encart-tete');
   p.querySelector('.bloc').hidden = vide;
   p.querySelector('.vide').hidden = !vide;
   var nf = nbFaites(l.id), fl = p.querySelector('.faites-lien');
@@ -803,7 +964,12 @@ function rendre(force){
   var msg = $('#message');
   if(refuse){ msg.textContent = refuse; msg.hidden = false; } else msg.hidden = true;
   $('#avatar').hidden = !compte;
-  if(compte){ $('#avatar').textContent = qui().slice(0, 1).toUpperCase(); $('#avatar').setAttribute('aria-label', 'Compte : ' + qui()); }
+  $('#nomFerme').textContent = reglages().nom || 'Aurore Task';
+  if(compte){
+    var moi = personne(qui()), av = $('#avatar');
+    av.textContent = moi ? moi.initiale : qui().slice(0, 1).toUpperCase(); av.setAttribute('aria-label', 'Compte : ' + (moi ? moi.nom : qui()));
+    av.style.background = moi ? PALETTE[moi.couleur][0] : ''; av.style.color = moi ? PALETTE[moi.couleur][1] : '';
+  }
   if(!IX) recalculer();
   var piste = $('#piste'), ordreActuel = Array.prototype.map.call(piste.children, function(n){ return n.dataset.l; }).join('|');
   var voulu = (refuse || !compte) ? [] : IX.listes;
@@ -886,15 +1052,16 @@ function refocaliser(){
   }
 }
 function listeEd(){ return ed ? (ed.mode === 'modif' ? (D.t[ed.id] && D.t[ed.id].liste) : ed.liste) : null; }
-function ouvrirNouveau(L, parent, apres){
+function ouvrirNouveau(L, parent, apres, e){
   if(ed) validerEd();
-  ed = {mode:'nouveau', liste:L, parent:parent || '', apres:apres || null, texte:''};
+  if(verrou(L)) return;
+  ed = {mode:'nouveau', liste:L, parent:parent || '', apres:apres || null, encart:parent ? (IX.enc[parent] || '') : (e || ''), texte:''};
   var l = IX.ok[L]; if(l) rendrePanneau(l, true);
   refocaliser();
 }
 function ouvrirModif(id){
   if(ed) validerEd();
-  var t = D.t[id]; if(!t || t.sep) return;
+  var t = D.t[id]; if(!t || t.sep || verrou(t.liste)) return;
   ed = {mode:'modif', id:id, liste:t.liste, texte:String(t.texte || '')};
   var l = IX.ok[t.liste]; if(l) rendrePanneau(l, true);
   refocaliser();
@@ -905,7 +1072,7 @@ function validerEd(){
   var txt = String(e.texte || '').trim();
   if(e.mode === 'modif'){ if(txt) modifierTexte(e.id, txt); return D.t[e.id] ? e.id : null; }
   if(!txt) return null;
-  return creer(e.liste, e.parent, e.apres, txt);
+  return creer(e.liste, e.parent, e.apres, txt, e.encart);
 }
 function fermerEd(){
   var L = listeEd(); ed = null;
@@ -924,7 +1091,7 @@ document.addEventListener('keydown', function(e){
     if(id){
       // La suivante s'ouvre juste en dessous, au même niveau (saisie en rafale).
       var t = D.t[id];
-      ed = {mode:'nouveau', liste:t.liste, parent:IX.par[id] || '', apres:id, texte:''};
+      ed = {mode:'nouveau', liste:t.liste, parent:IX.par[id] || '', apres:id, encart:IX.enc[id] || '', texte:''};
       var l = IX.ok[t.liste]; if(l) rendrePanneau(l, true);
       refocaliser();
     } else if(avant.mode === 'nouveau' && !String(avant.texte || '').trim()){ fermerEd(); }
@@ -947,7 +1114,7 @@ document.addEventListener('focusout', function(e){
 var menuId = null;
 function ouvrirMenuTache(id){
   if(ed) { validerEd(); fermerEd(); }
-  var t = D.t[id]; if(!t) return;
+  var t = D.t[id]; if(!t || verrou(t.liste)) return;
   menuId = id;
   var d = $('#tacheDlg'), sep = !!t.sep;
   $('#tacheChamp').hidden = sep;
@@ -962,9 +1129,40 @@ function ouvrirMenuTache(id){
   a.push('<button class="act" type="button" data-a="deplacer">' + ICO.deplacer + 'Déplacer vers une autre liste</button>');
   if(!sep) a.push('<button class="act" type="button" data-a="separateur">' + ICO.sep + 'Ajouter un séparateur en dessous</button>');
   $('#tacheActions').innerHTML = a.join('');
+  $('#tacheRegl').innerHTML = sep ? '' : reglagesTacheHtml(id);
   d.querySelector('[data-a="supprimer-tache"]').textContent = sep ? 'Supprimer le séparateur' : 'Supprimer la tâche';
   if(!d.open) d.showModal();
 }
+// Pour qui, zone du jour (encart), heure (RDV), couleur du texte : appliqués tout de suite.
+function reglagesTacheHtml(id){
+  var t = D.t[id], h = [];
+  var pers = personnes();
+  if(pers.length){
+    h.push('<div class="menu-bloc"><span>Pour qui ?</span><div class="seg" role="group" aria-label="Pour qui ?">' +
+      '<button type="button" data-pour=""' + (t.pour && personne(t.pour) ? '' : ' aria-pressed="true"') + '>Tout le monde</button>' +
+      pers.map(function(p){ return '<button type="button" data-pour="' + esc(p.id) + '"' + (t.pour === p.id ? ' aria-pressed="true"' : '') + '><span class="pastille" style="background:' + PALETTE[p.couleur][0] + ';color:' + PALETTE[p.couleur][1] + '">' + esc(p.initiale) + '</span>' + esc(p.nom) + '</button>'; }).join('') + '</div></div>');
+  }
+  if(!IX.par[id] && aEncarts(t.liste)){
+    var e = encartsDe(t.liste), cur = IX.enc[id] || '';
+    h.push('<div class="menu-bloc"><span>Zone du jour</span><div class="seg" role="group" aria-label="Zone du jour">' +
+      ENCARTS.filter(function(k){ return e[k]; }).map(function(k){ return '<button type="button" data-zone="' + k + '"' + (cur === k ? ' aria-pressed="true"' : '') + '>' + esc(nomEncart(k)) + '</button>'; }).join('') + '</div></div>');
+    if(cur === 'rdv') h.push('<label class="menu-bloc"><span>Heure du rendez-vous</span><input class="heure-champ" type="time" id="tacheHeure" value="' + esc(/^\d\d:\d\d$/.test(t.heure || '') ? t.heure : '') + '"></label>');
+  }
+  h.push('<div class="menu-bloc"><span>Couleur du texte</span><div class="couleurs" role="group" aria-label="Couleur du texte">' +
+    COULEURS_TEXTE.map(function(c){ return '<button type="button" data-coul="' + c[0] + '" aria-label="' + c[2] + '" style="color:' + c[1] + '"' + ((t.couleur || '') === c[0] ? ' aria-pressed="true"' : '') + '>Aa</button>'; }).join('') + '</div></div>');
+  return h.join('');
+}
+$('#tacheRegl').addEventListener('click', function(e){
+  var id = menuId, b = e.target.closest('button'); if(!id || !D.t[id] || !b) return;
+  if(b.dataset.pour !== undefined) changerTache(id, 'pour', b.dataset.pour);
+  else if(b.dataset.zone !== undefined) changerEncart(id, b.dataset.zone);
+  else if(b.dataset.coul !== undefined) changerTache(id, 'couleur', b.dataset.coul);
+  else return;
+  $('#tacheRegl').innerHTML = reglagesTacheHtml(id);
+});
+$('#tacheRegl').addEventListener('change', function(e){
+  if(e.target.id === 'tacheHeure' && menuId && D.t[menuId]) changerTache(menuId, 'heure', /^\d\d:\d\d$/.test(e.target.value) ? e.target.value : '');
+});
 function fermerMenuTache(){
   var d = $('#tacheDlg');
   if(menuId && D.t[menuId] && !D.t[menuId].sep){ var v = $('#tacheTexte').value.replace(/\n/g, ' '); if(v.trim()) modifierTexte(menuId, v); }
@@ -985,7 +1183,7 @@ $('#tacheDlg').addEventListener('click', function(e){
   else if(a === 'droite') decalerDroite(id);
   else if(a === 'gauche') decalerGauche(id);
   else if(a === 'separateur') ajouterSeparateur(id);
-  else if(a === 'deplacer') choisirListe('Déplacer vers…', t.liste, function(L){ ecrire(cheminsDeplacer(id, L, '', null)); flash(id); });
+  else if(a === 'deplacer') choisirListe('Déplacer vers…', t.liste, function(L){ ecrire(cheminsDeplacer(id, L, '', null, encartPlus(L))); flash(id); });
 });
 
 /* ---------- Menu d'une liste ---------- */
@@ -998,6 +1196,10 @@ function ouvrirMenuListe(L){
   var nf = nbFaites(L), a = [];
   a.push('<button class="act" type="button" data-a="renommer">' + ICO.crayon + 'Renommer la liste</button>');
   a.push('<button class="act" type="button" data-a="faites"' + (nf ? '' : ' disabled') + '>' + ICO.retour + 'Faites récemment<small>' + nf + '</small></button>');
+  var v = verrou(L), e = encartsDe(L), manque = ENCARTS.filter(function(k){ return !e[k]; });
+  if(l.type !== 'astreintes' && !v) manque.forEach(function(k){ a.push('<button class="act" type="button" data-a="ajouter-encart" data-e="' + k + '">' + ICO.encart + 'Ajouter l\'encart ' + esc(nomEncart(k)) + '</button>'); });
+  a.push(v ? '<button class="act" type="button" data-a="deverrouiller">' + ICO.ouvert + 'Déverrouiller la liste</button>'
+           : '<button class="act" type="button" data-a="verrouiller">' + ICO.cadenas + 'Verrouiller la liste</button>');
   if(peutSupprimer(L)) a.push('<button class="act danger" type="button" data-a="supprimer-liste">' + ICO.poubelle + 'Supprimer la liste</button>');
   $('#listeActions').innerHTML = a.join('');
   if(!$('#listeDlg').open) $('#listeDlg').showModal();
@@ -1008,7 +1210,10 @@ $('#listeDlg').addEventListener('click', function(e){
   var L = menuListe, a = b.dataset.a;
   $('#listeDlg').close();
   if(!L || !IX.ok[L]) return;
-  if(a === 'renommer') demanderNom('Renommer la liste', IX.ok[L].nom, function(n){ renommerListe(L, n); });
+  if(a === 'ajouter-encart') ajouterEncart(L, b.dataset.e);
+  else if(a === 'verrouiller') verrouiller(L, true);
+  else if(a === 'deverrouiller') verrouiller(L, false);
+  else if(a === 'renommer') demanderNom('Renommer la liste', IX.ok[L].nom, function(n){ renommerListe(L, n); });
   else if(a === 'faites') ouvrirFaites(L);
   else if(a === 'supprimer-liste'){
     var n = Object.keys(D.t).filter(function(id){ return D.t[id] && D.t[id].liste === L; }).length;
@@ -1073,6 +1278,56 @@ $('#deconnecter').onclick = function(){
 };
 $('#confOui').textContent = 'Supprimer';
 
+/* ---------- Réglages (taches/reglages) : nom affiché, personnes, noms des encarts. Le premier enregistrement copie le fichier de départ. ---------- */
+function persLigne(p){
+  var o = Object.keys(PALETTE).map(function(k){ return '<option value="' + k + '"' + (p.couleur === k ? ' selected' : '') + '>' + PALETTE[k][2] + '</option>'; }).join('');
+  return '<div class="pers-l" data-p="' + esc(p.id) + '"><input class="p-nom" aria-label="Prénom" placeholder="Prénom" maxlength="30" value="' + esc(p.nom) + '">'
+    + '<input class="p-ini" aria-label="Initiale" maxlength="2" value="' + esc(p.initiale) + '">'
+    + '<select class="p-coul" aria-label="Couleur">' + o + '</select>'
+    + '<button type="button" class="p-suppr" aria-label="Retirer ' + esc(p.nom || 'cette personne') + '">×</button></div>';
+}
+function ouvrirReglages(){
+  var r = reglages();
+  $('#reglNom').value = r.nom;
+  $('#reglPers').innerHTML = personnes().map(persLigne).join('');
+  $('#reglEnc').innerHTML = ENCARTS.map(function(k){ return '<label class="enc-l"><span>' + NOMS_ENCARTS[k] + '</span><input data-enc="' + k + '" maxlength="20" value="' + esc(nomEncart(k)) + '"></label>'; }).join('');
+  var d = $('#reglDlg'); if(!d.open) d.showModal();
+}
+$('#versReglages').onclick = function(){ $('#compteDlg').close(); ouvrirReglages(); };
+$('#reglAjPers').onclick = function(){
+  var pris = personnes().map(function(p){ return p.couleur; }), libre = Object.keys(PALETTE).filter(function(k){ return pris.indexOf(k) < 0; })[0] || 'gris';
+  $('#reglPers').insertAdjacentHTML('beforeend', persLigne({id:nouvelId(), nom:'', initiale:'', couleur:libre}));
+  var n = $('#reglPers').lastElementChild.querySelector('.p-nom'); if(n) n.focus();
+};
+$('#reglPers').addEventListener('click', function(e){ var b = e.target.closest('.p-suppr'); if(b) b.closest('.pers-l').remove(); });
+$('#reglPers').addEventListener('input', function(e){
+  var n = e.target.closest('.p-nom'); if(!n) return;
+  var i = n.parentNode.querySelector('.p-ini');
+  if(!i.dataset.touche) i.value = n.value.trim().slice(0, 1).toUpperCase();
+});
+$('#reglPers').addEventListener('change', function(e){ if(e.target.closest('.p-ini')) e.target.dataset.touche = '1'; });
+$('#reglForm').addEventListener('submit', function(e){
+  e.preventDefault();
+  var pers = {}, enc = {};
+  Array.prototype.forEach.call(document.querySelectorAll('#reglPers .pers-l'), function(l, i){
+    var nom = l.querySelector('.p-nom').value.trim(); if(!nom) return;
+    var ini = l.querySelector('.p-ini').value.trim() || nom.slice(0, 1).toUpperCase();
+    pers[l.dataset.p] = {nom:nom, initiale:ini, couleur:l.querySelector('.p-coul').value, ordre:i + 1};
+  });
+  Array.prototype.forEach.call(document.querySelectorAll('#reglEnc [data-enc]'), function(x){ enc[x.dataset.enc] = x.value.trim() || NOMS_ENCARTS[x.dataset.enc]; });
+  ecrire({reglages:{nom:$('#reglNom').value.trim(), personnes:pers, encarts:enc, by:qui(), at:Date.now()}});
+  $('#reglDlg').close();
+  montrerBandeau('Réglages enregistrés', null);
+});
+// Fichier de départ de la ferme (gardé sur l'appareil pour le mode hors ligne).
+function chargerDepart(){
+  if(!window.fetch) return;
+  fetch('referentiel/taches-depart.json', {cache:'no-cache'}).then(function(r){ return r.ok ? r.json() : null; }).then(function(j){
+    if(!j || typeof j !== 'object') return;
+    DEPART = j; ls('taches.depart', j); recalculer(); rendre();
+  }).catch(function(){});
+}
+
 /* ---------- Bandeau « Faite : … · Annuler » ---------- */
 function montrerBandeau(texte, annuler){
   var b = $('#bandeau');
@@ -1097,7 +1352,8 @@ document.addEventListener('click', function(e){
   else if(a === 'decocher'){ var la = b.closest('li[data-anim]'); if(la) remettre(la.dataset.anim); }
   else if(a === 'modifier' && li){ ouvrirModif(li.dataset.id); }
   else if(a === 'menu-tache' && li){ ouvrirMenuTache(li.dataset.id); }
-  else if(a === 'ajouter' && L){ if(!PC.matches) allerA(L); ouvrirNouveau(L, '', null); }
+  else if(a === 'ajouter' && L){ if(!PC.matches) allerA(L); ouvrirNouveau(L, '', null, b.dataset.e != null ? b.dataset.e : encartPlus(L)); }
+  else if(a === 'suppr-encart' && L){ supprimerEncart(L, b.dataset.e); }
   else if(a === 'menu-liste' && L){ ouvrirMenuListe(L); }
   else if(a === 'faites' && L){ ouvrirFaites(L); }
   else if(a === 'aller'){ allerA(b.dataset.l, true); }
@@ -1106,6 +1362,7 @@ document.addEventListener('click', function(e){
   else if(a === 'planning'){ $('#piste').scrollTo({left:0, behavior:'smooth'}); }
   else if(a === 'aller-astreintes'){ var as = IX.listes.filter(function(l){ return l.type === 'astreintes'; })[0]; if(as) allerA(as.id, true); }
   else if(a === 'compte'){ ouvrirCompte(); }
+  else if(a === 'reglages'){ ouvrirReglages(); }
 });
 document.addEventListener('change', function(e){
   var c = e.target.closest('[data-a="afficher"]'); if(!c) return;
@@ -1117,7 +1374,7 @@ document.addEventListener('change', function(e){
 // Ordinateur : clic droit sur une tâche = son menu. Téléphone : pas de menu du navigateur sur un appui long.
 document.addEventListener('contextmenu', function(e){
   var li = e.target.closest('li.t[data-id]');
-  if(li && !e.target.closest('textarea')){ e.preventDefault(); if(PC.matches && !drag) ouvrirMenuTache(li.dataset.id); }
+  if(li && !e.target.closest('textarea')){ e.preventDefault(); if(PC.matches && !drag && !verrouDe(li.dataset.id)) ouvrirMenuTache(li.dataset.id); }
   else if(e.target.closest('.pil')) e.preventDefault();
 });
 
@@ -1129,7 +1386,7 @@ var press = null, drag = null;
 function cibleDepart(el){
   if(!el || !el.closest || el.closest('textarea, .coche, .pt, dialog')) return null;
   var li = el.closest('li.t[data-id]');
-  if(li) return {type:'tache', el:li, id:li.dataset.id};
+  if(li) return verrouDe(li.dataset.id) ? null : {type:'tache', el:li, id:li.dataset.id};
   var pil = el.closest('.pil[data-l]');
   if(pil) return {type:'liste', el:pil, id:pil.dataset.l, bande:true};
   var ti = el.closest('.pan-titre');
@@ -1188,8 +1445,14 @@ function panneauSous(x){
   return null;
 }
 function cibleTache(){
-  var pan = panneauSous(drag.x); if(!pan) return null;
-  var ul = pan.querySelector('ul.taches');
+  var pan = panneauSous(drag.x); if(!pan || verrou(pan.dataset.l)) return null;
+  // L'encart sous le doigt (ou le plus proche) : on y range la tâche.
+  var uls = pan.querySelectorAll('ul.taches'), ul = null, best = Infinity;
+  for(var k = 0; k < uls.length; k++){
+    var rb = uls[k].parentNode.getBoundingClientRect(), dist = drag.y < rb.top ? rb.top - drag.y : (drag.y > rb.bottom ? drag.y - rb.bottom : 0);
+    if(dist < best){ best = dist; ul = uls[k]; }
+  }
+  if(!ul) return null;
   var rows = Array.prototype.filter.call(ul.children, function(n){ return n.dataset.id && !n.classList.contains('en-vol'); });
   var i = 0;
   while(i < rows.length){ var r = rows[i].getBoundingClientRect(); if(drag.y < r.top + r.height / 2) break; i++; }
@@ -1206,7 +1469,7 @@ function cibleTache(){
   var ru = ul.getBoundingClientRect(), y;
   if(next) y = next.getBoundingClientRect().top; else if(prev) y = prev.getBoundingClientRect().bottom; else y = ru.top;
   var g = ru.left + Math.min(n, NIVEAUX_VUS) * DECAL;
-  return {L:pan.dataset.l, parent:parent, apres:apres, y:y, x:g, w:Math.max(40, ru.right - g)};
+  return {L:pan.dataset.l, e:ul.dataset.e || '', parent:parent, apres:apres, y:y, x:g, w:Math.max(40, ru.right - g)};
 }
 function cibleListe(){
   var items = drag.bande ? Array.prototype.slice.call(document.querySelectorAll('#bande .pil[data-l]')) : Array.prototype.slice.call(document.querySelectorAll('#piste .pan:not(.cachee)'));
@@ -1274,7 +1537,8 @@ function finir(){
   if(c && d.type === 'tache' && D.t[d.id]){
     var t = D.t[d.id], memeParent = (IX.par[d.id] || '') === c.parent;
     var prec = frerePrecedent(d.id);
-    if(!(t.liste === c.L && memeParent && (prec || null) === (c.apres || null))){ ecrire(cheminsDeplacer(d.id, c.L, c.parent, c.apres)); flash(d.id); }
+    var memeEncart = c.parent || (IX.enc[d.id] || '') === c.e;
+    if(!(t.liste === c.L && memeParent && memeEncart && (prec || null) === (c.apres || null))){ ecrire(cheminsDeplacer(d.id, c.L, c.parent, c.apres, c.e)); flash(d.id); }
   } else if(c && d.type === 'liste' && IX.ok[d.id]){
     var ids = IX.listes.map(function(l){ return l.id; }), i = ids.indexOf(d.id);
     if((ids[i + 1] || null) !== (c.avant || null)) deplacerListe(d.id, c.avant);
@@ -1303,11 +1567,13 @@ document.addEventListener('mouseup', function(){ if(press && press.souris) press
 document.addEventListener('selectstart', function(e){ if(drag || press && press.souris) e.preventDefault(); });
 
 /* ---------- Départ ---------- */
+DEPART = ls('taches.depart') || null;
 recalculer();
 courante = listeDuJour();
 rendre();
 placerPiste(false);
 demarrer();
+chargerDepart();
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(function(){});
 </script>
 </body>
