@@ -1,6 +1,7 @@
 // Test du céleri-branche en bouquet (demande de François du 11/11) : un nouveau produit à côté du céleri-branche
 // au kilo, qui reste inchangé (le nom d'un produit fait son identifiant dans la base). Conditionnement : 10 bouquets
 // par grande basse (GB) pour les débouchés en caisses plastiques, grand colis bois pour ceux en colis bois.
+// Locavore est en caisses plastiques depuis le 18/11 (demande de François) : son bouquet va en GB.
 // Données factices (faux Firebase).
 // Lancement depuis la racine du dépôt : node tests/celeri-bouquet.cjs
 const http = require('http');
@@ -55,7 +56,8 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   const W = iso(lundi(1)), MER = plus(W, 2);
   const A0 = 1793730000000, q = (n, u) => ({ n, u: u || 'colis', by: 'Aurore', at: A0 });
   const put = (p, v) => fetch(`${BASE}/${p}.json`, { method: 'PUT', body: JSON.stringify(v) });
-  // Mercredi (jour habituel) : marché 2 colis et Très Allier jeudi 1 colis (caisses plastiques), Locavore 1 colis (colis bois).
+  // Mercredi (jour habituel) : marché 2 colis et Très Allier jeudi 1 colis (caisses plastiques), Locavore 1 colis
+  // (caisses plastiques depuis le 18/11).
   // Le céleri-branche au kilo à côté, au marché.
   await put('listes/semaines/' + W, {
     produits: { 'celeri-branche': { nom: 'Céleri-branche', caisse: 'GH', unite: '5 kg', kg: 5, by: 'Aurore', at: A0 } },
@@ -113,7 +115,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   await T.click('#crates summary');
   await T.waitForTimeout(200);
   const tuiles = await T.$$eval('.crate', (e) => e.map((x) => x.dataset.c + '=' + x.querySelector('b').textContent));
-  verifie(tuiles.join(', ') === 'PB=0, PH=0, GB=3, GH=1, Petit colis bois=0, Moyen colis bois=0, Grand colis bois=1', 'caisses : 3 GB (marché 2, Très Allier 1), 1 grand colis bois (Locavore), 1 GH (céleri au kilo) (obtenu ' + tuiles.join(', ') + ')');
+  verifie(tuiles.join(', ') === 'PB=0, PH=0, GB=4, GH=1', 'caisses : 4 GB (marché 2, Très Allier 1, Locavore 1), aucun colis bois, 1 GH (céleri au kilo) (obtenu ' + tuiles.join(', ') + ')');
   const sum = net(await T.textContent('#crateSum'));
   verifie(sum === '· 5 à remplir', 'total des caisses : 5 (obtenu « ' + sum + ' »)');
   await capture(T, '2-recolte');
@@ -124,7 +126,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   await T.waitForSelector('#prepList li.pitem');
   const prep = await T.$$eval('#prepList li.pitem', (e) => e.filter((x) => x.dataset.k.indexOf('celeri-branche-en-bouquet') >= 0)
     .map((x) => x.querySelector('.prod').textContent + ' : ' + x.querySelector('.qty').textContent.replace(/\s+/g, ' ').trim()));
-  verifie(prep.join(' | ') === 'Locavore : 1 grand colis boisde 10 bouquets | Marché de Tronget : 2 colis20 bouquets | Très Allier : 1 colis10 bouquets', 'Préparation : Locavore en grand colis bois de 10 bouquets, marché et Très Allier en caisses de 10 bouquets (obtenu ' + prep.join(' | ') + ')');
+  verifie(prep.join(' | ') === 'Locavore : 1 colis10 bouquets | Marché de Tronget : 2 colis20 bouquets | Très Allier : 1 colis10 bouquets', 'Préparation : Locavore, marché et Très Allier en caisses de 10 bouquets (obtenu ' + prep.join(' | ') + ')');
   await capture(T, '3-preparation');
 
   verifie(erreurs.length === 0, 'aucune erreur JavaScript' + (erreurs.length ? ' : ' + erreurs.join(' | ') : ''));

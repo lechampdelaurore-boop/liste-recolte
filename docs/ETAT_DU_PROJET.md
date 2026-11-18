@@ -2,7 +2,9 @@
 
 ## Où on en est
 
-*Au 16 novembre 2026. Source : lecture du dépôt et demandes de François du 4/11 au 16/11.*
+*Au 18 novembre 2026. Source : lecture du dépôt et demandes de François du 4/11 au 18/11.*
+
+- **Locavore en caisses plastiques (18/11)**, demande de François (« comme pour Auvabio ») : dans le fichier de départ, Locavore passe en caisses plastique (PB, PH, GB, GH) ; Panier adéquat et Ferme Deschamps restent en colis bois. Pas de code changé : c'est le réglage « Colis » de la fiche du débouché. **À faire par François** si la base garde déjà les débouchés : onglet Réglages, fiche Locavore, menu « Colis » → « Caisses plastique ». Une liste du jour déjà figée garde son colisage d'alors. Vérifié : `tests/debouches.cjs`, `tests/caisse-bleue.cjs`, `tests/celeri-bouquet.cjs` mis à jour, les vingt-et-un tests verts. **Non vérifié en réel** : le réglage dans la vraie base.
 
 - **Annuler une récolte (18/11) : proposition validée, code pas encore fait.** François a validé « un bouton ⋯ par ligne dans Récolte, sans motif, et la récolte annulée apparaît barrée dans Préparation » (`docs/DECISIONS.md`, feuille de route ligne 38). Le code attend la fin de la PR du colisage Locavore (même fichier) et se fera en Opus 5.5. **Rien de codé, non vérifié.**
 
