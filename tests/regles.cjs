@@ -213,6 +213,28 @@ const compte = async (email, mdp) => {
   const ecr = [await ecrit('listes/semaines/' + W + '/q/endive/av03', { n: 9, u: 'colis', by: 'Agent', at: 1 }, g.idToken, 'PUT'), await ecrit('listes/2026-11-04', { 'done/radis': { by: 'Agent', at: 1 } }, g.idToken),
     await ecrit('magasins/ta/semaines/' + W + '/ail-sec', { n: 1, u: 'kg', by: 'Agent', at: 1 }, g.idToken, 'PUT'), await ecrit('notifs/ferme/1-x', nf({ at: 1 }), g.idToken, 'PUT'), await ecrit('profils/' + g.localId, '"ferme"', g.idToken, 'PUT'), await ecrit('agent/reglages', { x: 1 }, g.idToken, 'PUT')];
   verifie(ecr.every((x) => x.s === 401), 'agent : il n\'écrit nulle part ailleurs (semaine, liste, stock du magasin, notifications, son profil, autre chemin de « agent ») (' + ecr.map((x) => x.s).join(',') + ')');
+  // Aurore Task (taches/, profils « ferme » et « equipe ») et rappel du matin (19/11, étape 45B du dépôt aurore-task) :
+  // le profil « rappel » lit taches/, écrit seulement taches/lu et taches/abonnements, lit et écrit rappel/.
+  const rp = await compte('rappel@ferme.invalid', 'essai-rappel'), eq = await compte('martin@ferme.invalid', 'essai-martin');
+  await fetch(`${DB}/profils/${rp.localId}.json?ns=${NS}`, { method: 'PUT', headers: admin, body: '"rappel"' });
+  await fetch(`${DB}/profils/${eq.localId}.json?ns=${NS}`, { method: 'PUT', headers: admin, body: '"equipe"' });
+  r = await ecrit('taches/t/t1', { liste: 'jeudi', texte: 'Banque', at: 1 }, f.idToken, 'PUT');
+  const rTEq = await ecrit('taches/rappels/martin', { actif: true, heure: '07:30' }, eq.idToken, 'PUT');
+  verifie(r.s === 200 && rTEq.s === 200, 'tâches : la ferme et l\'équipe écrivent sous taches/ (tâche, réglage du rappel)');
+  const rTr = await appel('taches', rp.idToken);
+  verifie(rTr.s === 200 && rTr.j.t.t1.texte === 'Banque', 'rappel : il lit les tâches (pour la notification)');
+  const rLu = await ecrit('taches/lu/francois/2026-11-19', { at: 1, par: 'notification' }, rp.idToken, 'PUT');
+  const rAbo = await appel('taches/abonnements/francois/a1', rp.idToken, { method: 'DELETE' });
+  const rRv = await ecrit('rappel/vapid', { publique: 'x', at: 1 }, rp.idToken, 'PUT'), rRe = await ecrit('rappel/envois/francois', { date: '2026-11-19', at: 1, n: 1 }, rp.idToken, 'PUT');
+  verifie(rLu.s === 200 && rAbo.s === 200 && rRv.s === 200 && rRe.s === 200, 'rappel : il note « lu », retire un téléphone disparu, garde ses clés et ses envois sous rappel/');
+  const rInt = [await ecrit('taches/t/t1', { texte: 'pirate' }, rp.idToken, 'PUT'), await ecrit('taches/rappels/francois', { actif: false }, rp.idToken, 'PUT'), await ecrit('taches/listes/x', { nom: 'x' }, rp.idToken, 'PUT'),
+    await ecrit('listes/2026-11-04', { 'done/radis': { by: 'Rappel', at: 1 } }, rp.idToken), await ecrit('profils/' + rp.localId, '"ferme"', rp.idToken, 'PUT')];
+  const rLec = [(await appel('listes', rp.idToken)).s, (await appel('magasins', rp.idToken)).s, (await appel('agent/propositions', rp.idToken)).s, (await appel('profils/' + f.localId, rp.idToken)).s];
+  verifie(rInt.every((x) => x.s === 401) && rLec.every((x) => x === 401), 'rappel : il n\'écrit ni tâche, ni réglage, ni liste, ni son profil, et ne lit ni listes, ni magasins, ni commandes, ni profils (' + rInt.map((x) => x.s).concat(rLec).join(',') + ')');
+  const rVf = await appel('rappel/vapid', f.idToken), rVe = await appel('rappel/vapid', eq.idToken), rVm = await appel('rappel', m.idToken), rVn = await appel('rappel', null);
+  verifie([rVf.s, rVe.s, rVm.s, rVn.s].every((x) => x === 401), 'ferme, équipe, magasin, sans compte : personne d\'autre ne lit les clés d\'envoi (rappel/)');
+  const rTm = await appel('taches', m.idToken), rTg = await appel('taches', g.idToken), rTe = await appel('taches', e.idToken);
+  verifie([rTm.s, rTg.s, rTe.s].every((x) => x === 401), 'magasin, agent, compte sans profil : pas d\'accès aux tâches');
   const formes = [
     ['champ en plus', pr({ prix: 3 })], ['type inconnu', pr({ type: 'suppression' })], ['semaine qui n\'est pas une date', pr({ w: 'demain' })],
     ['livraison vide', pr({ c: '' })], ['source de plus de 120 signes', pr({ src: 'x'.repeat(121) })], ['heure du mail manquante', pr({ date: null })],
