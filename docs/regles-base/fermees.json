@@ -10,8 +10,14 @@
       }
     },
     "taches": {
-      ".read": "auth != null && (root.child('profils').child(auth.uid).val() === 'ferme' || root.child('profils').child(auth.uid).val() === 'equipe')",
-      ".write": "auth != null && (root.child('profils').child(auth.uid).val() === 'ferme' || root.child('profils').child(auth.uid).val() === 'equipe')"
+      ".read": "auth != null && (root.child('profils').child(auth.uid).val() === 'ferme' || root.child('profils').child(auth.uid).val() === 'equipe' || root.child('profils').child(auth.uid).val() === 'rappel')",
+      ".write": "auth != null && (root.child('profils').child(auth.uid).val() === 'ferme' || root.child('profils').child(auth.uid).val() === 'equipe')",
+      "lu": { ".write": "auth != null && root.child('profils').child(auth.uid).val() === 'rappel'" },
+      "abonnements": { ".write": "auth != null && root.child('profils').child(auth.uid).val() === 'rappel'" }
+    },
+    "rappel": {
+      ".read": "auth != null && root.child('profils').child(auth.uid).val() === 'rappel'",
+      ".write": "auth != null && root.child('profils').child(auth.uid).val() === 'rappel'"
     },
     "profils": {
       "$uid": {
