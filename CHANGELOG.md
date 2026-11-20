@@ -1,5 +1,9 @@
 # Historique des changements
 
+## 2026-11-20
+
+- **Registres remis d'accord** : étapes 13, 36, 36D et 44 de la feuille de route et ligne « règle `rappel` » de l'état du projet corrigées (Aurore Task en service, règle publiée le 20/11). Registres seulement.
+
 ## 2026-11-19
 
 - **Aurore Task sort de ce dépôt** (règle de François : « quand je fais une nouvelle application, tu n'écrases pas l'ancienne, tu fais une adresse différente. Et ce sont des dépôts différents à chaque fois » ; « vas-y » du 19/11). Le Cumul installé couvrait tout le site, `/taches` compris : Android rangeait Aurore Task dedans. Aurore Task vit maintenant dans le dépôt `aurore-task` (https://aurore-task.pages.dev), même base, mêmes comptes. `taches.html` : page « Aurore Task a déménagé » qui envoie les modifications restées sur l'appareil sans réseau puis ouvre la nouvelle adresse. Retirés (repris dans `aurore-task`) : `taches.webmanifest`, `icons/taches*`, `referentiel/taches-depart.json`, `docs/CAHIER_DES_CHARGES_AURORE_TASK.md`, `tests/taches*.cjs`. `docs/regles-base/fermees.json` : profil `rappel` (rappel du matin d'Aurore Task), pas encore publié ; règles d'avant : `fermees-sans-rappel.json`. `tests/regles.cjs` : tâches et profil `rappel`. `sw.js` : CACHE `recolte-v68`. AGENTS.md : règle « un outil, un dépôt, une adresse ».
