@@ -2,6 +2,7 @@
 
 ## 2026-11-20
 
+- **Étape 13C close** : François confirme que le magasin a bien accès au stock. Registres seulement.
 - **Registres remis d'accord** : étapes 13, 36, 36D et 44 de la feuille de route et ligne « règle `rappel` » de l'état du projet corrigées (Aurore Task en service, règle publiée le 20/11). Registres seulement.
 
 ## 2026-11-19
