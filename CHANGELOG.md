@@ -1,5 +1,9 @@
 # Historique des changements
 
+## 2026-11-21
+
+- **Nouveau logo du Cumul** (choix de François : la « cagette de légumes », fond anthracite) : `icons/icon.svg` (onglet du navigateur, en-tête de l'appli et de la page du magasin), `icons/icon-192.png`, `icons/icon-512.png`, `icons/icon-maskable-512.png` (dessin réduit pour la découpe ronde d'Android) et `icons/apple-touch-icon.png` (iPhone). `sw.js` : CACHE `recolte-v69`. Aucun autre changement.
+
 ## 2026-11-20
 
 - **Étape 13C close** : François confirme que le magasin a bien accès au stock. Registres seulement.
