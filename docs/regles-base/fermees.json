@@ -1,7 +1,7 @@
 {
   "rules": {
     "listes": {
-      ".read": "auth != null && root.child('profils').child(auth.uid).val() === 'ferme'",
+      ".read": "auth != null && (root.child('profils').child(auth.uid).val() === 'ferme' || root.child('profils').child(auth.uid).val() === 'sauvegarde')",
       ".write": "auth != null && root.child('profils').child(auth.uid).val() === 'ferme'",
       "reglages": {
         "debouches": {
@@ -10,7 +10,7 @@
       }
     },
     "taches": {
-      ".read": "auth != null && (root.child('profils').child(auth.uid).val() === 'ferme' || root.child('profils').child(auth.uid).val() === 'equipe' || root.child('profils').child(auth.uid).val() === 'rappel')",
+      ".read": "auth != null && (root.child('profils').child(auth.uid).val() === 'ferme' || root.child('profils').child(auth.uid).val() === 'equipe' || root.child('profils').child(auth.uid).val() === 'rappel' || root.child('profils').child(auth.uid).val() === 'sauvegarde')",
       ".write": "auth != null && (root.child('profils').child(auth.uid).val() === 'ferme' || root.child('profils').child(auth.uid).val() === 'equipe')",
       "lu": { ".write": "auth != null && root.child('profils').child(auth.uid).val() === 'rappel'" },
       "abonnements": { ".write": "auth != null && root.child('profils').child(auth.uid).val() === 'rappel'" }
@@ -20,12 +20,13 @@
       ".write": "auth != null && root.child('profils').child(auth.uid).val() === 'rappel'"
     },
     "profils": {
+      ".read": "auth != null && root.child('profils').child(auth.uid).val() === 'sauvegarde'",
       "$uid": {
         ".read": "auth != null && auth.uid === $uid"
       }
     },
     "magasins": {
-      ".read": "auth != null && root.child('profils').child(auth.uid).val() === 'ferme'",
+      ".read": "auth != null && (root.child('profils').child(auth.uid).val() === 'ferme' || root.child('profils').child(auth.uid).val() === 'sauvegarde')",
       "$did": {
         "semaines": {
           ".read": "auth != null && root.child('profils').child(auth.uid).val() === 'magasin:' + $did",
@@ -80,6 +81,7 @@
       }
     },
     "notifs": {
+      ".read": "auth != null && root.child('profils').child(auth.uid).val() === 'sauvegarde'",
       "ferme": {
         ".read": "auth != null && root.child('profils').child(auth.uid).val() === 'ferme'",
         "$id": {
@@ -113,6 +115,7 @@
       }
     },
     "agent": {
+      ".read": "auth != null && root.child('profils').child(auth.uid).val() === 'sauvegarde'",
       "propositions": {
         ".read": "auth != null && (root.child('profils').child(auth.uid).val() === 'ferme' || root.child('profils').child(auth.uid).val() === 'agent')",
         ".indexOn": ["w"],
