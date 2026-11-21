@@ -316,6 +316,28 @@ dialog input{width:100%;padding:11px;border-radius:var(--r1);border:var(--bw) so
 .mag-hors .mag-l{padding:0;list-style:none}
 .mag-hors li{display:flex;flex-wrap:wrap;gap:6px 10px;align-items:center}
 .stk-l .sr{border-top:0}
+/* Page Stock, le tour du magasin (21/11/2026) : en-tête, deux gros boutons quand la semaine est vide, étiquettes
+   « Compté » et « À compter », × pour retirer, « Ajouter un produit » toujours visible en bas. */
+.stk-tete{display:grid;gap:10px;padding:14px 16px}
+.stk-tete .db-h{margin:0}
+.stk-tete .sp-by,.stk-q{margin:4px 0 0}
+.stk-btns{display:flex;flex-wrap:wrap;gap:8px}
+.stk-choix{display:grid;gap:12px}
+.stk-gros{display:grid;gap:4px;justify-items:center;text-align:center;padding:16px;min-height:76px}
+.stk-gros b{font-size:1.1rem}
+.stk-gros small{font-size:.9rem;font-weight:400;opacity:.9}
+.sem-act.stk-un{color:var(--accent);border-color:var(--accent)}
+.stk-pied{text-align:center}
+.stk-x{flex:none;min-width:44px;min-height:44px;margin:-8px -8px -8px auto;border:0;background:transparent;color:var(--muted);font-size:1.5rem;line-height:1;cursor:pointer}
+.stk-etat{justify-self:start;display:inline-block;border-radius:999px;padding:2px 10px;font-family:var(--f-ui);font-size:.85rem;font-weight:600;margin:2px 0 6px}
+.stk-etat.ok{background:var(--ok-bg);color:var(--ok-fg)}
+.stk-etat.a{background:var(--danger-bg);color:var(--danger-fg)}
+.stk-l .sr{display:grid}
+.card.stk-neuf{border-color:var(--accent);box-shadow:0 0 0 1px var(--accent)}
+.stk-hors{padding:0 0 4px}
+.sem-act.stk-plus{position:sticky;bottom:calc(var(--nav-h) + env(safe-area-inset-bottom) + 8px);z-index:5;width:100%;color:var(--accent);border-color:var(--accent);background:var(--surface)}
+@media (max-width:999px){.stk-btns .stk-aj{display:none}}
+@media (min-width:1000px){.stk-tete{grid-template-columns:1fr auto;align-items:center}.sem-act.stk-plus{bottom:12px}}
 .sr.stock .sr-ctl input{background:#fff}
 #semTable th.stk,#semTable td.stk{background:var(--surface2)}
 #semSub button{font-size:.9rem;padding:11px 2px}
@@ -982,7 +1004,7 @@ button.notif-i{cursor:pointer}
 
 <dialog id="addDlg" class="big">
   <h2>Ajouter un produit</h2>
-  <p class="sub">Toucher un produit pour l'ajouter à la semaine.</p>
+  <p class="sub" id="addSub">Toucher un produit pour l'ajouter à la semaine.</p>
   <input id="addQ" placeholder="Chercher, par exemple bette" autocomplete="off" aria-label="Chercher un produit">
   <ul class="add-list" id="addList"></ul>
   <div class="btns"><button type="button" id="addClose">Fermer</button></div>
@@ -2652,6 +2674,7 @@ function magFermer(){ mag.gen++; mag.lu = {}; mag.lecture = {}; mag.precLu = {};
 function magSuivre(){
   if(!sem.id) return;
   if(mag.w !== sem.id){ magFermer(); mag.w = sem.id; mag.d = {}; mag.prec = {}; mag.coupe = {}; mag.journal = {}; }
+  if(stocks().length) stkPrecCharger(sem.id);
   stocks().forEach(function(x){
     var did = x.id;
     if(!mag.d[did]) mag.d[did] = ls(magCle(did, mag.w)) || {};
@@ -2726,8 +2749,15 @@ function stockVu(pid, did){
   if(m && (!a || !a.at || m.at > a.at)) return {n:m.n, u:m.u, by:(m.by || '?') + ' (magasin)', at:m.at, mag:true};
   return a && !a.vide && typeof a.n === 'number' ? a : null;
 }
-// Ce que le magasin avait compté la semaine d'avant (aide dans une case vide).
-function stockAvant(pid, did){ var m = mag.w === sem.id && mag.prec[did] ? mag.prec[did][pid] : null; return m && typeof m.n === 'number' ? m : null; }
+// Le stock de la semaine d'avant (aide dans une case vide) : la saisie la plus récente, du magasin ou de la ferme
+// (page Stock de la ferme, depuis le 21/11/2026). Une case vidée par la ferme après le magasin ne propose rien.
+function stockAvant(pid, did){
+  var m = mag.w === sem.id && mag.prec[did] ? mag.prec[did][pid] : null, p = stkPrec[sem.id];
+  var a = p && p.stock && p.stock[pid] ? p.stock[pid][did] : null;
+  m = m && typeof m.n === 'number' ? {n:m.n, u:m.u, by:(m.by || '?') + ' (magasin)', at:m.at} : null;
+  if(a && typeof a === 'object' && (!m || (a.at || 0) > (m.at || 0))) return !a.vide && typeof a.n === 'number' ? a : null;
+  return m;
+}
 function quiQuandDate(o){
   var d = new Date(o.at);
   return (o.by ? o.by + ', ' : '') + d.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'numeric'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
@@ -2738,7 +2768,7 @@ function quiCourt(o){
   var d = new Date(o.at);
   return (o.by ? o.by + ' · ' : '') + d.toLocaleDateString('fr-FR', {day:'2-digit', month:'2-digit'}) + ' ' + d.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
 }
-function avantTxt(pid, f, did){ var m = stockAvant(pid, did); return m ? 'Magasin, semaine d\'avant : ' + qTxt(m.n, m.u, f) + ' (' + quiQuandDate(m) + ')' : ''; }
+function avantTxt(pid, f, did){ var m = stockAvant(pid, did); return m ? 'Semaine d\'avant : ' + qTxt(m.n, m.u, f) + (m.at ? ' (' + quiQuandDate(m) + ')' : '') : ''; }
 // Journal du magasin pour la semaine ouverte : chargé à la demande, regroupé par personne.
 function magJournal(did){
   var w = sem.id;
@@ -2822,13 +2852,13 @@ function prevenuLire(did, w){
     if(der){ prev.lu[k] = der; if(ui.view === 'semaine' && !drag) render(); }
   }).catch(function(){ prev.charge[k] = false; });
 }
-// Heure du dernier changement de la semaine (produits, disponible, répartition), sans le stock du magasin.
+// Heure du dernier changement de la semaine (produits, disponible, répartition), sans le stock ni la liste du tour du magasin.
 function semModif(){
   var t = 0;
   function voir(o, prof){
     if(!o || typeof o !== 'object') return;
     if(typeof o.at === 'number' && o.at > t) t = o.at;
-    Object.keys(o).forEach(function(k){ if(prof || (k !== 'stock' && k !== 'magAjout' && k !== 'creneaux')) voir(o[k], true); });
+    Object.keys(o).forEach(function(k){ if(prof || (k !== 'stock' && k !== 'stockListe' && k !== 'magAjout' && k !== 'creneaux')) voir(o[k], true); });
   }
   voir(sem.data, false);
   return t;
@@ -3681,51 +3711,155 @@ function aRecolterHtml(prods, calc, cr){
 }
 function majuscule(t){ return t.charAt(0).toUpperCase() + t.slice(1); }
 
-/* Page « Stock » : le stock au magasin de chaque produit, à remplir d'un coup (au magasin, au téléphone).
-   À côté de chaque produit, ce qui est prévu pour ce débouché cette semaine. Information seulement. */
+/* Page « Stock » : le tour du magasin (demande de François du 21/11/2026, maquette validée). Le samedi, à la permanence
+   du magasin, on choisit la semaine d'après et on compte les produits dans l'ordre où on passe devant les rayons.
+   La liste à compter de chaque débouché suivi est gardée dans la semaine :
+     listes/semaines/<lundi>/stockListe/<débouché>/<produit> {o, by, at}   (o = rang dans le tour : l'heure d'ajout)
+   Un produit déjà compté cette semaine (par la ferme ou par le magasin) y est aussi, au rang de sa saisie.
+   Semaine sans produit : deux gros boutons, « Reprendre la liste de la semaine dernière » (les produits comptés chez
+   ce débouché la semaine d'avant, sans les quantités, marqués « À compter ») et « Ajouter les produits un par un »
+   (même recherche que la page du magasin, un produit à la fois, ajouté en bas, la case du chiffre prête).
+   Un produit compté entre aussi dans la semaine de la ferme (comme quand le magasin saisit, voir magAuto).
+   Le stock reste une information : il n'entre ni dans le disponible ni dans le reste. */
+var stkPrec = {}, stkNeuf = null;
+// Fiche d'un produit du tour : celle de la semaine, sinon celle du référentiel (produit pas encore dans la semaine).
+function stkFiche(pid){ var f = produitDe(pid); if(f) return f; var r = refDe(pid); return r ? complet(pid, fiche(r)) : null; }
+// Le stock et la liste du tour de la semaine d'avant (une lecture par semaine ouverte, relue au plus toutes les 5 min).
+function stkPrecCharger(w){
+  var x = stkPrec[w];
+  if(x && (x.etat === 'charge' || Date.now() - x.lu < 300000)) return;
+  var avant = decaler(w, -1), copie = ls('recolte.semaine.' + avant) || {};
+  stkPrec[w] = {etat:'charge', lu:Date.now(), stock:(x && x.stock) || copie.stock || {}, liste:(x && x.liste) || copie.stockListe || {}};
+  var fini = function(v){
+    if(v) stkPrec[w] = {etat:'ok', lu:Date.now(), stock:v[0] || {}, liste:v[1] || {}}; else stkPrec[w].etat = 'ok';
+    if(ui.view === 'semaine' && sem.id === w) render();
+  };
+  if(!dbPret()){ fini(null); return; }
+  Promise.all(['stock', 'stockListe'].map(function(k){
+    return dbFetch('/listes/semaines/' + avant + '/' + k, {cache:'no-store'}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); });
+  })).then(fini, function(){ fini(null); });
+}
+// Rang d'un nouveau produit : après tous ceux du tour.
+function stkRang(did){ var o = Date.now(); stkTour(did).forEach(function(t){ if(t.o >= o) o = t.o + 1; }); return o; }
+// Le tour de la semaine ouverte pour un débouché : [{pid, o}] dans l'ordre du tour.
+function stkTour(did){
+  var o = semLire('stockListe/' + did) || {}, l = [], vu = {};
+  Object.keys(o).forEach(function(pid){ if(o[pid] && typeof o[pid].o === 'number' && stkFiche(pid)){ l.push({pid:pid, o:o[pid].o}); vu[pid] = 1; } });
+  Object.keys(semLire('stock') || {}).concat(Object.keys(mag.w === sem.id ? mag.d[did] || {} : {})).forEach(function(pid){
+    if(vu[pid]) return; vu[pid] = 1;
+    var q = stockVu(pid, did); if(q && stkFiche(pid)) l.push({pid:pid, o:q.at || 0});
+  });
+  return l.sort(function(a, b){ return a.o - b.o || nomProduit(a.pid).localeCompare(nomProduit(b.pid), 'fr'); });
+}
+// La liste de la semaine d'avant (pour « Reprendre ») : son tour et ses produits comptés, dans l'ordre du tour.
+// Un produit retiré du référentiel (« masque ») est remplacé par celui qui le remplace (« remplace_par »), s'il existe.
+function stkAvantListe(did){
+  var p = stkPrec[sem.id]; if(!p) return [];
+  var l = {}, liste = p.liste[did] || {};
+  var mettre = function(pid, o){ if(!(pid in l) || o < l[pid]) l[pid] = o; };
+  Object.keys(liste).forEach(function(pid){ var x = liste[pid]; if(x && typeof x.o === 'number') mettre(pid, x.o); });
+  Object.keys(p.stock || {}).concat(Object.keys(mag.w === sem.id ? mag.prec[did] || {} : {})).forEach(function(pid){
+    if(pid in l) return; var q = stockAvant(pid, did); if(q) mettre(pid, q.at || 0);
+  });
+  var out = [];
+  Object.keys(l).sort(function(a, b){ return l[a] - l[b] || a.localeCompare(b); }).forEach(function(pid){
+    var r = refDe(pid), n = r && r.masque && r.remplace_par && (REF.produits || []).filter(function(x){ return x.produit === r.remplace_par; })[0];
+    if(n) pid = pidDe(n.produit);
+    if(out.indexOf(pid) < 0 && stkFiche(pid)) out.push(pid);
+  });
+  return out;
+}
+// Écrit avec une saisie de stock faite depuis la page Stock : le produit garde sa place dans le tour, et un produit
+// compté entre aussi dans la semaine (choix de François du 21/11/2026, comme pour le magasin).
+function stkGarder(ch, pid, did, compte){
+  if(!semLire('stockListe/' + did + '/' + pid)){
+    var t = stkTour(did).filter(function(x){ return x.pid === pid; })[0];
+    ch['stockListe/' + did + '/' + pid] = signe({o:t ? t.o : stkRang(did)});
+  }
+  if(compte && !semLire('produits/' + pid)){ var r = refDe(pid); if(r) ch['produits/' + pid] = signe(fiche(r)); }
+}
 function stockHtml(prods, calc, cr){
-  var h = '';
+  var h = '', dans = {};
+  prods.forEach(function(p){ dans[p.id] = 1; });
+  stkPrecCharger(sem.id);
   stocks().forEach(function(x){
-    var livs = cr.filter(function(c){ return c.circuit === x.id; }), der = null, n = 0;
-    prods.forEach(function(p){ var q = stockVu(p.id, x.id); if(q){ n++; if(q.at && (!der || q.at > der.at)) der = q; } });
-    h += '<section class="stk-bloc" data-d="' + esc(x.id) + '"><h2 class="db-h">Stock chez ' + esc(x.nom) + '</h2>' +
-      '<p class="hint">Ce qui reste au magasin, produit par produit, dans l\'unité de son choix. C\'est une information : le stock n\'entre ni dans le disponible ni dans le reste. Il s\'affiche aussi dans la page « Répartir » et le tableau, juste avant les livraisons ' + esc(x.nom) + '.</p>' +
-      '<p class="hint">Le magasin peut aussi le remplir lui-même, avec son compte, sur sa page : <b>' + esc(adresseMagasin()) + '</b>. La dernière saisie l\'emporte, de la ferme ou du magasin ; « (magasin) » suit le prénom donné au magasin.</p>' +
-      '<p class="sp-by">' + n + ' produit' + (n > 1 ? 's' : '') + ' sur ' + prods.length + ' renseigné' + (n > 1 ? 's' : '') + (der ? ' · dernière saisie : ' + esc(quiQuand(der)) : '') + '</p>' + manqueHtml(x) + '<div class="stk-list">';
-    prods.forEach(function(p){
-      var f = p.f, r = calc[p.id];
-      var prevu = livs.map(function(c){
-        if(r.toutC === c.id) return (c.court || c.nom) + ' tout';
-        var q = semLire('q/' + p.id + '/' + c.id); return q ? (c.court || c.nom) + ' ' + qCourt(q, f) : '';
-      }).filter(Boolean);
-      h += '<div class="card stk-l" data-pid="' + esc(p.id) + '">' +
-        ligneHtml(p.id, f, 'stock/' + x.id, miniHtml(f.nom) + esc(f.nom) + ' <small>' + esc(colisTxt(f)) + '</small>', stockVu(p.id, x.id),
-          {cls:'stock', aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?', note:[livs.length ? (prevu.length ? 'Prévu cette semaine : ' + prevu.join(', ') : 'Rien de prévu cette semaine') : '', stockVu(p.id, x.id) ? '' : avantTxt(p.id, f, x.id)].filter(Boolean).join(' · ')}) + '</div>';
-    });
-    h += '</div>';
-    if(!prods.length) h += '<p class="hint">Aucun produit dans votre semaine : ajoutez-les dans la page « Répartir », ou depuis le cadre ci-dessous.</p>';
-    h += horsHtml(x, prods) + prevenirHtml(x, prods) + journalHtml(x) + '</section>';
+    var livs = cr.filter(function(c){ return c.circuit === x.id; }), tour = stkTour(x.id), der = null, n = 0;
+    tour.forEach(function(t){ var q = stockVu(t.pid, x.id); if(q){ n++; if(q.at && (!der || q.at > der.at)) der = q; } });
+    var avant = stkAvantListe(x.id), manquants = avant.filter(function(pid){ return !tour.some(function(t){ return t.pid === pid; }); });
+    var charge = stkPrec[sem.id] && stkPrec[sem.id].etat === 'charge', d = ' data-d="' + esc(x.id) + '"';
+    var reprendre = function(cls){
+      return '<button type="button" class="' + cls + '" data-a="stk-reprendre"' + d + '>' + (tour.length ? 'Reprendre la liste de la semaine dernière' :
+        '<b>Reprendre la liste de la semaine dernière</b><small>' + avant.length + ' produit' + (avant.length > 1 ? 's' : '') + ' compté' + (avant.length > 1 ? 's' : '') + ' chez ' + esc(x.nom) + ', sans les quantités</small>') + '</button>';
+    };
+    h += '<section class="stk-bloc" data-d="' + esc(x.id) + '"><div class="card stk-tete"><div class="stk-titre"><h2 class="db-h">Stock chez ' + esc(x.nom) + '</h2>' +
+      (tour.length ? '<p class="sp-by">' + n + ' compté' + (n > 1 ? 's' : '') + ' sur ' + tour.length + ' · dans l\'ordre de votre tour du magasin' + (der ? ' · dernière saisie : ' + esc(quiQuand(der)) : '') + '</p>'
+        : '<p class="stk-q">Aucun produit encore pour cette semaine. Comment voulez-vous faire votre tour du magasin ?</p>') + '</div>';
+    if(tour.length) h += '<div class="stk-btns">' + (manquants.length ? reprendre('sem-act stk-rep') : '') + '<button type="button" class="sem-add stk-aj" data-a="stk-ajouter"' + d + '>＋ Ajouter un produit</button></div>';
+    h += '</div>' + manqueHtml(x);
+    if(!tour.length){
+      h += '<div class="stk-choix">' + (avant.length ? reprendre('sem-add stk-gros') :
+          '<p class="hint stk-rien">' + (charge ? 'Lecture de la semaine dernière…' : 'Rien de compté chez ' + esc(x.nom) + ' la semaine dernière : ajoutez les produits un par un.') + '</p>') +
+        '<button type="button" class="sem-act stk-gros stk-un" data-a="stk-ajouter"' + d + '><b>＋ Ajouter les produits un par un</b><small>dans l\'ordre où vous passez devant les rayons</small></button></div>' +
+        '<p class="hint stk-pied">Les produits comptés entrent aussi dans votre semaine (page « Répartir »).</p>';
+    } else {
+      h += '<div class="stk-list">';
+      tour.forEach(function(t){
+        var pid = t.pid, f = stkFiche(pid), q = stockVu(pid, x.id), r = calc[pid], neuf = stkNeuf && stkNeuf.pid === pid && stkNeuf.did === x.id;
+        var prevu = !dans[pid] || !r ? [] : livs.map(function(c){
+          if(r.toutC === c.id) return (c.court || c.nom) + ' tout';
+          var qq = semLire('q/' + pid + '/' + c.id); return qq ? (c.court || c.nom) + ' ' + qCourt(qq, f) : '';
+        }).filter(Boolean);
+        // Hors de la semaine : un produit pas encore compté y entrera à sa saisie ; un produit compté mais retiré de la
+        // semaine par la ferme (saisie du magasin) est signalé, avec « Ajouter à la semaine ».
+        var hors = !dans[pid] && !!q;
+        var note = [neuf && stkNeuf.semaine ? 'Ajouté à votre semaine' : hors ? 'Pas dans votre semaine' : !dans[pid] ? '' : livs.length ? (prevu.length ? 'Prévu cette semaine : ' + prevu.join(', ') : 'Rien de prévu cette semaine') : '', q ? '' : avantTxt(pid, f, x.id)].filter(Boolean).join(' · ');
+        h += '<div class="card stk-l' + (neuf ? ' stk-neuf' : '') + (q ? ' stk-fait' : '') + '" data-pid="' + esc(pid) + '" data-stk="' + esc(x.id) + '">' +
+          ligneHtml(pid, f, 'stock/' + x.id, miniHtml(f.nom) + esc(f.nom) + ' <small>' + esc(colisTxt(f)) + '</small>', q, {cls:'stock', aria:'Stock chez ' + x.nom + ', ' + f.nom, ph:'?', note:note,
+            haut:'<button type="button" class="stk-x" data-a="stk-retirer"' + d + ' aria-label="' + esc('Retirer ' + f.nom + ' du stock chez ' + x.nom) + '">×</button>',
+            etiq:'<span class="stk-etat ' + (q ? 'ok">Compté' : 'a">À compter') + '</span>',
+            extra:!hors ? '' : '<div class="stk-hors"><button type="button" class="sem-act db-petit" data-a="ajouter-produit" data-p="' + esc(pid) + '">Ajouter à la semaine</button></div>'}) + '</div>';
+      });
+      h += '</div><button type="button" class="sem-act stk-plus" data-a="stk-ajouter"' + d + '>＋ Ajouter un produit</button>';
+    }
+    h += '<p class="hint">Ce qui reste au magasin, produit par produit, dans l\'unité de son choix. C\'est une information : le stock n\'entre ni dans le disponible ni dans le reste. Il s\'affiche aussi dans la page « Répartir » et le tableau, juste avant les livraisons ' + esc(x.nom) + '.</p>' +
+      '<p class="hint">Le magasin peut aussi le remplir lui-même, avec son compte, sur sa page : <b>' + esc(adresseMagasin()) + '</b>. La dernière saisie l\'emporte, de la ferme ou du magasin ; « (magasin) » suit le prénom donné au magasin.</p>';
+    h += prevenirHtml(x, prods) + journalHtml(x) + '</section>';
   });
   return h;
 }
-
-// Produits comptés par le magasin (cette semaine, ou à défaut la semaine d'avant) mais absents de la semaine de la
-// ferme : un cadre à part, avec « Ajouter à la semaine » (demande de François du 8/11 : « je ne le vois pas »).
-function horsHtml(x, prods){
-  if(mag.w !== sem.id) return '';
-  var ids = prods.map(function(p){ return p.id; }), l = [];
-  Object.keys(mag.d[x.id] || {}).forEach(function(pid){ if(ids.indexOf(pid) < 0 && stockMag(pid, x.id)) l.push({pid:pid, m:stockMag(pid, x.id)}); });
-  Object.keys(mag.prec[x.id] || {}).forEach(function(pid){
-    var m = stockAvant(pid, x.id);
-    if(m && ids.indexOf(pid) < 0 && !l.some(function(o){ return o.pid === pid; })) l.push({pid:pid, m:m, avant:true});
+// Retirer un produit du tour (×) : il quitte la liste du stock de cette semaine ; il reste dans la semaine de la ferme.
+// Un chiffre déjà noté est effacé (après confirmation) ; une saisie du magasin garde sa trace (« vide », datée).
+function stkRetirer(pid, did){
+  var f = stkFiche(pid), x = stocks().filter(function(s){ return s.id === did; })[0], q = stockVu(pid, did);
+  if(q && !confirm('Retirer « ' + (f ? f.nom : pid) + ' » du stock chez ' + (x ? x.nom : did) + ' ? Le chiffre noté (' + qTxt(q.n, q.u, f || {}) + ') sera effacé. Le produit reste dans votre semaine.')) return;
+  avecNom(function(){
+    var ch = {}; ch['stockListe/' + did + '/' + pid] = null;
+    if(stockMag(pid, did)) ch['stock/' + pid + '/' + did] = signe({vide:true});
+    else if(semLire('stock/' + pid + '/' + did)) ch['stock/' + pid + '/' + did] = null;
+    if(stkNeuf && stkNeuf.pid === pid) stkNeuf = null;
+    semEcrire(ch);
   });
-  if(!l.length) return '';
-  l.sort(function(a, b){ return nomProduit(a.pid).localeCompare(nomProduit(b.pid), 'fr'); });
-  return '<div class="card mag-hors"><h3 class="mag-qui">Compté par le magasin, pas dans votre semaine</h3><ul class="mag-l">' + l.map(function(o){
-    var f = ficheDe(o.pid), ok = REF && (REF.produits || []).some(function(p){ return pidDe(p.produit) === o.pid; });
-    return '<li data-hors="' + esc(o.pid) + '"><span><b>' + miniHtml(nomProduit(o.pid)) + esc(nomProduit(o.pid)) + '</b> : ' + esc(qTxt(o.m.n, o.m.u, f) + ' · ' + (o.avant ? 'semaine d\'avant, ' + quiQuandDate(o.m) : quiQuand(o.m))) + '</span>' +
-      (ok ? ' <button type="button" class="sem-act" data-a="ajouter-produit" data-p="' + esc(o.pid) + '">Ajouter à la semaine</button>' : '') + '</li>';
-  }).join('') + '</ul></div>';
+}
+function stkReprendre(did){
+  avecNom(function(){
+    var ch = {}, o = stkRang(did), deja = stkTour(did).map(function(t){ return t.pid; });
+    stkAvantListe(did).forEach(function(pid, i){ if(deja.indexOf(pid) < 0) ch['stockListe/' + did + '/' + pid] = signe({o:o + i}); });
+    stkNeuf = null;
+    if(Object.keys(ch).length) semEcrire(ch);
+  });
+}
+// Ajouter un produit au tour : un à la fois ; il arrive en bas, entre dans la semaine, et la case du chiffre est prête.
+function stkAjouter(did, pid){
+  var r = refDe(pid); if(!r && !produitDe(pid)) return;
+  avecNom(function(){
+    var ch = {}, entre = !semLire('produits/' + pid);
+    ch['stockListe/' + did + '/' + pid] = signe({o:stkRang(did)});
+    if(entre && r) ch['produits/' + pid] = signe(fiche(r));
+    stkNeuf = {pid:pid, did:did, semaine:entre};
+    semEcrire(ch);
+    var i = document.querySelector('#semStkList .stk-l[data-pid="' + pid + '"][data-stk="' + did + '"] input');
+    if(i){ i.scrollIntoView({block:'center'}); i.focus(); }
+  });
 }
 
 /* Bouton « Filtre » des pages « Répartir » et « Cumul » (demandes de François du 8/11 et du 9/11). Il ouvre un cadre à
@@ -3899,7 +4033,7 @@ function ligneHtml(pid, f, k, nom, q, opts){
   var h = '<div class="sr' + (opts.cls ? ' ' + opts.cls : '') + (opts.dc ? ' dc' : '') + '"' + (opts.dc ? dc(opts.dc) : '') + ' data-k="' + esc(k) + '">' +
     '<div class="sr-top"><span class="sr-nom">' + nom + '</span>' + (opts.tout !== undefined ? '<span class="sr-btns">' +
       (opts.portions && !opts.tout ? '<button type="button" class="tout" data-a="portions" aria-pressed="' + !!(aPortions(q) || semPort[cle]) + '">Portions</button>' : '') +
-      '<button type="button" class="tout" data-a="tout" aria-pressed="' + !!opts.tout + '">tout</button></span>' : '') + '</div>';
+      '<button type="button" class="tout" data-a="tout" aria-pressed="' + !!opts.tout + '">tout</button></span>' : '') + (opts.haut || '') + '</div>' + (opts.etiq || '');
   if(opts.tout){
     h += '<div class="sr-toutv">Tout ce qui reste' + (opts.toutV !== null && opts.toutV !== undefined ? ' : ' + esc(deux(opts.toutV, f)) : '') + '</div>';
   } else {
@@ -4053,6 +4187,7 @@ function poser(pid, k, val){
   // Un nombre dans le créneau « tout » remplace « tout ».
   var t = semLire('tout/' + pid);
   if(val && k.indexOf('q/') === 0 && t && t.c === k.split('/')[1]) ch['tout/' + pid] = null;
+  if(k.indexOf('stock/') === 0 && ui.semPage === 'stock') stkGarder(ch, pid, k.split('/')[1], !!(val && !val.vide));
   semEcrire(ch);
 }
 // Changer d'unité garde la même quantité : le détail des portions reste vrai.
@@ -4075,7 +4210,7 @@ $('#semNav').addEventListener('click', function(e){
 $('#semView').addEventListener('click', function(e){
   e.stopPropagation(); // les gestes de la liste de récolte (cocher, glisser) ne concernent pas cet onglet
   var b = e.target.closest('[data-a]');
-  var carte = e.target.closest('[data-pid]'), pid = carte && carte.dataset.pid, f = pid && produitDe(pid);
+  var carte = e.target.closest('[data-pid]'), pid = carte && carte.dataset.pid, f = pid && (produitDe(pid) || (carte.dataset.stk ? stkFiche(pid) : null));
   if(e.target.id === 'semEd'){ fermerEd(); return; } // toucher le fond grisé ferme la fenêtre du Cumul
   if(!b){
     var tete = e.target.closest('.sp-head');
@@ -4088,6 +4223,9 @@ $('#semView').addEventListener('click', function(e){
   if(a === 'filtre-ouvrir'){ semFiltreOuvert = !semFiltreOuvert; render(); var bf = $('#semFiltre .sf-btn'); if(bf) bf.focus(); return; }
   if(a === 'filtre-tout'){ ui.semMasque = []; ui.semMasqueD = []; saveUi(); render(); return; }
   if(a === 'ajouter'){ ouvrirAjout(); return; }
+  if(a === 'stk-ajouter'){ ouvrirAjout(b.dataset.d); return; }
+  if(a === 'stk-reprendre'){ stkReprendre(b.dataset.d); return; }
+  if(a === 'stk-retirer'){ stkRetirer(pid, b.dataset.d); return; }
   if(a === 'voir-jour'){ ui.jour = b.dataset.date; ui.jourLe = jourIso(new Date()); ui.circ = ''; ui.view = 'recolte'; saveUi(); render(); scrollTo(0, 0); return; }
   if(a === 'ajout-menu'){ rcMenu = !rcMenu; render(); var bm = $(rcMenu ? '#rcMenu button' : '[data-a="ajout-menu"]'); if(bm) bm.focus(); return; }
   if(a === 'ajouter-jour'){ var dj = b.dataset.date; rcMenu = false; rcOuvert[dj] = true; ajouterJour(dj); return; }
@@ -4156,7 +4294,7 @@ $('#semView').addEventListener('change', function(e){
   if(inp.dataset.a === 'jliv'){ cocherLivraison(inp.dataset.date, inp.dataset.c, inp.checked); return; }
   if(inp.dataset.a === 'chaque'){ chaqueSemaine(inp.dataset.date, inp.checked); return; }
   var carte = inp.closest('[data-pid]'); if(!carte) return;
-  var pid = carte.dataset.pid, f = produitDe(pid); if(!f) return;
+  var pid = carte.dataset.pid, f = produitDe(pid) || (carte.dataset.stk ? stkFiche(pid) : null); if(!f) return;
   // Grille de l'ordinateur : on enregistre juste après le changement de case, pour ne pas gêner Tab ou Entrée.
   var grille = !!inp.dataset.cell, plusTard = function(fn){ if(grille) setTimeout(fn, 0); else fn(); };
   if(inp.dataset.a === 'propose'){
@@ -4193,6 +4331,7 @@ $('#semView').addEventListener('change', function(e){
       if(slot && t && t.c === slot) ch['tout/' + pid] = null;
       // Stock : vider une case que le magasin a remplie laisse une trace datée, sinon sa saisie reviendrait.
       if(q) ch[cible(pid, k)] = k.indexOf('stock/') === 0 && stockMag(pid, k.split('/')[1]) ? signe({vide:true}) : null;
+      if(q && k.indexOf('stock/') === 0 && ui.semPage === 'stock') stkGarder(ch, pid, k.split('/')[1], false);
       return Object.keys(ch).length ? semEcrire(ch) : render();
     }
     delete semPort[cle];
@@ -4231,6 +4370,8 @@ function retirer(pid){
   ch['produits/' + pid] = null;
   ['dispo', 'tout'].forEach(function(k){ if(lireA(d, k + '/' + pid)) ch[k + '/' + pid] = null; });
   ['q', 'report', 'propose', 'stock'].forEach(function(k){ Object.keys(lireA(d, k + '/' + pid) || {}).forEach(function(c){ ch[k + '/' + pid + '/' + c] = null; }); });
+  var sl = lireA(d, 'stockListe') || {};
+  Object.keys(sl).forEach(function(did){ if(sl[did] && sl[did][pid]) ch['stockListe/' + did + '/' + pid] = null; });
   delete semOuvert[pid];
   semEcrire(ch);
 }
@@ -4259,19 +4400,26 @@ function reprendre(){
     semEcrire(ch);
   });
 }
-function ouvrirAjout(){
+// did donné : ajout au tour du magasin de ce débouché (page Stock), un produit à la fois, la fenêtre se ferme.
+function ouvrirAjout(did){
   var dlg = $('#addDlg'), q = $('#addQ');
+  $('#addSub').textContent = did ? 'Un produit à la fois : il s\'ajoute en bas de la liste et la case du chiffre est prête.' : 'Toucher un produit pour l\'ajouter à la semaine.';
   function liste(){
-    var t = sansAccent(q.value.trim().toLowerCase()), deja = semLire('produits') || {};
+    var t = sansAccent(q.value.trim().toLowerCase()), deja = {};
+    if(did) stkTour(did).forEach(function(x){ deja[x.pid] = 1; }); else deja = semLire('produits') || {};
     var l = (REF.produits || []).filter(function(p){ return !p.masque && !deja[pidDe(p.produit)] && sansAccent(p.produit.toLowerCase()).indexOf(t) >= 0; });
+    // Tour du magasin : aussi les produits de la semaine absents du référentiel (produit ajouté à la main).
+    if(did) produitsSem().forEach(function(p){ if(!refDe(p.id) && !deja[p.id] && sansAccent(p.f.nom.toLowerCase()).indexOf(t) >= 0) l.push(Object.assign({}, p.f, {produit:p.f.nom, _pid:p.id})); });
+    l.sort(function(a, b){ return a.produit.localeCompare(b.produit, 'fr'); });
     $('#addList').innerHTML = l.length ? l.map(function(p){
-      return '<li><button type="button" class="sem-act" data-nom="' + esc(p.produit) + '"><span>' + miniHtml(p.produit) + esc(p.produit) + '</span><small>' + esc(colisTxt(fiche(p))) + '</small></button></li>';
+      return '<li><button type="button" class="sem-act" data-nom="' + esc(p.produit) + '" data-pid="' + esc(p._pid || pidDe(p.produit)) + '"><span>' + miniHtml(p.produit) + esc(p.produit) + '</span><small>' + esc(colisTxt(fiche(p))) + '</small></button></li>';
     }).join('') : '<li class="empty">Aucun produit trouvé.</li>';
   }
   q.value = ''; liste();
   q.oninput = liste;
   $('#addList').onclick = function(e){
     var b = e.target.closest('[data-nom]'); if(!b) return;
+    if(did){ dlg.close(); stkAjouter(did, b.dataset.pid); return; }
     var p = REF.produits.filter(function(x){ return x.produit === b.dataset.nom; })[0]; if(!p) return;
     avecNom(function(){ var ch = {}; ch['produits/' + pidDe(p.produit)] = signe(fiche(p)); semEcrire(ch); liste(); });
   };

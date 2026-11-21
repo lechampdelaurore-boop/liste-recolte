@@ -341,7 +341,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   await B.fill(stk('bette') + ' input', '1'); await B.press(stk('bette') + ' input', 'Enter');
   await attendre(B);
   const sm = base.lire('listes/semaines/' + SEM + '/stock/bette/ta');
-  verifie(sm && sm.n === 1 && sm.by === 'Aurore' && (await B.textContent('#semStkList .sp-by')).startsWith('1 produit sur 1 renseigné · dernière saisie : Aurore'), 'stock de la bette changé dans la page Stock : enregistré (Aurore), « 1 produit sur 1 renseigné · dernière saisie : Aurore »');
+  verifie(sm && sm.n === 1 && sm.by === 'Aurore' && (await B.textContent('#semStkList .sp-by')).startsWith('1 compté sur 1 · dans l\'ordre de votre tour du magasin · dernière saisie : Aurore'), 'stock de la bette changé dans la page Stock : enregistré (Aurore), « 1 compté sur 1 · dans l\'ordre de votre tour du magasin · dernière saisie : Aurore »');
   await B.click(stk('bette') + ' [data-a="plus"]');
   await attendre(B);
   verifie(base.lire('listes/semaines/' + SEM + '/stock/bette/ta').n === 1.5, 'le bouton + ajoute un demi-colis au stock');
