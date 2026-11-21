@@ -8,7 +8,8 @@
 <meta name="theme-color" content="#373737">
 <meta name="color-scheme" content="only light">
 <meta name="robots" content="noindex">
-<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="icon" href="favicon.ico" sizes="32x32">
+<link rel="icon" href="icons/cumul-cagette.svg" type="image/svg+xml">
 <style>
 /* Même charte douce que la liste de récolte (étape 42, 18/11/2026) : page gris très clair, blocs blancs, bordures fines,
    trois polices hébergées dans le dépôt (polices/, licence OFL), texte principal très foncé, boutons verts pleins. Pas de mode sombre. */
@@ -133,7 +134,7 @@ button.notif-i{cursor:pointer}
 </head>
 <body>
 <header class="appbar"><div class="appbar-in">
-  <div class="brand"><img src="icons/icon.svg" width="34" height="34" alt=""><span id="titre">Stock du magasin</span></div>
+  <div class="brand"><img src="icons/cumul-cagette.svg" width="34" height="34" alt=""><span id="titre">Stock du magasin</span></div>
   <div class="appbar-r">
     <!-- CLOCHE-DEBUT : bouton de la cloche (bloc identique dans index.html et magasin.html) -->
     <button type="button" class="cloche" id="cloche" hidden aria-label="Notifications" aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5.5 17V11a6.5 6.5 0 0 1 13 0v6l1.5 1.8h-16z"/><path d="M9.8 21a2.3 2.3 0 0 0 4.4 0"/></svg><b class="cloche-n" id="clocheN" hidden>0</b></button>
