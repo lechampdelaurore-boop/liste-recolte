@@ -257,6 +257,26 @@ const compte = async (email, mdp) => {
   verifie(rq2.status === 200 && Object.keys(jq2).sort().join() === 'mail-1,mail-199,mail-annule' && rq3.status === 200 && Object.keys(jq3 || {}).length === 0, 'ferme : elle lit les propositions par la requête de l\'appli (« orderBy w, startAt » : index accepté), seulement à partir de la semaine demandée');
   r = await ecrit('listes/semaines/' + W, { 'commandes/mail-1': { e: 'valide', by: 'François', at: 3000, l: [{ p: 'endive', c: 'av03', n: 9, u: 'colis' }] }, 'q/endive/av03': { n: 9, u: 'colis', by: 'François', at: 3000 } }, f.idToken);
   verifie(r.s === 200, 'ferme : la validation (décision et quantités, dans la semaine) est acceptée par les règles d\'avant, sans rien changer à « listes »');
+  // Sauvegarde de chaque nuit (21/11, programme dans le dépôt privé outils-de-la-ferme) : le profil « sauvegarde » lit
+  // chaque nœud de la base, sauf rappel/ (clés d'envoi des notifications), et n'écrit nulle part.
+  const sv = await compte('sauvegarde@ferme.invalid', 'essai-sauvegarde');
+  await fetch(`${DB}/profils/${sv.localId}.json?ns=${NS}`, { method: 'PUT', headers: admin, body: '"sauvegarde"' });
+  const NOEUDS_SAUVEGARDE = ['listes', 'taches', 'profils', 'magasins', 'notifs', 'agent'];
+  const rSv = [];
+  for (const n of NOEUDS_SAUVEGARDE) rSv.push(await appel(n, sv.idToken));
+  verifie(rSv.every((x) => x.s === 200) && rSv[0].j.semaines && rSv[1].j.t && rSv[2].j[f.localId] === 'ferme' && rSv[2].j[sv.localId] === 'sauvegarde',
+    'sauvegarde : elle lit chaque nœud d\'un coup (listes, tâches, profils de tous les comptes, magasins, notifications, agent) (' + rSv.map((x) => x.s).join(',') + ')');
+  const rSvR = await appel('rappel', sv.idToken), rSvV = await appel('rappel/vapid', sv.idToken), rSvT = await appel('', sv.idToken);
+  verifie([rSvR.s, rSvV.s, rSvT.s].every((x) => x === 401), 'sauvegarde : ni rappel/ (clés d\'envoi des notifications), ni la racine (' + [rSvR.s, rSvV.s, rSvT.s].join(',') + ')');
+  const rSvE = [await ecrit('listes/2026-11-04/done/radis', { by: 'x', at: 1 }, sv.idToken, 'PUT'), await ecrit('taches/t/t9', { texte: 'x' }, sv.idToken, 'PUT'),
+    await ecrit('profils/' + sv.localId, 'ferme', sv.idToken, 'PUT'), await ecrit('magasins/ta/personnes/p9', { nom: 'x', at: 1 }, sv.idToken, 'PUT'),
+    await ecrit('notifs/ferme/n9', { at: 1 }, sv.idToken, 'PUT'), await ecrit('agent/propositions/sv', pr(), sv.idToken, 'PUT'), await ecrit('rappel/vapid', { publique: 'x' }, sv.idToken, 'PUT'),
+    await appel('listes/2026-11-04', sv.idToken, { method: 'DELETE' }), await ecrit('', { listes: null }, sv.idToken)];
+  verifie(rSvE.every((x) => x.s === 401), 'sauvegarde : aucune écriture ni effacement, nulle part, pas même son propre profil (' + rSvE.map((x) => x.s).join(',') + ')');
+  const premiers = Object.keys(JSON.parse(regles).rules).filter((k) => k !== 'rappel').sort().join();
+  verifie(premiers === NOEUDS_SAUVEGARDE.slice().sort().join(), 'chaque nœud des règles, sauf rappel/, est dans la liste de la sauvegarde (nœud ajouté aux règles : l\'ajouter aussi à sauvegarde/reglages.json d\'outils-de-la-ferme)');
+  const rSvF = await appel('profils', f.idToken), rSvA = await appel('notifs', f.idToken), rSvG = await appel('agent', g.idToken);
+  verifie([rSvF.s, rSvA.s, rSvG.s].every((x) => x === 401), 'les autres profils ne gagnent rien : la ferme ne lit ni tous les profils ni tout notifs/, l\'agent ne lit pas tout agent/');
   r = await appel('listes/2026-11-04', 'jeton-abime');
   // L'émulateur traite un jeton abîmé comme une absence de compte ; la vraie base dit « Could not parse auth token ».
   verifie(r.s === 401, 'jeton abîmé : refusé (message de l\'émulateur : « ' + r.j.error + ' »)');
