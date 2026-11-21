@@ -2,7 +2,7 @@
 // La base Firebase (autre domaine) n'est jamais mise en cache.
 // /taches (taches.html) : depuis le 19/11/2026, seulement la page « Aurore Task a déménagé » qui renvoie vers la
 // nouvelle adresse d'Aurore Task (dépôt aurore-task) ; sans réseau, elle retombe sur elle-même, pas sur le Cumul.
-var CACHE = 'recolte-v69';
+var CACHE = 'recolte-v70';
 var SHELL = ['./', './index.html', './config.js', './cle-web.js', './manifest.webmanifest', './icons/icon.svg', './icons/icon-192.png', './listes/actuelle.json', './referentiel/conditionnements.json', './referentiel/debouches.json', './especes/plants.svg', './especes/modifies.svg', './polices/bricolage-grotesque.woff2', './polices/dm-sans.woff2', './polices/open-sans.woff2'];
 
 self.addEventListener('install', function (e) {

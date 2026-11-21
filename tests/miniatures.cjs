@@ -123,7 +123,7 @@ const resume = (l) => l.map((x) => x.nom.split('\n')[0].slice(0, 30) + '→' + (
   const jF = await jeton('francois@ferme.invalid', MDP_F);
   const deb0 = JSON.parse(fs.readFileSync(path.join(RACINE, 'referentiel/debouches.json'), 'utf8'));
   await fetch(`${BASE}/listes/reglages/debouches.json?auth=${jF}`, { method: 'PUT', body: JSON.stringify({ source: deb0.source, debouches: deb0.debouches, recoltes: deb0.recoltes, rec: true, by: 'François', at: A0 }) });
-  await fetch(`${BASE}/listes/semaines/${W}.json?auth=${jF}`, { method: 'PUT', body: JSON.stringify({ produits, q, stock: { 'carotte-lavee': { ta: { n: 4, u: 'kg', by: 'François', at: A0 } } }, recoltes: { [MER]: { livraisons: ['mk', 'ta-jeu'], by: 'François', at: A0 } } }) });
+  await fetch(`${BASE}/listes/semaines/${W}.json?auth=${jF}`, { method: 'PUT', body: JSON.stringify({ produits, q, stock: { 'carotte-lavee': { ta: { n: 4, u: 'kg', by: 'François', at: A0 } } }, stockListe: { ta: Object.fromEntries(Object.keys(NOMS).map((pid, i) => [pid, { o: A0 + i, by: 'François', at: A0 }])) }, recoltes: { [MER]: { livraisons: ['mk', 'ta-jeu'], by: 'François', at: A0 } } }) });
   const jM = await jeton('tresallier@ferme.invalid', MDP_M);
   await fetch(`${BASE}/magasins/ta/semaines/${iso(lundi(0))}/poireau.json?auth=${jM}`, { method: 'PUT', body: JSON.stringify({ n: 8, u: 'kg', by: 'Igor', at: A0 }) });
   const avant = JSON.stringify(base.lire('listes'));

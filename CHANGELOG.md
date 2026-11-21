@@ -2,6 +2,7 @@
 
 ## 2026-11-21
 
+- **Saisie du stock par la ferme dans la page Stock** (demande de François, maquette validée, « vas-y » du 21/11) : `index.html`, page Stock de l'onglet Semaine en « tour du magasin » : liste propre à chaque débouché suivi, dans l'ordre d'ajout (`stockListe/<débouché>/<produit>` dans la semaine) ; semaine vide : « Reprendre la liste de la semaine dernière » et « Ajouter les produits un par un » ; « Ajouter un produit » collé en bas ; étiquettes « Compté » / « À compter » ; × pour retirer ; un produit compté ou ajouté entre dans la semaine ; « Semaine d'avant : … » tient compte aussi du stock noté par la ferme ; retirer un produit de la semaine le retire du tour ; cadre « Compté par le magasin, pas dans votre semaine » remplacé par une note sur la carte. Nouveau test `tests/stock-tour.cjs` ; `tests/magasin.cjs`, `tests/debouches.cjs` et `tests/miniatures.cjs` suivent la nouvelle page. `sw.js` : CACHE `recolte-v70`.
 - **Nouveau logo du Cumul** (choix de François : la « cagette de légumes », fond anthracite) : `icons/icon.svg` (onglet du navigateur, en-tête de l'appli et de la page du magasin), `icons/icon-192.png`, `icons/icon-512.png`, `icons/icon-maskable-512.png` (dessin réduit pour la découpe ronde d'Android) et `icons/apple-touch-icon.png` (iPhone). `sw.js` : CACHE `recolte-v69`. Aucun autre changement.
 
 ## 2026-11-20
