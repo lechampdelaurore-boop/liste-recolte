@@ -4,7 +4,7 @@
 
 **Demande de François (22/11/2026, 13 h 38) :** « Est-ce que ce serait faisable d'avoir, en fait, dans les réglages du cumul et aussi dans les réglages de task, la possibilité d'avoir soit l'apparence actuelle, donc qui est inspirée du logiciel Ouvre ta ferme, avec une charte spécifique, soit l'apparence en pixel art ? » Puis (13 h 39) : rédiger le contrat seulement une fois la maquette du Cumul validée, ce qu'il a fait à 13 h 51.
 
-**État : à confirmer par François (quatre points, partie 9). Aucun code n'est écrit.**
+**État : les quatre points de la partie 9 ont été confirmés par François le 22/11/2026 (14 h 19), tous selon la recommandation de Claude. Aucun code n'est écrit ; le code se fait après celui de Farm tasks (étape 48, Opus 5.5 · Élevé).**
 
 **Références validées par François** (fichiers du projet, pas dans ce dépôt) :
 - `maquette-pixel-art/cumul-v3/` : maquette du Cumul validée le 22/11/2026 à 13 h 51, **écarts compris** (`maquette-cumul-v3.pdf`, captures 1 à 7, `NOTE-ECARTS.md`, `sources/`).
@@ -29,7 +29,7 @@ Dans les Réglages, une page **« Apparence »** propose deux choix, **Classique
 
 **R2. Effet immédiat.** Toucher un des deux boutons change l'apparence tout de suite et la garde sur l'appareil, sans recharger la page ni rien enregistrer d'autre. Rien n'est perdu au changement : page, semaine et jour choisis, filtre, position.
 
-**R3. Un choix par appareil, et par appli.** Le choix est gardé dans la mémoire du navigateur sous la clé **`recolte.apparence`** (`"classique"` ou `"pixel"`). Il n'est **jamais** écrit dans la base : rien sous `listes/`, `magasins/` ni ailleurs, rien dans la sauvegarde de chaque nuit, aucune règle de base à changer. Il ne suit pas la personne : Aurore garde le classique sur son téléphone même si François passe en pixel art sur le sien. Farm tasks a son propre choix (autre adresse, donc autre mémoire) : choisir ici ne change pas Farm tasks, et inversement. *(Point 1 de la partie 9.)*
+**R3. Un choix par appareil, et par appli.** Le choix est gardé dans la mémoire du navigateur sous la clé **`recolte.apparence`** (`"classique"` ou `"pixel"`). Il n'est **jamais** écrit dans la base : rien sous `listes/`, `magasins/` ni ailleurs, rien dans la sauvegarde de chaque nuit, aucune règle de base à changer. Il ne suit pas la personne : Aurore garde le classique sur son téléphone même si François passe en pixel art sur le sien. Farm tasks a son propre choix (autre adresse, donc autre mémoire) : choisir ici ne change pas Farm tasks, et inversement. *(Point 1 de la partie 9, confirmé.)*
 
 **R4. Par défaut : classique.** Un appareil qui n'a jamais choisi, ou dont la mémoire a été effacée, est en classique. Le jour de la mise en ligne, personne ne voit de changement tant qu'il n'a pas choisi. Une valeur inconnue dans la clé vaut classique.
 
@@ -70,7 +70,7 @@ Dans les Réglages, une page **« Apparence »** propose deux choix, **Classique
 
 **R18. Icône, onglet et barre du navigateur.** L'icône installée, l'icône d'onglet et celle des notifications **restent la cagette actuelle** : elles sont communes à tous les appareils (manifeste, fichiers d'icônes). Dans l'appli, en pixel art, le logo est la cagette en pixels. La couleur de la barre du navigateur sur le téléphone (`theme-color`) passe au brun `#3a2420` en pixel art et revient à `#373737` en classique.
 
-**R19. La page du magasin** (`magasin.html`, employés des magasins) **reste en classique** dans cette étape. *(Point 3 de la partie 9.)*
+**R19. La page du magasin** (`magasin.html`, employés des magasins) **reste en classique** dans cette étape. *(Point 3 de la partie 9, confirmé.)*
 
 **R20. Aucune donnée touchée.** Pas de migration, pas d'écriture dans la base, pas de sauvegarde à faire avant. Rien à publier dans la console Firebase, rien sur Cloudflare.
 
@@ -84,7 +84,7 @@ Les données et la base ; les règles de la base ; les calculs (cumul, reste, ca
 |---|---|
 | `index.html` | Script de tête (R5) ; bloc `PIXEL-ART-DEBUT` … `PIXEL-ART-FIN` après `CHARTE-DOUCE-FIN` ; page « Apparence » des Réglages et quelques lignes pour la gérer ; miniatures en pixels (R10) ; signes de R11 ; titre « À récolter » et compteurs du haut rose (écarts 2 et 3, cachés en classique) ; `theme-color` (R18). Toujours un seul fichier, sans bibliothèque ni étape de construction. |
 | `magasin.html` | **Aucun changement** (R19). |
-| `apparence/` (nouveau) | `fond-ordinateur.png` (480 × 270, 64 couleurs) et `fond-telephone.png` (195 × 422), repris tels quels de la maquette ; `cadre-carte.png` (image du cadre découpée en 9 morceaux, ombre comprise) ; `logo-pixel.png` (32 × 32) ; icônes des signes de R11 ; vignettes des deux apparences pour R1 ; `LISEZMOI.md` (provenance et licence de chaque image, dont le fond : point 2 de la partie 9) ; `fabriquer-cadre.cjs` (refait le cadre à partir des couleurs de l'annexe A). |
+| `apparence/` (nouveau) | `fond-ordinateur.png` (480 × 270, 64 couleurs) et `fond-telephone.png` (195 × 422), repris tels quels de la maquette ; `cadre-carte.png` (image du cadre découpée en 9 morceaux, ombre comprise) ; `logo-pixel.png` (32 × 32) ; icônes des signes de R11 ; vignettes des deux apparences pour R1 ; `LISEZMOI.md` (provenance et licence de chaque image, dont le fond, à François : point 2 de la partie 9) ; `fabriquer-cadre.cjs` (refait le cadre à partir des couleurs de l'annexe A). |
 | `polices/` | `press-start-2p.woff2`, `vt323.woff2` (jeu « latin », copiés sans modification, même source que les trois autres) ; `LISEZMOI.md` et `OFL.txt` complétés (auteurs : Codeman38 pour Press Start 2P ; Peter Hull pour VT323). |
 | `sw.js` | Nouveaux fichiers dans `SHELL`, `CACHE` changé. |
 | `tests/apparence.cjs` (nouveau) | Tests T1 à T13 (partie 6). |
@@ -119,12 +119,14 @@ Les vrais téléphones (soleil, gants, iPhone), Firefox et Edge, l'écran de Fra
 - La PR montre à François les captures des écrans de la maquette et de ceux de R9, téléphone et ordinateur. **Elle n'est fusionnée qu'après son accord sur ces captures.**
 - Après fusion : vérifier le déploiement (contrôle Cloudflare du commit de `main`) avant de dire que c'est en ligne. Rien à faire sur l'hébergeur.
 
-## 9. Points à confirmer par François
+## 9. Points confirmés par François (22/11/2026, 14 h 19)
 
-1. **Le choix vaut pour un appareil** (pas pour une personne, ni pour toute la ferme), et chaque appli a le sien. Recommandation : oui. Raisons : Aurore et Martin gardent le classique s'ils veulent, rien n'est écrit dans la base, ça marche sans réseau.
-2. **L'image du fond** (la ferme japonaise au coucher du soleil, fournie par François) va dans un dépôt **public** : il faut savoir d'où elle vient. Recommandation : si François l'a faite lui-même (photo, dessin ou outil d'image), on la publie et `apparence/LISEZMOI.md` le dit ; si elle vient d'un site, on ne la publie pas et on en fait une autre avant le code.
-3. **La page du magasin reste en classique** pour cette étape. Recommandation : oui. Raisons : elle sert aux employés des magasins, elle n'a pas de Réglages, la maquette ne la montre pas ; on pourra l'habiller plus tard si François le demande.
-4. **L'ordre** : recommandation, **Farm tasks d'abord**, puis le Cumul.
+Chaque point a été choisi par François sur une carte de décision, tous selon la recommandation.
+
+1. **Confirmé : le choix vaut pour un appareil** (pas pour une personne, ni pour toute la ferme), et chaque appli a le sien. Recommandation : oui. Raisons : Aurore et Martin gardent le classique s'ils veulent, rien n'est écrit dans la base, ça marche sans réseau.
+2. **Confirmé : l'image est à François** (« Elle est à moi : photo, dessin ou IA »), elle est publiée avec l'appli et `apparence/LISEZMOI.md` le dit. **L'image du fond** (la ferme japonaise au coucher du soleil, fournie par François) va dans un dépôt **public** : il faut savoir d'où elle vient. Recommandation : si François l'a faite lui-même (photo, dessin ou outil d'image), on la publie et `apparence/LISEZMOI.md` le dit ; si elle vient d'un site, on ne la publie pas et on en fait une autre avant le code.
+3. **Confirmé : la page du magasin reste en classique** pour cette étape. Recommandation : oui. Raisons : elle sert aux employés des magasins, elle n'a pas de Réglages, la maquette ne la montre pas ; on pourra l'habiller plus tard si François le demande.
+4. **Confirmé : l'ordre**, Farm tasks d'abord. recommandation, **Farm tasks d'abord**, puis le Cumul.
 
 ---
 

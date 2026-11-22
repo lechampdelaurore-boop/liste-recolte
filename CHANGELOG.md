@@ -2,7 +2,7 @@
 
 ## 2026-11-22
 
-- **Contrat : choisir l'apparence, classique ou pixel art** (étape 48, demande de François du 22/11 ; maquette du Cumul validée le 22/11). Documentation seulement, **aucun code** : `docs/CONTRAT_APPARENCE_PIXEL_ART.md` (règles, charte pixel art et dix écarts du Cumul en annexe, tests à prévoir) ; ROADMAP (étape 48), DECISIONS, ETAT_DU_PROJET, AGENTS. Quatre points à confirmer par François.
+- **Contrat : choisir l'apparence, classique ou pixel art** (étape 48, demande de François du 22/11 ; maquette du Cumul validée le 22/11). Documentation seulement, **aucun code** : `docs/CONTRAT_APPARENCE_PIXEL_ART.md` (règles, charte pixel art et dix écarts du Cumul en annexe, tests à prévoir) ; ROADMAP (étape 48), DECISIONS, ETAT_DU_PROJET, AGENTS. Quatre points confirmés par François le 22/11, tous selon la recommandation.
 
 ## 2026-11-21
 
