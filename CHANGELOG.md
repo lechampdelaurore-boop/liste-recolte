@@ -1,5 +1,9 @@
 # Historique des changements
 
+## 2026-11-22
+
+- **Contrat : choisir l'apparence, classique ou pixel art** (étape 48, demande de François du 22/11 ; maquette du Cumul validée le 22/11). Documentation seulement, **aucun code** : `docs/CONTRAT_APPARENCE_PIXEL_ART.md` (règles, charte pixel art et dix écarts du Cumul en annexe, tests à prévoir) ; ROADMAP (étape 48), DECISIONS, ETAT_DU_PROJET, AGENTS. Quatre points à confirmer par François.
+
 ## 2026-11-21
 
 - **Icônes d'onglet du Cumul renommées** (demande de François : l'onglet et les favoris de Chrome montraient encore l'ancien logo) : `icons/icon.svg` → `icons/cumul-cagette.svg`, `apple-touch-icon.png` → `cumul-cagette-180.png`, `icon-192/512/maskable-512.png` → `cumul-cagette-192/512/maskable-512.png` (mêmes dessins) ; nouvelle `favicon.ico` (16, 32, 48 px) citée par `index.html` et `magasin.html` ; manifeste et `sw.js` à jour (`CACHE` `recolte-v71`) ; test `tests/icones.cjs`.
