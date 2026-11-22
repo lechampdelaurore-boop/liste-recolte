@@ -498,10 +498,11 @@ async function pointsDifferents(page, a, b) {
             const { ctx, page: P } = await appareil(nav, opts, null, s, ui);
             await P.emulateMedia({ reducedMotion: 'reduce' });
             // Masquages posés avant le premier affichage, pour ne rien redessiner juste avant la capture (un logo redessiné
-            // n'a pas toujours exactement les mêmes points) : la 4e pastille des Réglages (« Apparence »), seule différence
-            // permise, et le point rond de la pastille de connexion, dont le bord varie d'un chargement à l'autre même
+            // n'a pas toujours exactement les mêmes points) : les pages des Réglages (#regSub ; la 4e, « Apparence », est la
+            // différence permise de l'étape 48, et leurs tuiles ont changé le 22/11, vérifiées par tests/reglages-onglets.cjs),
+            // et le point rond de la pastille de connexion, dont le bord varie d'un chargement à l'autre même
             // entre main et main (écart jusqu'à 31 sur 255 mesuré le 22/11).
-            await P.addInitScript(() => document.addEventListener('DOMContentLoaded', () => { const st = document.createElement('style'); st.textContent = '#regSub [data-reg="apparence"]{display:none}.pill i{visibility:hidden}'; document.head.appendChild(st); }));
+            await P.addInitScript(() => document.addEventListener('DOMContentLoaded', () => { const st = document.createElement('style'); st.textContent = '#regSub{display:none!important}.pill i{visibility:hidden}'; document.head.appendChild(st); }));
             await ouvrir(P);
             await faire(P); await pause(700);
             // Le lien de la page du magasin donne l'adresse du serveur de test, dont le port diffère entre les deux versions.
