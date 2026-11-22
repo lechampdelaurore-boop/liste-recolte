@@ -7,6 +7,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { chromium, devices } = require('playwright');
+const { PIXEL, sautePixel } = require('./apparence-env.cjs'); // APPARENCE=pixel : le même test dans l'apparence pixel art (étape 48)
 const fauxFirebase = require('./faux-firebase.cjs');
 
 const RACINE = path.join(__dirname, '..');
@@ -34,6 +35,8 @@ function serveurSite() {
 
 let echecs = 0;
 function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); if (!cond) echecs++; }
+// Vérification d'aspect de la charte douce : sautée en pixel art (APPARENCE=pixel), son équivalent est dans tests/apparence.cjs.
+const aspect = (cond, msg) => sautePixel(msg) || verifie(cond, msg);
 
 const iso = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - (d.getDay() + 6) % 7 + 7 * decal); return d; };
@@ -55,7 +58,9 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   const sw = fs.readFileSync(path.join(RACINE, 'sw.js'), 'utf8');
   verifie(POLICES.every((p) => sw.includes(`'./polices/${p}.woff2'`)), 'sw.js garde les trois polices pour le hors ligne');
   const idx = fs.readFileSync(path.join(RACINE, 'index.html'), 'utf8'), mag = fs.readFileSync(path.join(RACINE, 'magasin.html'), 'utf8');
-  const faces = (s) => (s.match(/@font-face\{[^}]*\}/g) || []).join('\n');
+  // Les trois polices de la charte douce ; celles de l'apparence pixel art (étape 48), déclarées seulement dans le bloc
+  // PIXEL-ART-DEBUT … PIXEL-ART-FIN d'index.html, sont vérifiées par tests/apparence.cjs.
+  const faces = (s) => (s.match(/@font-face\{[^}]*\}/g) || []).filter((f) => !/Press Start 2P|VT323|Signes pixel/.test(f)).join('\n');
   verifie(faces(idx).length > 0 && faces(idx) === faces(mag), 'mêmes polices déclarées dans index.html et magasin.html');
   verifie(!/fonts\.googleapis|fonts\.gstatic/.test(idx + mag), 'aucune police chargée depuis un autre site');
   verifie(!/[✓👤]/u.test(idx.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, '')) && !/[✓👤]/u.test(mag.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, '')), 'plus d\'emoji ✓ ni 👤 dans le code des pages');
@@ -81,21 +86,21 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   const T = await appareil(devices['Pixel 7'], 'François');
   const polOk = await T.evaluate(() => ['300 20px "Bricolage Grotesque"', '500 16px "DM Sans"', '400 13px "Open Sans"'].map((f) => document.fonts.check(f)));
   const charg = await T.evaluate(() => [...document.fonts].filter((f) => f.status === 'loaded').map((f) => f.family.replace(/"/g, '')).sort().join(','));
-  verifie(charg.includes('DM Sans') && charg.includes('Open Sans') && polOk.every(Boolean), 'les polices DM Sans et Open Sans sont chargées depuis le site (' + charg + ')');
+  aspect(charg.includes('DM Sans') && charg.includes('Open Sans') && polOk.every(Boolean), 'les polices DM Sans et Open Sans sont chargées depuis le site (' + charg + ')');
   const corps = await style(T, 'body', ['backgroundColor', 'fontSize', 'fontFamily', 'color']);
-  verifie(corps.backgroundColor === 'rgb(248, 248, 248)' && corps.fontSize === '13px' && corps.fontFamily.startsWith('"Open Sans"') && corps.color === 'rgb(17, 17, 17)', 'page gris très clair, texte courant 13 px en Open Sans, texte très foncé (' + JSON.stringify(corps) + ')');
+  aspect(corps.backgroundColor === 'rgb(248, 248, 248)' && corps.fontSize === '13px' && corps.fontFamily.startsWith('"Open Sans"') && corps.color === 'rgb(17, 17, 17)', 'page gris très clair, texte courant 13 px en Open Sans, texte très foncé (' + JSON.stringify(corps) + ')');
   const haut = await style(T, '.appbar', ['backgroundColor']);
-  verifie(haut.backgroundColor === 'rgb(55, 55, 55)', 'téléphone : barre du haut anthracite');
+  aspect(haut.backgroundColor === 'rgb(55, 55, 55)', 'téléphone : barre du haut anthracite');
   const who = await T.$eval('#who', (b) => ({ t: b.textContent.trim(), svg: !!b.querySelector('svg.ico'), sw: b.querySelector('svg') && getComputedStyle(b.querySelector('svg')).strokeWidth }));
-  verifie(who.t === 'François' && who.svg && who.sw === '1.7px', 'nom de la personne avec une icône au trait de 1,7 px, sans emoji (' + JSON.stringify(who) + ')');
+  aspect(who.t === 'François' && who.svg && who.sw === '1.7px', 'nom de la personne avec une icône au trait de 1,7 px, sans emoji (' + JSON.stringify(who) + ')');
   const barre = await T.evaluate(() => { const n = document.querySelector('#tabs').getBoundingClientRect(); const b = [...document.querySelectorAll('#tabs button')].filter((x) => !x.hidden); return { bas: n.bottom === innerHeight, n: b.length, noms: b.map((x) => x.querySelector('span').textContent.trim()).join(','), sw: getComputedStyle(b[0].querySelector('svg')).strokeWidth }; });
-  verifie(barre.bas && barre.n === 4 && barre.noms === 'Semaine,Récolte,Préparation,Réglages' && barre.sw === '1.7px', 'téléphone : barre du bas avec les 4 pages, icônes au trait de 1,7 px (' + JSON.stringify(barre) + ')');
+  aspect(barre.bas && barre.n === 4 && barre.noms === 'Semaine,Récolte,Préparation,Réglages' && barre.sw === '1.7px', 'téléphone : barre du bas avec les 4 pages, icônes au trait de 1,7 px (' + JSON.stringify(barre) + ')');
   await T.click('#tabs [data-view="semaine"]');
   await T.waitForSelector('#semView:not([hidden])');
   const choisi = await style(T, '#tabs [data-view="semaine"]', ['backgroundColor', 'color']);
-  verifie(choisi.backgroundColor === 'rgb(11, 105, 77)' && choisi.color === 'rgb(255, 255, 255)', 'page courante en pastille verte');
+  aspect(choisi.backgroundColor === 'rgb(11, 105, 77)' && choisi.color === 'rgb(255, 255, 255)', 'page courante en pastille verte');
   const h1 = await style(T, 'h1', ['fontFamily', 'fontWeight']);
-  verifie(h1.fontFamily.startsWith('"Bricolage Grotesque"') && h1.fontWeight === '300', 'titre de page en Bricolage Grotesque fin (300)');
+  aspect(h1.fontFamily.startsWith('"Bricolage Grotesque"') && h1.fontWeight === '300', 'titre de page en Bricolage Grotesque fin (300)');
   await T.click('section.sp[data-pid="bette"] .sp-head');
   await T.waitForSelector('section.sp[data-pid="bette"] .sr[data-k="q/mk"] .sr-ctl input');
   const tailles = await T.evaluate(() => {
@@ -105,22 +110,24 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   });
   verifie(tailles.nom >= 16 && tailles.qte >= 16 && tailles.bmin >= 16, 'téléphone : nom du produit, quantité et boutons d\'au moins 16 px (' + JSON.stringify(tailles) + ')');
   const ajout = await style(T, '.sem-add', ['backgroundColor', 'color']);
-  verifie(ajout.backgroundColor === 'rgb(11, 105, 77)' && ajout.color === 'rgb(255, 255, 255)', 'téléphone : bouton d\'action vert plein');
+  aspect(ajout.backgroundColor === 'rgb(11, 105, 77)' && ajout.color === 'rgb(255, 255, 255)', 'téléphone : bouton d\'action vert plein');
   const fonds = await T.evaluate(() => [...document.querySelectorAll('button')].filter((b) => b.offsetParent).map((b) => getComputedStyle(b).backgroundColor));
   verifie(!fonds.some((c) => ['rgb(10, 61, 145)', 'rgb(37, 78, 143)', 'rgb(31, 111, 178)', 'rgb(11, 61, 145)'].includes(c)), 'aucun bouton bleu');
   const carte = await style(T, 'section.sp[data-pid="bette"]', ['borderTopColor', 'borderTopWidth', 'backgroundColor']);
-  verifie(carte.borderTopColor === 'rgb(221, 221, 221)' && carte.borderTopWidth === '1px' && carte.backgroundColor === 'rgb(255, 255, 255)', 'bloc blanc à bordure fine grise (' + JSON.stringify(carte) + ')');
+  aspect(carte.borderTopColor === 'rgb(221, 221, 221)' && carte.borderTopWidth === '1px' && carte.backgroundColor === 'rgb(255, 255, 255)', 'bloc blanc à bordure fine grise (' + JSON.stringify(carte) + ')');
   await cap(T, '1-telephone-semaine');
   await T.context().close();
 
   // ---------- Ordinateur ----------
   const P = await appareil({ viewport: { width: 1366, height: 800 }, deviceScaleFactor: CAPTURES ? 2 : 1 }, 'Aurore');
   const menu = await P.evaluate(() => { const n = document.querySelector('#tabs'), r = n.getBoundingClientRect(), m = document.querySelector('main').getBoundingClientRect(); return { g: r.left, l: r.width, h: r.height, fond: getComputedStyle(n).backgroundColor, main: m.left, choisi: getComputedStyle(document.querySelector('#tabs [aria-pressed="true"]')).backgroundColor, haut: getComputedStyle(document.querySelector('.appbar')).backgroundColor }; });
-  verifie(menu.g === 0 && menu.l > 150 && menu.l < 260 && menu.h > 500 && menu.fond === 'rgb(231, 241, 238)' && menu.main >= menu.l && menu.choisi === 'rgb(11, 105, 77)' && menu.haut === 'rgb(231, 241, 238)', 'ordinateur : menu à gauche vert très pâle, entrée choisie en vert plein, contenu à droite (' + JSON.stringify(menu) + ')');
+  verifie(menu.g === 0 && menu.l > 150 && menu.l < 260 && menu.h > 500 && menu.main >= menu.l, 'ordinateur : menu à gauche, contenu à droite (' + JSON.stringify(menu) + ')');
+  aspect(menu.fond === 'rgb(231, 241, 238)' && menu.main >= menu.l && menu.choisi === 'rgb(11, 105, 77)' && menu.haut === 'rgb(231, 241, 238)', 'ordinateur : menu à gauche vert très pâle, entrée choisie en vert plein, contenu à droite (' + JSON.stringify(menu) + ')');
   await P.click('#tabs [data-view="semaine"]');
   await P.waitForSelector('#semGrid tbody tr[data-pid="bette"]');
   const ong = await P.evaluate(() => { const s = document.querySelector('#semSub'), r = s.getBoundingClientRect(), g = document.querySelector('#semGrid').getBoundingClientRect(); return { avant: r.bottom <= g.top, pastille: getComputedStyle(s.querySelector('[aria-pressed="true"]')).backgroundColor }; });
-  verifie(ong.avant && ong.pastille === 'rgb(11, 105, 77)', 'ordinateur : pages de la semaine en onglets au-dessus de la grille');
+  verifie(ong.avant, 'ordinateur : pages de la semaine au-dessus de la grille');
+  aspect(ong.pastille === 'rgb(11, 105, 77)', 'ordinateur : page de la semaine choisie en pastille verte');
   const col = await P.evaluate(() => { scrollTo(2000, 0); return document.querySelector('#semGrid tbody td.g-prod').getBoundingClientRect().left >= document.querySelector('#tabs').getBoundingClientRect().right - 1; });
   verifie(col, 'ordinateur : la colonne des produits ne passe pas sous le menu');
   await P.evaluate(() => scrollTo(0, 0));

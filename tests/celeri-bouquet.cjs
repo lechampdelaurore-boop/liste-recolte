@@ -8,6 +8,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { chromium, devices } = require('playwright');
+const { PIXEL, sautePixel } = require('./apparence-env.cjs'); // APPARENCE=pixel : le même test dans l'apparence pixel art (étape 48)
 const fauxFirebase = require('./faux-firebase.cjs');
 
 const RACINE = path.join(__dirname, '..');
@@ -97,7 +98,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   await T.waitForSelector('#semList section.sp[data-pid="celeri-branche-en-bouquet"]');
   const colis = net(await T.textContent('#semList section.sp[data-pid="celeri-branche-en-bouquet"] .sp-colis'));
   verifie(colis === 'GB de 10 bouquets', 'fiche de la semaine : « ' + colis + ' »');
-  const mini = await T.$eval('#semList section.sp[data-pid="celeri-branche-en-bouquet"] .sp-head', (e) => { const u = e.querySelector('svg use, .mini use'); return u ? (u.getAttribute('href') || u.getAttribute('xlink:href') || '') : (e.querySelector('.mini') ? e.querySelector('.mini').outerHTML.slice(0, 200) : ''); });
+  const mini = await T.$eval('#semList section.sp[data-pid="celeri-branche-en-bouquet"] .sp-head', (e) => { const u = e.querySelector('svg use, .mini use'), px = e.querySelector('img.mini-px'); if (px) return 'especes/plants.svg#' + px.dataset.e; return u ? (u.getAttribute('href') || u.getAttribute('xlink:href') || '') : (e.querySelector('.mini') ? e.querySelector('.mini').outerHTML.slice(0, 200) : ''); });
   verifie(mini === 'especes/plants.svg#celeri-branche', 'miniature : le dessin du céleri-branche (obtenu « ' + mini + ' »)');
 
   // Quantités du mercredi, saisies directement (comme le ferait la grille)

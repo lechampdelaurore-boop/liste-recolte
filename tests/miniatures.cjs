@@ -7,6 +7,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { chromium, devices } = require('playwright');
+const { PIXEL, sautePixel } = require('./apparence-env.cjs'); // APPARENCE=pixel : le même test dans l'apparence pixel art (étape 48)
 const fauxFirebase = require('./faux-firebase.cjs');
 
 const RACINE = path.join(__dirname, '..');
@@ -68,6 +69,10 @@ const ATTENDU = {
 
 // Les miniatures d'une zone : [{nom (texte de l'élément), espece (dessin demandé), dessine (le dessin a une taille)}].
 const lireMinis = (p, sel) => p.$$eval(sel, (els) => els.map((e) => {
+  // Pixel art (étape 48) : la miniature est une image calculée sur l'appareil, son espèce dans data-e ; elle est tracée
+  // quand l'image de 1 point du départ est remplacée par le dessin en pixels (n × n).
+  const px = e.querySelector('img.mini-px');
+  if (px) return { nom: e.textContent.trim(), espece: px.dataset.e || '', dessine: px.complete && px.naturalWidth === +px.dataset.n };
   const u = e.querySelector('svg.mini use'), b = u ? u.getBBox() : null;
   return { nom: e.textContent.trim(), espece: u ? u.getAttribute('href').replace(/^especes\/(plants|modifies)\.svg#/, '') : '', dessine: !!(b && b.width > 20 && b.height > 20) };
 }));
@@ -156,7 +161,7 @@ const resume = (l) => l.map((x) => x.nom.split('\n')[0].slice(0, 30) + '→' + (
   controle(await minis(T, '#semList .sp-nom'), 'Semaine → Répartir (fiches du téléphone)', 6);
   const nomBette = await T.$eval('#semList section.sp[data-pid="bette"] .sp-nom', (e) => e.textContent);
   verifie(nomBette === 'Bette', 'le texte du nom ne change pas (« ' + nomBette + ' »)');
-  const taille = await T.$eval('#semList section.sp[data-pid="bette"] .sp-nom svg.mini', (e) => { const r = e.getBoundingClientRect(), t = e.parentNode.getBoundingClientRect(); return { l: r.width, h: r.height, ligne: t.height }; });
+  const taille = await T.$eval('#semList section.sp[data-pid="bette"] .sp-nom .mini', (e) => { const r = e.getBoundingClientRect(), t = e.parentNode.getBoundingClientRect(); return { l: r.width, h: r.height, ligne: t.height }; });
   verifie(taille.l >= 20 && taille.l <= 32 && taille.h === taille.l && taille.ligne < 40, 'miniature de ' + Math.round(taille.l) + ' px, carrée, sans agrandir la ligne du nom (' + Math.round(taille.ligne) + ' px)');
   await capture(T, '1-telephone-repartir');
   await T.click('[data-sem="cumul"]');
@@ -202,7 +207,7 @@ const resume = (l) => l.map((x) => x.nom.split('\n')[0].slice(0, 30) + '→' + (
   await T.click('#prepSort [data-sort="produit"]');
   await T.waitForSelector('#prepList section.grp[data-item]');
   controle(await minis(T, '#prepList section.grp[data-item] .grp-name'), 'Préparation par produit (titre de chaque produit)', 6);
-  const lignesProduit = await T.$$eval('#prepList section.grp[data-item] li.pitem .prod svg.mini', (e) => e.length);
+  const lignesProduit = await T.$$eval('#prepList section.grp[data-item] li.pitem .prod .mini', (e) => e.length);
   verifie(lignesProduit === 0, 'Préparation par produit : pas de dessin devant le nom des clients');
   await capture(T, '5-telephone-preparation-produit');
   await T.click('#prepSort [data-sort="client"]');
