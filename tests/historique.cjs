@@ -11,6 +11,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { chromium, devices } = require('playwright');
+const { PIXEL, sautePixel } = require('./apparence-env.cjs'); // APPARENCE=pixel : le même test dans l'apparence pixel art (étape 48)
 const fauxFirebase = require('./faux-firebase.cjs');
 
 const RACINE = path.join(__dirname, '..');
@@ -148,7 +149,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   const ligneW1 = net(await T.textContent(carte(W1) + ' h3 .rc-combien'));
   verifie(ligneW1 === '2 produits récoltés · 16 kg', 'la ligne de la semaine donne son total une fois lue (obtenu « ' + ligneW1 + ' »)');
   verifie((await T.getAttribute(fleche(W2), 'aria-expanded')) === 'false' && !(await T.$(carte(W2) + ' .hi-jour')), 'les autres semaines restent repliées');
-  const miniature = await T.$(jour + ' li[data-pid="bette"] svg.mini');
+  const miniature = await T.$(jour + ' li[data-pid="bette"] .mini');
   verifie(!!miniature, 'la miniature du légume est devant son nom');
   await capture(T, '2-telephone-semaine-depliee');
 

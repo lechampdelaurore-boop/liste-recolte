@@ -7,6 +7,7 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { chromium, devices } = require('playwright');
+const { PIXEL, sautePixel } = require('./apparence-env.cjs'); // APPARENCE=pixel : le même test dans l'apparence pixel art (étape 48)
 const fauxFirebase = require('./faux-firebase.cjs');
 
 const RACINE = path.join(__dirname, '..');
@@ -65,7 +66,7 @@ function verifie(cond, msg) { console.log((cond ? 'OK    ' : 'ÉCHEC ') + msg); 
   }, ligne(id));
   const ordre = (p) => p.$$eval('#todo li.item', (e) => e.map((x) => x.dataset.id));
   const dansFaites = (p, id) => p.$$eval('#done li.item', (e, i) => e.some((x) => x.dataset.id === i), id);
-  const VERT = 'rgb(11, 105, 77)'; // vert de la charte douce (#0b694d, étape 42)
+  const VERT = PIXEL ? 'rgb(79, 154, 100)' : 'rgb(11, 105, 77)'; // vert de la charte douce (#0b694d, étape 42) ; en pixel art, #4f9a64 (étape 48)
 
   // 1. Téléphone : la ligne cochée reste à sa place, en vert, environ 3 secondes
   const ids = await ordre(A);

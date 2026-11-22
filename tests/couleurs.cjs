@@ -8,6 +8,8 @@ const http = require('http');
 const fs = require('fs');
 const path = require('path');
 const { chromium, devices } = require('playwright');
+const { PIXEL, sautePixel } = require('./apparence-env.cjs'); // APPARENCE=pixel : le même test dans l'apparence pixel art (étape 48)
+const NOIR = PIXEL ? 'rgb(59, 42, 47)' : 'rgb(17, 17, 17)'; // le texte foncé de chaque apparence
 const fauxFirebase = require('./faux-firebase.cjs');
 
 const RACINE = path.join(__dirname, '..');
@@ -119,7 +121,7 @@ const BLEU = '#0b3d91', FRAMBOISE = '#a0105c', VERT = '#0a5a1c', VIOLET = '#5e1a
   const cell = (k) => `#semGrid tr[data-pid="bette"] input.g-in[data-k="${k}"]`, unite = (k) => `#semGrid tr[data-pid="bette"] select.g-u[data-k="${k}"]`;
   verifie((await C.inputValue(cell('q/lv'))) === '2' && (await col(cell('q/lv'))) === rgb(VERT) && (await col(unite('q/lv'))) === rgb(VERT), 'grille : le chiffre (2) et l\'unité de Locavore sont en vert');
   verifie((await C.inputValue(cell('q/ta-mar'))) === '3' && (await col(cell('q/ta-mar'))) === rgb(BLEU) && (await col(unite('q/ta-mar'))) === rgb(BLEU) && (await C.inputValue(unite('q/ta-mar'))) === 'kg', 'grille : 3 kg pour Très Allier mardi, chiffre et unité en bleu');
-  verifie((await col(cell('dispo'))) === 'rgb(17, 17, 17)' && (await col('#semGrid tr[data-pid="bette"] td.g-reste')) !== rgb(VERT), 'disponible et reste gardent leurs couleurs');
+  verifie((await col(cell('dispo'))) === NOIR && (await col('#semGrid tr[data-pid="bette"] td.g-reste')) !== rgb(VERT), 'disponible et reste gardent leurs couleurs');
   await capture(C, '2-grille-couleurs');
 
   // 4. Changer une couleur (téléphone) : la base la garde, l'ordinateur suit
@@ -146,7 +148,7 @@ const BLEU = '#0b3d91', FRAMBOISE = '#a0105c', VERT = '#0a5a1c', VIOLET = '#5e1a
   await A.waitForSelector('#semView .sr[data-k="q/lv"]');
   const sr = (k, s) => A.$eval(`#semView section.sp[data-pid="bette"] .sr[data-k="${k}"] ${s}`, (e) => getComputedStyle(e).color);
   verifie((await sr('q/lv', '.sr-nom')) === rgb(VIOLET) && (await sr('q/lv', '.sr-ctl input')) === rgb(VIOLET) && (await sr('q/lv', 'button[data-a="unite"]')) === rgb(VIOLET), 'téléphone : titre, chiffre et unité de Locavore en violet');
-  verifie((await sr('q/ta-mar', '.sr-nom')) === rgb(BLEU) && (await sr('stock/ta', '.sr-nom')) === rgb(BLEU) && (await sr('dispo', '.sr-nom')) === 'rgb(17, 17, 17)', 'téléphone : Très Allier et son stock en bleu, le disponible en noir');
+  verifie((await sr('q/ta-mar', '.sr-nom')) === rgb(BLEU) && (await sr('stock/ta', '.sr-nom')) === rgb(BLEU) && (await sr('dispo', '.sr-nom')) === NOIR, 'téléphone : Très Allier et son stock en bleu, le disponible en noir');
   await capture(A, '3-telephone-couleurs');
   await A.click('[data-sem="cumul"]');
   const tdLv = await A.$$eval('#semTable thead th', (e) => { const i = e.findIndex((x) => x.textContent === 'Locavore'); const td = document.querySelectorAll('#semTable tr[data-pid="bette"] td')[i]; return [getComputedStyle(e[i]).color, td.textContent, getComputedStyle(td).color]; });

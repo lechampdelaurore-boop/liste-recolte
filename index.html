@@ -14,6 +14,30 @@
 <link rel="icon" href="favicon.ico" sizes="32x32">
 <link rel="icon" href="icons/cumul-cagette.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/cumul-cagette-180.png">
+<script>
+/* Apparence de cet appareil (étape 48, docs/CONTRAT_APPARENCE_PIXEL_ART.md) : classique par défaut, ou pixel art.
+   Posée ici, avant le premier affichage, pour ne jamais voir l'autre apparence un instant (règle R5). Gardée sur
+   l'appareil seulement (clé recolte.apparence), jamais dans la base. Le fond pixel art est agrandi d'un facteur entier
+   (jamais un demi-pixel) : le plus petit qui couvre la fenêtre (annexe A1). Même code que Farm tasks. */
+function apparenceFond(){
+  var r = document.documentElement, s = r.style;
+  if(r.getAttribute('data-apparence') !== 'pixel'){ s.removeProperty('--fond-l'); s.removeProperty('--fond-h'); if(!s.length && r.getAttribute('style') !== null) r.removeAttribute('style'); return; } // lire l'attribut avant de l'ôter : sinon Chrome le remet, vide
+  var pc = window.matchMedia && matchMedia('(min-width: 1000px)').matches, w = pc ? 480 : 195, h = pc ? 270 : 422;
+  var f = Math.max(1, Math.ceil(Math.max(innerWidth / w, innerHeight / h)));
+  s.setProperty('--fond-l', w * f + 'px'); s.setProperty('--fond-h', h * f + 'px');
+}
+function apparencePoser(a){
+  var pixel = a === 'pixel', r = document.documentElement, m = document.querySelector('meta[name="theme-color"]');
+  if(pixel) r.setAttribute('data-apparence', 'pixel'); else r.removeAttribute('data-apparence');
+  if(m) m.setAttribute('content', pixel ? '#3a2420' : '#373737');
+  apparenceFond();
+}
+(function(){
+  var a = null; try{ a = JSON.parse(localStorage.getItem('recolte.apparence')); }catch(e){}
+  if(a === 'pixel') apparencePoser('pixel');
+  addEventListener('resize', apparenceFond);
+})();
+</script>
 <style>
 /* Charte douce (étape 42, 18/11/2026, choix de François) : la même que le module d'irrigation d'Ouvre ta ferme.
    Page gris très clair, blocs blancs, bordures fines, ombre douce, un seul jeu de rayons, trois polices hébergées
@@ -801,6 +825,453 @@ button.notif-i{cursor:pointer}
 .notif-i small{font-size:.85rem;font-weight:700}
 .notif-auto{display:inline-block;margin-left:4px;border:1px solid var(--line);border-radius:6px;padding:0 6px;font-size:.8rem;font-weight:700;white-space:nowrap}
 /* CLOCHE-FIN */
+/* Réglages → « Apparence » (étape 48) : deux gros boutons côte à côte, chacun avec sa vignette. Nouvelle page : ces règles ne
+   touchent à aucun autre élément. */
+.app-page{display:grid;gap:12px;padding:14px}
+.app-page p{margin:0}
+.app-choix{display:flex;gap:10px;margin:2px 0 4px}
+.app-b{flex:1 1 0;min-width:0;min-height:44px;display:flex;flex-direction:column;align-items:center;gap:6px;border:1px solid var(--line-fort);border-radius:var(--r1);background:#fff;padding:8px 6px;font-family:var(--f-ui);font-weight:500;font-size:16px;color:var(--fg);cursor:pointer}
+.app-b img{display:block;width:100%;max-width:150px;height:auto;aspect-ratio:150/90;border-radius:4px;box-shadow:0 0 0 1px rgba(0,0,0,.08)}
+.app-b[aria-pressed="true"]{border:2px solid var(--accent);background:var(--ok-bg);color:var(--ok-fg);padding:7px 5px}
+.app-b span{display:inline-flex;align-items:center;gap:6px}
+.app-coche{display:none;width:18px;height:18px;border-radius:50%;background:var(--accent);color:#fff;align-items:center;justify-content:center}
+.app-coche svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:3}
+.app-b[aria-pressed="true"] .app-coche{display:inline-flex}
+/* PIXEL-ART-DEBUT
+   Apparence pixel art (étape 48, docs/CONTRAT_APPARENCE_PIXEL_ART.md ; maquette cumul-v3 validée le 22/11/2026, écarts
+   compris). Choisie dans Réglages → Apparence (clé recolte.apparence de cet appareil, jamais dans la base).
+   TOUTES les règles du pixel art sont ici, et chacune commence par :root[data-apparence="pixel"] : sans cet attribut
+   (apparence classique, par défaut), rien de ce bloc ne s'applique et la charte douce ne change pas d'un point.
+   Habillage seulement : mêmes éléments, mêmes places, mêmes gestes. L'impression de la grille (#semPrint) reste classique.
+   Valeurs : annexe A du contrat. Un pixel du cadre = 3 × 3 points ; coins « en escalier » par des ombres de 3 points ;
+   jamais d'arrondi lisse. Cartes : apparence/cadre-carte.png posée par border-image (9 morceaux), pas de canevas.
+   Polices Press Start 2P (titres) et VT323 (texte), puis « Signes pixel » pour ⋯ ＋ ▲ ▼ ▴ ▾ → − ✓ qu'elles n'ont pas.
+   Ces polices ne sont téléchargées que par un appareil en pixel art (le navigateur ne charge une police qu'à l'emploi). */
+@font-face{font-family:"Press Start 2P";src:url(polices/press-start-2p.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"VT323";src:url(polices/vt323.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Signes pixel";src:url(polices/signes-pixel.woff2) format("woff2");font-weight:400;font-style:normal;font-display:swap}
+:root[data-apparence="pixel"]{
+  --bg:transparent; --surface:#fff4e4; --surface2:#f6e6d2; --fg:#3b2a2f; --muted:#7a5a46; --line:#e2cdb6; --line-fort:#c9a98c;
+  --accent:#4f9a64; --accent-fg:#fff; --accent-doux:#cfe6d4; --done:#a08a7a; --warn-bg:#fbe0c0; --warn-fg:#8a4a10;
+  --brand:#3a2420; --leaf:#f6e6d2; --menu:transparent;
+  --ok:#4f9a64; --ok-bg:#dcefd8; --ok-fg:#2f6a3e; --attention:#f0a040; --danger:#b4503c; --danger-bg:#f8d8d0; --danger-fg:#8a2a1e;
+  --r1:0; --r2:0; --r3:0; --radius:0; --ombre:none; --ombre-l:none;
+  --f-titre:"Press Start 2P","Signes pixel","DM Sans",monospace;
+  --f-ui:"VT323","Signes pixel","DM Sans",monospace;
+  --f-texte:"VT323","Signes pixel","DM Sans",monospace;
+  --px-rose:#e0709f; --px-rose-c:#f8b4d0; --px-rose-f:#a8406f; --px-rose-t:#8a2a5a; --px-brun:#6e4a34; --px-brun-f:#3a2420; --px-ombre:#2a1810; --px-creme:#fff4e4;
+  --px-cadre:0 -3px 0 #8a6a52,0 3px 0 #8a6a52,-3px 0 0 #8a6a52,3px 0 0 #8a6a52;
+  --px-marches-rose:0 -3px 0 #f8b4d0,0 3px 0 #a8406f,-3px 0 0 #f8b4d0,3px 0 0 #a8406f;
+  --px-bloc:0 -4px 0 0 #6e4a34,0 4px 0 0 #6e4a34,-4px 0 0 0 #6e4a34,4px 0 0 0 #6e4a34,0 8px 0 0 #2a1810,4px 8px 0 0 #2a1810;
+  --px-contour-brun:2px 2px 0 #3a2420,-1px -1px 0 #3a2420,1px -1px 0 #3a2420,-1px 1px 0 #3a2420;
+  --px-contour-rose:3px 3px 0 #8a2a5a,-3px 0 0 #8a2a5a,3px 0 0 #8a2a5a,0 -3px 0 #8a2a5a,0 3px 0 #8a2a5a;
+  --px-contour-rose-p:2px 0 0 #8a2a5a,-2px 0 0 #8a2a5a,0 2px 0 #8a2a5a,0 -2px 0 #8a2a5a;
+  font-synthesis:none;
+}
+/* L'impression de la grille reste dans la charte douce (règle R13) : mêmes polices qu'en classique, pas de fond. */
+:root[data-apparence="pixel"] #semPrint{--f-titre:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;--f-ui:"DM Sans","Segoe UI",system-ui,sans-serif;--f-texte:"Open Sans","Segoe UI",system-ui,sans-serif;--accent:#0b694d;font-family:var(--f-texte);font-synthesis:initial}
+:root[data-apparence="pixel"] body{background:var(--px-ombre);font-size:19px;line-height:1.1;-webkit-font-smoothing:none}
+/* Le fond : la ferme au coucher du soleil, en vrai pixel art, sur un calque fixe ; agrandie d'un facteur entier
+   (--fond-l, --fond-h, calculés par le script de tête), centrée, sans lissage. */
+:root[data-apparence="pixel"] body::before{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;background:var(--px-ombre) url(apparence/fond-telephone.png) center center/var(--fond-l,390px) var(--fond-h,844px) no-repeat;image-rendering:pixelated}
+:root[data-apparence="pixel"] button,:root[data-apparence="pixel"] select,:root[data-apparence="pixel"] input{font-family:var(--f-ui);font-size:20px;font-weight:400}
+:root[data-apparence="pixel"] b,:root[data-apparence="pixel"] strong,:root[data-apparence="pixel"] h1,:root[data-apparence="pixel"] h2,:root[data-apparence="pixel"] h3,:root[data-apparence="pixel"] h4{font-weight:400}
+:root[data-apparence="pixel"] .ico,:root[data-apparence="pixel"] .tabs svg,:root[data-apparence="pixel"] .hi-ico,:root[data-apparence="pixel"] .more svg,:root[data-apparence="pixel"] .arrow svg,:root[data-apparence="pixel"] .bouger svg,:root[data-apparence="pixel"] .box svg,:root[data-apparence="pixel"] .cloche svg{shape-rendering:crispEdges;stroke-linecap:square;stroke-linejoin:miter}
+:root[data-apparence="pixel"] .mini-px{display:inline-block;width:28px;height:28px;vertical-align:middle;margin:-4px 8px -2px 0;image-rendering:pixelated;flex:none}
+
+/* ---------- Barre du haut (téléphone) et barre du bas ---------- */
+:root[data-apparence="pixel"] .appbar{background:var(--px-brun-f);color:#fff3e0;border-bottom:4px solid #f08a3c;box-shadow:0 4px 0 var(--px-ombre)}
+:root[data-apparence="pixel"] .brand{font-family:var(--f-titre);font-size:13px;color:#fff3e0;letter-spacing:0;gap:10px}
+:root[data-apparence="pixel"] .brand img{content:url(apparence/logo-pixel.png);width:32px;height:32px;border-radius:0;image-rendering:pixelated}
+:root[data-apparence="pixel"] .pill{border:0;border-radius:0;font-family:var(--f-ui);font-size:20px;font-weight:400}
+:root[data-apparence="pixel"] .appbar .pill{color:#fff3e0;background:transparent;padding:2px 8px}
+:root[data-apparence="pixel"] .pill i{border:0;border-radius:0;width:10px;height:10px;box-shadow:0 0 0 2px var(--px-ombre)}
+:root[data-apparence="pixel"] .pill.ok i{background:#6fd08a}
+:root[data-apparence="pixel"] .appbar .pill.who{background:var(--px-rose);color:#fff;margin:3px;box-shadow:var(--px-marches-rose);text-shadow:var(--px-contour-rose-p)}
+:root[data-apparence="pixel"] .appbar .pill.who svg{display:none}
+:root[data-apparence="pixel"] .cloche{border:0;border-radius:0;color:#ffcf8a}
+:root[data-apparence="pixel"] .cloche-n{border-radius:0;border:0;font-family:var(--f-ui);font-size:18px;font-weight:400;box-shadow:0 0 0 2px var(--px-ombre)}
+:root[data-apparence="pixel"] .tabs{background:var(--px-brun-f);border-top:4px solid #f08a3c;box-shadow:0 -4px 0 var(--px-ombre)}
+:root[data-apparence="pixel"] .tabs button{border-radius:0;font-family:var(--f-ui);font-size:19px;font-weight:400;color:#e8d8c8;margin:3px 2px}
+:root[data-apparence="pixel"] .tabs svg{stroke-width:2.2}
+:root[data-apparence="pixel"] .tabs button[aria-pressed="true"]{background:var(--px-rose);color:#fff;box-shadow:var(--px-marches-rose);text-shadow:var(--px-contour-rose-p)}
+:root[data-apparence="pixel"] .tab-n,:root[data-apparence="pixel"] .cmd-n{border-radius:0;border:0;font-family:var(--f-ui);font-weight:400;font-size:18px;box-shadow:0 0 0 2px var(--px-ombre)}
+
+/* ---------- Titres et textes posés sur le fond (écart 7) ---------- */
+:root[data-apparence="pixel"] h1{font-family:var(--f-titre);font-weight:400;font-size:22px;line-height:1.35;color:#fff;letter-spacing:0;
+  text-shadow:4px 4px 0 #8a2a1e,-2px -2px 0 #8a2a1e,2px -2px 0 #8a2a1e,-2px 2px 0 #8a2a1e,0 4px 0 #8a2a1e}
+:root[data-apparence="pixel"] .page-head .sub,:root[data-apparence="pixel"] .rec-sem,:root[data-apparence="pixel"] #prepSum,:root[data-apparence="pixel"] #dragHint,:root[data-apparence="pixel"] .ordre-hab .hint,:root[data-apparence="pixel"] footer p:not(.note),
+:root[data-apparence="pixel"] .wrap > .hint{font-family:var(--f-ui);font-size:20px;font-weight:400;line-height:1.05;color:#fff3e0;text-shadow:var(--px-contour-brun)}
+:root[data-apparence="pixel"] .rec-sem{margin:0}
+/* Titres et aides posés directement sur le fond (Réglages, Historique, pages de la Semaine) */
+:root[data-apparence="pixel"] #debView > .db-h,:root[data-apparence="pixel"] #histView > h2,:root[data-apparence="pixel"] #semRecList > h2,:root[data-apparence="pixel"] #semStkList > h2{color:#fff;font-size:13px;text-shadow:3px 3px 0 #8a2a1e,-2px -2px 0 #8a2a1e,2px -2px 0 #8a2a1e,-2px 2px 0 #8a2a1e,0 3px 0 #8a2a1e}
+:root[data-apparence="pixel"] #debView > .hint,:root[data-apparence="pixel"] #debView > p:not(.card),:root[data-apparence="pixel"] #histView > .hint,:root[data-apparence="pixel"] #histView > p:not(.card),:root[data-apparence="pixel"] #semRecList > .hint,:root[data-apparence="pixel"] #semRecList > p:not(.card),:root[data-apparence="pixel"] #semCmd > .hint{font-family:var(--f-ui);font-size:20px;font-weight:400;line-height:1.05;color:#fff3e0;text-shadow:var(--px-contour-brun)}
+:root[data-apparence="pixel"] .card.empty,:root[data-apparence="pixel"] .card .empty{color:var(--fg);text-shadow:none}
+:root[data-apparence="pixel"] .empty{color:#fff3e0;text-shadow:var(--px-contour-brun);font-family:var(--f-ui);font-size:21px;font-weight:400}
+
+/* ---------- Choix : semaine, jours, pages, circuits ---------- */
+/* La barre des pages reste collée en haut, comme en classique : son fond est le même paysage, fixé à l'écran, pour
+   qu'elle se fonde dans le fond quand la page n'est pas descendue et cache ce qui passe dessous quand elle l'est. */
+:root[data-apparence="pixel"] .controls{background:var(--px-ombre) url(apparence/fond-telephone.png) center center/var(--fond-l,390px) var(--fond-h,844px) no-repeat fixed;image-rendering:pixelated;border:0;padding:4px 3px 6px;margin-top:0}
+:root[data-apparence="pixel"] .seg{border:0;overflow:visible;gap:12px;padding:3px}
+:root[data-apparence="pixel"] .seg button,:root[data-apparence="pixel"] .seg button+button{border:0;border-radius:0;background:var(--px-creme);color:var(--fg);font-family:var(--f-ui);font-weight:400;font-size:21px;min-height:46px;padding:6px 4px;box-shadow:var(--px-cadre),0 7px 0 rgba(42,24,16,.55)}
+:root[data-apparence="pixel"] #semSub button,:root[data-apparence="pixel"] #recJours button,:root[data-apparence="pixel"] #prepSort button,:root[data-apparence="pixel"] #regSub button{font-size:21px;padding:6px 4px}
+:root[data-apparence="pixel"] .seg button[aria-pressed="true"]{background:var(--px-rose);color:#fff;box-shadow:var(--px-marches-rose),0 7px 0 rgba(42,24,16,.55);text-shadow:var(--px-contour-rose-p)}
+:root[data-apparence="pixel"] .chips{gap:12px;padding:3px 3px 8px}
+:root[data-apparence="pixel"] .chip{border:0;border-radius:0;background:var(--px-creme);font-family:var(--f-ui);font-weight:400;font-size:20px;padding:4px 10px;margin:3px 0;min-height:44px;box-shadow:var(--px-cadre)}
+:root[data-apparence="pixel"] .chip[aria-pressed="true"]{background:var(--px-rose);color:#fff;box-shadow:var(--px-marches-rose);text-shadow:var(--px-contour-rose-p)}
+:root[data-apparence="pixel"] .sem-nav,:root[data-apparence="pixel"] .sem-nav.pas-cette{background:var(--px-creme);border:0;border-radius:0;box-shadow:var(--px-bloc);margin:4px}
+:root[data-apparence="pixel"] .sem-nav.pas-cette{background:#fbe0c0}
+:root[data-apparence="pixel"] .sem-titre b{font-family:var(--f-titre);font-weight:400;font-size:11px;line-height:1.6;color:var(--px-rose-t)}
+:root[data-apparence="pixel"] .sem-titre>span,:root[data-apparence="pixel"] #semQuand{font-family:var(--f-ui);font-weight:400;font-size:19px;color:var(--muted)}
+:root[data-apparence="pixel"] .sem-btn{border:0;border-radius:0;background:var(--px-brun);color:#fff;font-family:var(--f-titre);font-size:16px;font-weight:400;margin:3px;box-shadow:0 -3px 0 #b88a62,0 3px 0 var(--px-brun-f),-3px 0 0 #b88a62,3px 0 0 var(--px-brun-f)}
+:root[data-apparence="pixel"] .sem-btn:hover{border:0}
+:root[data-apparence="pixel"] .db-ordre .sem-btn{font-family:"Signes pixel",var(--f-ui);font-size:20px}
+
+/* ---------- Boutons ---------- */
+:root[data-apparence="pixel"] .sem-add,:root[data-apparence="pixel"] .sem-act,:root[data-apparence="pixel"] .tout{border:0;border-radius:0;font-family:var(--f-ui);font-weight:400;font-size:21px;margin:4px;min-height:48px;padding:6px 14px}
+:root[data-apparence="pixel"] .sem-act,:root[data-apparence="pixel"] .tout{background:var(--px-creme);color:var(--fg);box-shadow:var(--px-cadre),0 7px 0 rgba(42,24,16,.55)}
+:root[data-apparence="pixel"] .sem-act:hover{border:0;background:#fbead6}
+:root[data-apparence="pixel"] .sem-add{background:var(--px-rose-f);color:#fff;box-shadow:0 -4px 0 #e0709f,0 4px 0 #6a1e44,-4px 0 0 #e0709f,4px 0 0 #6a1e44,0 8px 0 var(--px-ombre)}
+:root[data-apparence="pixel"] .sem-add:active,:root[data-apparence="pixel"] .sem-act:active{transform:translateY(2px)}
+:root[data-apparence="pixel"] .tout[aria-pressed="true"]{background:var(--px-rose);color:#fff;box-shadow:var(--px-marches-rose)}
+:root[data-apparence="pixel"] .sem-act.stk-un{color:var(--px-rose-f)}
+:root[data-apparence="pixel"] .sem-act:disabled,:root[data-apparence="pixel"] .ordre-hab .sem-act:disabled{background:#dcefd8;color:#2f6a3e;box-shadow:0 -3px 0 #2f6a3e,0 3px 0 #2f6a3e,-3px 0 0 #2f6a3e,3px 0 0 #2f6a3e;border:0;transform:none}
+:root[data-apparence="pixel"] .hi-ico{stroke-width:2.2}
+:root[data-apparence="pixel"] .g-x{font-family:var(--f-titre);font-size:16px;color:var(--px-rose-f)}
+
+/* ---------- Blocs secondaires (écart 4) : cadre en marches brun, sans le gros cadre des cartes ---------- */
+:root[data-apparence="pixel"] .card{background:var(--px-creme);border:0;border-radius:0;box-shadow:var(--px-bloc);margin:4px 4px 8px}
+:root[data-apparence="pixel"] details.crates>summary,:root[data-apparence="pixel"] details.prog>summary{font-family:var(--f-ui);font-size:21px;font-weight:400}
+:root[data-apparence="pixel"] .prog-top{font-weight:400;font-size:19px}
+:root[data-apparence="pixel"] .prog-top b,:root[data-apparence="pixel"] #progPct{font-family:var(--f-titre);font-weight:400;font-size:13px;color:var(--px-rose-t)}
+:root[data-apparence="pixel"] .bar,:root[data-apparence="pixel"] .bar.small{border:0;border-radius:0;background:#f2d8c0;height:14px;box-shadow:var(--px-cadre);margin:6px 3px}
+:root[data-apparence="pixel"] .bar>i{border-radius:0;background:repeating-linear-gradient(90deg,#4f9a64 0 9px,#3d7a50 9px 12px)}
+:root[data-apparence="pixel"] .prog-sum,:root[data-apparence="pixel"] .crate-sum{font-family:var(--f-ui);font-size:19px;font-weight:400;color:var(--muted)}
+:root[data-apparence="pixel"] .arrow{border:0;border-radius:0;background:var(--px-creme);color:var(--fg);box-shadow:var(--px-cadre)}
+:root[data-apparence="pixel"] .chev{font-family:var(--f-titre);font-size:12px;font-weight:400;color:var(--px-rose-f)}
+:root[data-apparence="pixel"] .crate,:root[data-apparence="pixel"] .crate[data-c]{border:0;border-radius:0;background:#fffaf0;box-shadow:var(--px-cadre);margin:3px}
+:root[data-apparence="pixel"] .crate b{font-family:var(--f-titre);font-weight:400;font-size:22px;line-height:1.3}
+:root[data-apparence="pixel"] .crate .nm{font-weight:400;font-size:20px}
+:root[data-apparence="pixel"] .crate span{font-size:18px}
+:root[data-apparence="pixel"] .crate.alt{box-shadow:0 -3px 0 #c9b49a,0 3px 0 #c9b49a,-3px 0 0 #c9b49a,3px 0 0 #c9b49a;outline:3px dashed #8a6a52;outline-offset:-6px}
+:root[data-apparence="pixel"] .crate-note,:root[data-apparence="pixel"] .crate-opt{font-size:18px;font-weight:400}
+:root[data-apparence="pixel"] .crate-place{font-size:20px}
+
+/* ---------- Lignes de liste (Récolte, Préparation, Stock) ---------- */
+:root[data-apparence="pixel"] ul.list{gap:0}
+:root[data-apparence="pixel"] li.item,:root[data-apparence="pixel"] li.pitem{background:transparent;border:0;border-radius:0;box-shadow:none;border-bottom:3px dotted #efcdb4;padding:10px 4px;gap:4px 10px}
+:root[data-apparence="pixel"] li.item:last-child,:root[data-apparence="pixel"] li.pitem:last-child{border-bottom:0}
+:root[data-apparence="pixel"] li.pitem{border-top:0}
+:root[data-apparence="pixel"] li.item.dragging{background:var(--px-creme);box-shadow:0 -3px 0 var(--px-rose-f),0 3px 0 var(--px-rose-f),-3px 0 0 var(--px-rose-f),3px 0 0 var(--px-rose-f),0 9px 0 rgba(42,24,16,.45)}
+:root[data-apparence="pixel"] li.ph{border:3px dashed var(--px-rose-f);border-radius:0}
+:root[data-apparence="pixel"] .prod{font-family:var(--f-ui);font-weight:400;font-size:23px;line-height:1.05;color:var(--fg)}
+:root[data-apparence="pixel"] .qty{font-family:var(--f-ui);font-weight:400;font-size:23px;color:#1e5f86}
+:root[data-apparence="pixel"] .qty small,:root[data-apparence="pixel"] .ou,:root[data-apparence="pixel"] .by{font-family:var(--f-ui);font-size:18px;font-weight:400;color:var(--muted)}
+:root[data-apparence="pixel"] .box{width:30px;height:30px;margin:4px;border:0;border-radius:0;background:#fff;box-shadow:0 -3px 0 #8a6a52,0 3px 0 #8a6a52,-3px 0 0 #8a6a52,3px 0 0 #8a6a52}
+:root[data-apparence="pixel"] .box{position:relative}
+:root[data-apparence="pixel"] .box::after{content:"";position:absolute;inset:-7px}
+:root[data-apparence="pixel"] .box svg{stroke-width:3;width:24px;height:24px}
+:root[data-apparence="pixel"] li.done .box,:root[data-apparence="pixel"] li.pitem.done .box,:root[data-apparence="pixel"] .grp.ready .grp-head .box,:root[data-apparence="pixel"] li.item.vient-coche .box{background:#4f9a64;border:0;box-shadow:0 -3px 0 #9ad8a8,0 3px 0 #1e5a34,-3px 0 0 #9ad8a8,3px 0 0 #1e5a34}
+:root[data-apparence="pixel"] li.done .box svg,:root[data-apparence="pixel"] li.pitem.done .box svg{opacity:1;color:#fff}
+:root[data-apparence="pixel"] .box.croix{border:0;background:#f6e6d2;box-shadow:0 -3px 0 #c9b49a,0 3px 0 #c9b49a,-3px 0 0 #c9b49a,3px 0 0 #c9b49a}
+:root[data-apparence="pixel"] .box.croix svg{width:20px;height:20px;color:#8a6a52}
+:root[data-apparence="pixel"] .menu,:root[data-apparence="pixel"] .more{width:40px;height:40px;margin:3px;border:0;border-radius:0;background:var(--px-creme);color:var(--px-rose-f);font-family:var(--f-titre);font-size:16px;font-weight:400;box-shadow:0 -3px 0 #e2c8ac,0 3px 0 #e2c8ac,-3px 0 0 #e2c8ac,3px 0 0 #e2c8ac;position:relative}
+:root[data-apparence="pixel"] .menu::after,:root[data-apparence="pixel"] .more::after{content:"";position:absolute;inset:-5px}
+:root[data-apparence="pixel"] .more svg{width:20px;height:20px;stroke-width:2.6}
+:root[data-apparence="pixel"] li.done .prod,:root[data-apparence="pixel"] li.pitem.done .prod{color:#a08a7a;text-decoration-thickness:2px}
+:root[data-apparence="pixel"] li.item.annule,:root[data-apparence="pixel"] li.pitem.annule{background:#f6e6d2;border:0;border-bottom:3px dotted #efcdb4}
+:root[data-apparence="pixel"] li.item.annule .prod,:root[data-apparence="pixel"] li.item.annule .qty{color:#a08a7a}
+:root[data-apparence="pixel"] li.item.annule .by,:root[data-apparence="pixel"] li.pitem.annule .by{color:#8a2a1e;font-weight:400}
+:root[data-apparence="pixel"] .rec,:root[data-apparence="pixel"] .grp-warn,:root[data-apparence="pixel"] .cmd-type,:root[data-apparence="pixel"] .notif-auto{border:0;border-radius:0;font-family:var(--f-ui);font-weight:400;font-size:18px;padding:0 6px;margin:5px 3px 2px;box-shadow:0 -2px 0 currentColor,0 2px 0 currentColor,-2px 0 0 currentColor,2px 0 0 currentColor}
+:root[data-apparence="pixel"] .rec.ok{background:#dcefd8;color:#2f6a3e}
+:root[data-apparence="pixel"] .rec.no,:root[data-apparence="pixel"] .grp-warn{background:#fbe0c0;color:#8a4a10}
+:root[data-apparence="pixel"] .rec.ann{background:#f8d8d0;color:#8a2a1e}
+:root[data-apparence="pixel"] .cmd-type{background:#f6e6d2;color:var(--fg)}
+:root[data-apparence="pixel"] .repart,:root[data-apparence="pixel"] .repart li{border-top:2px dotted #efcdb4}
+:root[data-apparence="pixel"] .repart li:first-child{border-top:0}
+:root[data-apparence="pixel"] .repart .cl,:root[data-apparence="pixel"] .repart .cq,:root[data-apparence="pixel"] .repart .col{font-family:var(--f-ui);font-weight:400;font-size:20px}
+:root[data-apparence="pixel"] .repart .cq{color:#1e5f86}
+:root[data-apparence="pixel"] .repart .cq small{font-size:17px;font-weight:400}
+:root[data-apparence="pixel"] .ecart,:root[data-apparence="pixel"] .note,:root[data-apparence="pixel"] .boite.jaune,:root[data-apparence="pixel"] .sr-err,:root[data-apparence="pixel"] .cmd-alerte,:root[data-apparence="pixel"] .sf-note,:root[data-apparence="pixel"] .cmd-t .cmd-main span,:root[data-apparence="pixel"] .notif-etat{background:#fbe0c0;color:#8a4a10;border:0;border-radius:0;font-family:var(--f-ui);font-weight:400;font-size:19px;margin:3px;box-shadow:0 -3px 0 #e8b880,0 3px 0 #e8b880,-3px 0 0 #e8b880,3px 0 0 #e8b880}
+:root[data-apparence="pixel"] details.donesec>summary{border:0;border-radius:0;background:transparent;font-family:var(--f-ui);font-size:21px;font-weight:400;color:#fff3e0;text-shadow:var(--px-contour-brun)}
+:root[data-apparence="pixel"] details.donesec>summary .chev{color:#ffcf8a}
+:root[data-apparence="pixel"] .annsec h3{font-family:var(--f-ui);font-size:21px;font-weight:400;color:#fff3e0;text-shadow:var(--px-contour-brun)}
+:root[data-apparence="pixel"] #done,:root[data-apparence="pixel"] #annList{background:rgba(255,244,228,.94);box-shadow:var(--px-bloc);margin:4px 4px 8px;padding:0 8px}
+:root[data-apparence="pixel"] .ordre-hab .sem-act{font-size:20px}
+
+/* ---------- Les cartes en gros pixels (annexe A4) : la grille Répartir, « À récolter », chaque client ou produit de
+   la Préparation, « Stock chez … », les tableaux, chaque jour de « À récolter » et de l'Historique. Cadre posé par
+   border-image (apparence/cadre-carte.png, 9 morceaux : les coins gardent leur escalier, les bords s'étirent), ombre
+   en escalier comprise dans l'image, intérieur crème. ---------- */
+:root[data-apparence="pixel"] #semRep,:root[data-apparence="pixel"] #todo,:root[data-apparence="pixel"] .grp,:root[data-apparence="pixel"] .stk-bloc,:root[data-apparence="pixel"] #semTab,:root[data-apparence="pixel"] .rc-jour{
+  border:solid transparent;border-width:15px 15px 21px;border-radius:0;box-shadow:none;background:transparent;overflow:visible;
+  border-image:url(apparence/cadre-carte.png) 15 15 21 fill/15px 15px 21px stretch;padding:0 0 6px;margin:4px 0 8px}
+/* Le haut rose (annexe A5) : reflet en haut, puis ombre, trait brun et filet clair en bas ; il recouvre la colonne crème
+   du cadre (3 points de chaque côté). */
+:root[data-apparence="pixel"] .sem-barre,:root[data-apparence="pixel"] .grp-head,:root[data-apparence="pixel"] .stk-tete,:root[data-apparence="pixel"] .sem-tab-hint,:root[data-apparence="pixel"] .rc-jour h3,:root[data-apparence="pixel"] .hi-sem-h,
+:root[data-apparence="pixel"] #todo::before{margin:0 -3px 9px;padding:6px 10px 15px;border:0;border-radius:0;box-shadow:none;color:#fff;
+  background:linear-gradient(#f8b4d0,#f8b4d0) 3px 0/calc(100% - 6px) 3px no-repeat,linear-gradient(to top,#f7dcc4 0 3px,#3a2016 3px 6px,#c4508a 6px 9px,var(--px-rose) 9px)}
+:root[data-apparence="pixel"] .grp-name,:root[data-apparence="pixel"] .stk-tete .db-h,:root[data-apparence="pixel"] .rc-jour h3 .rc-titre,:root[data-apparence="pixel"] #todo::before{font-family:var(--f-titre);font-weight:400;font-size:13px;line-height:1.5;color:#fff;letter-spacing:0;text-shadow:var(--px-contour-rose)}
+:root[data-apparence="pixel"] .grp-sum,:root[data-apparence="pixel"] .stk-tete .sp-by,:root[data-apparence="pixel"] .stk-q,:root[data-apparence="pixel"] .sem-tab-hint,:root[data-apparence="pixel"] .rc-jour h3 small,:root[data-apparence="pixel"] .rc-jour h3 small.rc-combien,:root[data-apparence="pixel"] #todo::after{font-family:var(--f-ui);font-weight:400;font-size:19px;color:#fff4e4;text-shadow:2px 2px 0 #8a2a5a,-1px -1px 0 #8a2a5a,1px -1px 0 #8a2a5a,-1px 1px 0 #8a2a5a}
+/* « À récolter » sur la liste de la Récolte (écart 2) : titre et nombre de produits (attribut data-n, posé par la page). */
+:root[data-apparence="pixel"] #todo{display:block;position:relative;padding:0 6px 6px}
+:root[data-apparence="pixel"] #todo::before{content:"À récolter";display:block;margin:0 -9px 9px;padding:9px 10px 15px}
+:root[data-apparence="pixel"] #todo::after{content:attr(data-n);position:absolute;top:12px;right:10px}
+/* Préparation : la case du client est crème à marches #8a2a5a */
+:root[data-apparence="pixel"] .groups{gap:6px}
+:root[data-apparence="pixel"] .grp-head{padding:6px 10px 15px}
+:root[data-apparence="pixel"] .grp-head .box{background:var(--px-creme);box-shadow:0 -3px 0 #8a2a5a,0 3px 0 #8a2a5a,-3px 0 0 #8a2a5a,3px 0 0 #8a2a5a,inset 0 -3px 0 #f2cfa8}
+:root[data-apparence="pixel"] .grp.ready .grp-head{background:linear-gradient(#f8b4d0,#f8b4d0) 3px 0/calc(100% - 6px) 3px no-repeat,linear-gradient(to top,#f7dcc4 0 3px,#3a2016 3px 6px,#c4508a 6px 9px,var(--px-rose) 9px)}
+:root[data-apparence="pixel"] .grp-head .rec{box-shadow:0 -2px 0 #fff4e4,0 2px 0 #fff4e4,-2px 0 0 #fff4e4,2px 0 0 #fff4e4}
+:root[data-apparence="pixel"] .grp-warn{display:inline-block;margin-top:6px}
+:root[data-apparence="pixel"] ul.plist{padding:2px 6px 4px}
+:root[data-apparence="pixel"] .pitem .portions{font-family:var(--f-ui);font-weight:400;font-size:19px}
+
+/* ---------- Semaine : la page « Répartir » (carte dont le haut rose porte les compteurs, écart 3) ---------- */
+:root[data-apparence="pixel"] .sem-barre{padding:6px 10px 15px;align-items:center}
+:root[data-apparence="pixel"] .sem-sum{font-family:var(--f-ui);font-weight:400;font-size:20px;gap:12px}
+:root[data-apparence="pixel"] .sem-sum .n{font-family:var(--f-titre);font-weight:400;font-size:12px;color:#fff;text-shadow:var(--px-contour-rose);margin-right:8px}
+:root[data-apparence="pixel"] .reste{border:0;border-radius:0;font-family:var(--f-ui);font-weight:400;font-size:19px;padding:1px 8px;margin:3px;box-shadow:0 -3px 0 currentColor,0 3px 0 currentColor,-3px 0 0 currentColor,3px 0 0 currentColor}
+:root[data-apparence="pixel"] .reste.place{background:#dcefd8;color:#2f6a3e}
+:root[data-apparence="pixel"] .reste.aplacer{background:#fde2b8;color:#9a4a00}
+:root[data-apparence="pixel"] .reste.manque{background:#f8d0c4;color:#8a2a1e}
+:root[data-apparence="pixel"] .reste.vide,:root[data-apparence="pixel"] .reste.sansdispo{background:var(--px-creme);color:#6a5348}
+:root[data-apparence="pixel"] .sem-barre .sem-add{background:var(--px-creme);color:var(--px-rose-f);box-shadow:0 -3px 0 #8a2a5a,0 3px 0 #8a2a5a,-3px 0 0 #8a2a5a,3px 0 0 #8a2a5a,inset 0 -3px 0 #f2cfa8}
+:root[data-apparence="pixel"] #semRep > :not(.sem-barre){margin-left:6px;margin-right:6px}
+:root[data-apparence="pixel"] .sem-list{gap:0}
+/* Téléphone, Répartir : un produit par ligne dans la carte, couleur de l'état gardée en trait à gauche */
+:root[data-apparence="pixel"] .sp{border:0;border-radius:0;box-shadow:none;background:transparent;margin:0;border-left:6px solid transparent;border-bottom:3px dotted #efcdb4}
+:root[data-apparence="pixel"] .sp.e-place{border-left-color:#4f9a64} :root[data-apparence="pixel"] .sp.e-aplacer{border-left-color:#f0a040} :root[data-apparence="pixel"] .sp.e-manque{border-left-color:#c4503c}
+:root[data-apparence="pixel"] .sp-head{background:transparent}
+:root[data-apparence="pixel"] .sp-nom,:root[data-apparence="pixel"] .sr-nom{font-family:var(--f-ui);font-weight:400;font-size:23px;line-height:1.05}
+:root[data-apparence="pixel"] .sp-colis,:root[data-apparence="pixel"] .sp-resume,:root[data-apparence="pixel"] .sr-nom small,:root[data-apparence="pixel"] .sr-eq,:root[data-apparence="pixel"] .sp-by{font-family:var(--f-ui);font-weight:400;font-size:18px}
+:root[data-apparence="pixel"] .sp-body,:root[data-apparence="pixel"] .sr,:root[data-apparence="pixel"] .sr-opt,:root[data-apparence="pixel"] .sp-foot,:root[data-apparence="pixel"] .sr.total{border-top:2px dotted #efcdb4}
+:root[data-apparence="pixel"] .sr:first-child{border-top:0}
+:root[data-apparence="pixel"] .sr.dispo{background:#f6e6d2}
+:root[data-apparence="pixel"] .sr.report{border:3px dashed #c9a98c;border-radius:0}
+:root[data-apparence="pixel"] .sr.dc{border-left:4px solid var(--dc)}
+:root[data-apparence="pixel"] .sr-opt{font-family:var(--f-ui);font-weight:400;font-size:20px}
+:root[data-apparence="pixel"] .sr-ctl{gap:12px;padding:0 3px}
+:root[data-apparence="pixel"] .sr-ctl button{border:0;border-radius:0;min-height:48px;background:var(--px-creme);color:var(--fg);font-family:var(--f-ui);font-weight:400;font-size:21px;box-shadow:var(--px-cadre)}
+:root[data-apparence="pixel"] .sr-ctl button[data-a="moins"],:root[data-apparence="pixel"] .sr-ctl button[data-a="plus"]{background:var(--px-rose);color:#fff;font-family:var(--f-ui);font-size:34px;line-height:1;box-shadow:var(--px-marches-rose);text-shadow:var(--px-contour-rose-p)}
+:root[data-apparence="pixel"] .sr-ctl input{border:0;border-radius:0;min-height:48px;background:#fff;font-family:var(--f-ui);font-weight:400;font-size:24px;color:var(--fg);box-shadow:var(--px-cadre)}
+:root[data-apparence="pixel"] .sr.dc .sr-ctl input{color:var(--dc)}
+:root[data-apparence="pixel"] .sr-opt input,:root[data-apparence="pixel"] .crate-opt input{accent-color:var(--px-rose-f)}
+/* Stock : une carte « Stock chez … », un produit par ligne */
+:root[data-apparence="pixel"] .stk-bloc{gap:0;padding:0 0 6px}
+:root[data-apparence="pixel"] .stk-tete{margin:0 -3px 9px}
+:root[data-apparence="pixel"] .stk-tete .sem-act{color:var(--fg)}
+:root[data-apparence="pixel"] .stk-list{gap:0;padding:0 4px}
+:root[data-apparence="pixel"] .stk-l{background:transparent;box-shadow:none;margin:0;border-bottom:3px dotted #efcdb4;padding:4px 0}
+:root[data-apparence="pixel"] .stk-l:last-child{border-bottom:0}
+:root[data-apparence="pixel"] .card.stk-neuf{background:#fbe3ef;box-shadow:none}
+:root[data-apparence="pixel"] .sr.stock{background:transparent}
+:root[data-apparence="pixel"] .sr.stock .sr-ctl input{background:#fff}
+:root[data-apparence="pixel"] .stk-x{color:var(--px-rose-f);font-family:var(--f-titre);font-size:16px}
+:root[data-apparence="pixel"] .stk-etat{border-radius:0;font-family:var(--f-ui);font-size:18px;font-weight:400;padding:0 6px;margin:4px 3px 6px;box-shadow:0 -2px 0 currentColor,0 2px 0 currentColor,-2px 0 0 currentColor,2px 0 0 currentColor}
+:root[data-apparence="pixel"] .stk-etat.ok{background:#dcefd8;color:#2f6a3e}
+:root[data-apparence="pixel"] .stk-etat.a{background:#fbe0c0;color:#8a4a10}
+:root[data-apparence="pixel"] .stk-bloc > :not(.stk-tete){margin-left:6px;margin-right:6px}
+:root[data-apparence="pixel"] .stk-bloc .hint,:root[data-apparence="pixel"] .stk-bloc .mag-j{font-family:var(--f-ui);font-size:18px;padding:0 6px}
+:root[data-apparence="pixel"] .stk-bloc > .hint,:root[data-apparence="pixel"] #semPc > .hint{font-family:var(--f-ui);font-size:18px;font-weight:400;color:var(--muted);text-shadow:none}
+:root[data-apparence="pixel"] .sem-act.stk-plus{background:var(--px-creme);color:var(--px-rose-f);box-shadow:var(--px-cadre),0 7px 0 rgba(42,24,16,.55)}
+:root[data-apparence="pixel"] .stk-gros b{font-weight:400;font-size:22px}
+:root[data-apparence="pixel"] .stk-gros small{font-size:18px}
+:root[data-apparence="pixel"] .mag-qui{font-family:var(--f-ui);font-size:21px}
+:root[data-apparence="pixel"] .mag-l,:root[data-apparence="pixel"] .mag-ok{font-size:19px;font-weight:400}
+:root[data-apparence="pixel"] .mag-hors{box-shadow:0 -3px 0 #c9b49a,0 3px 0 #c9b49a,-3px 0 0 #c9b49a,3px 0 0 #c9b49a;margin:6px 3px}
+/* Le Cumul (tableau) et les écarts : comme la grille Répartir */
+:root[data-apparence="pixel"] .sem-tab-hint{margin:0 -3px 9px;padding:6px 10px 15px}
+:root[data-apparence="pixel"] .sem-scroll{margin:0 6px}
+:root[data-apparence="pixel"] #semTable{font-family:var(--f-ui);font-size:20px}
+:root[data-apparence="pixel"] #semTable th,:root[data-apparence="pixel"] #semTable td,:root[data-apparence="pixel"] #semTable tbody tr:nth-child(odd) td,:root[data-apparence="pixel"] #semTable th:first-child,:root[data-apparence="pixel"] #semTable td:first-child{background:var(--px-creme);border:0;border-bottom:3px dotted #efcdb4;font-weight:400}
+:root[data-apparence="pixel"] #semTable tbody tr:nth-child(even) td{background:#fbead6}
+:root[data-apparence="pixel"] #semTable th{font-family:var(--f-ui);font-size:19px;color:var(--muted);border-bottom:3px solid #3a2016}
+:root[data-apparence="pixel"] #semTable th.dc,:root[data-apparence="pixel"] #semTable td.dc{color:var(--dc)}
+:root[data-apparence="pixel"] #semTable td.r-place{background:#dcefd8;color:#2f6a3e} :root[data-apparence="pixel"] #semTable td.r-aplacer{background:#fde2b8;color:#9a4a00} :root[data-apparence="pixel"] #semTable td.r-manque{background:#f8d0c4;color:#8a2a1e}
+:root[data-apparence="pixel"] #semTable th.stk,:root[data-apparence="pixel"] #semTable td.stk{background:#f6e6d2}
+/* « À récolter » (semaine) et Historique : une carte par jour, le titre du jour sur le haut rose */
+:root[data-apparence="pixel"] .rc-jours,:root[data-apparence="pixel"] .hi-semaines{gap:6px}
+:root[data-apparence="pixel"] .rc-jour h3{background-color:transparent;margin:0 -3px 6px;padding:0}
+:root[data-apparence="pixel"] .rc-jour.rc-ouvert h3{border-bottom:0}
+:root[data-apparence="pixel"] .rc-tete{padding:6px 10px 15px;color:#fff}
+:root[data-apparence="pixel"] .rc-tete .arrow,:root[data-apparence="pixel"] .db-tete .arrow{background:var(--px-creme);color:var(--px-rose-f)}
+:root[data-apparence="pixel"] .rc-jour li,:root[data-apparence="pixel"] .hi-jour{font-family:var(--f-ui);font-weight:400;font-size:20px;border-top:2px dotted #efcdb4}
+:root[data-apparence="pixel"] .rc-jour li b{font-weight:400;color:#1e5f86}
+:root[data-apparence="pixel"] .rc-jour li small{font-size:17px;font-weight:400}
+:root[data-apparence="pixel"] .rc-ctl,:root[data-apparence="pixel"] .rc-actions{border-color:#efcdb4;border-style:dotted;border-width:0 0 2px}
+:root[data-apparence="pixel"] .rc-actions{border-width:2px 0 0}
+:root[data-apparence="pixel"] .rc-menu{border:0}
+:root[data-apparence="pixel"] .rc-q,:root[data-apparence="pixel"] .hi-jour h4,:root[data-apparence="pixel"] .db-h3{font-family:var(--f-ui);font-weight:400;font-size:22px}
+:root[data-apparence="pixel"] .hi-jour .hi-res,:root[data-apparence="pixel"] .hi-jour .hint,:root[data-apparence="pixel"] .hi-vide{font-weight:400;font-size:19px}
+:root[data-apparence="pixel"] .boite .grand{font-family:var(--f-ui);font-weight:400;font-size:23px}
+/* Commandes à valider (étape 31) */
+:root[data-apparence="pixel"] .cmd-boite{border:0}
+:root[data-apparence="pixel"] .cmd-titre{font-family:var(--f-titre);font-weight:400;font-size:13px;line-height:1.5;color:var(--px-rose-t)}
+:root[data-apparence="pixel"] .cmd,:root[data-apparence="pixel"] .cmd-fait{border:0;border-left:6px solid var(--dc,#8a6a52);border-radius:0;background:#fffaf0;box-shadow:0 -3px 0 #e2c8ac,0 3px 0 #e2c8ac,3px 0 0 #e2c8ac;margin:3px}
+:root[data-apparence="pixel"] .cmd-liv{font-family:var(--f-ui);font-weight:400;font-size:22px}
+:root[data-apparence="pixel"] .cmd-src,:root[data-apparence="pixel"] .cmd-note,:root[data-apparence="pixel"] .cmd-rien,:root[data-apparence="pixel"] .cmd-autres,:root[data-apparence="pixel"] .cmd-fait small{font-weight:400;font-size:19px}
+:root[data-apparence="pixel"] .cmd-t{font-family:var(--f-ui);font-size:20px}
+:root[data-apparence="pixel"] .cmd-t th,:root[data-apparence="pixel"] .cmd-t td{border-top:2px dotted #efcdb4;font-weight:400}
+:root[data-apparence="pixel"] .cmd-btns .cmd-ok{background:var(--px-rose-f);color:#fff;border:0;box-shadow:0 -4px 0 #e0709f,0 4px 0 #6a1e44,-4px 0 0 #e0709f,4px 0 0 #6a1e44,0 8px 0 var(--px-ombre)}
+:root[data-apparence="pixel"] .cmd-btns .cmd-ok:disabled{background:var(--px-creme);color:var(--muted);box-shadow:0 -3px 0 #c9b49a,0 3px 0 #c9b49a,-3px 0 0 #c9b49a,3px 0 0 #c9b49a}
+/* Filtre et légende */
+:root[data-apparence="pixel"] .sem-filtre{border:0;border-radius:0;background:var(--px-creme);box-shadow:var(--px-bloc);margin:4px 4px 10px}
+:root[data-apparence="pixel"] .sf-btn small{font-weight:400;font-size:19px}
+:root[data-apparence="pixel"] .sf-btn.sf-actif{background:#fbe0c0;border:0}
+:root[data-apparence="pixel"] .sf-chev{font-family:"Signes pixel",var(--f-ui);font-size:20px;color:var(--px-rose-f)}
+:root[data-apparence="pixel"] .sf-panneau{border-top:2px dotted #efcdb4}
+:root[data-apparence="pixel"] .sf-t{font-weight:400;font-size:20px}
+:root[data-apparence="pixel"] .sem-filtre label.dj,:root[data-apparence="pixel"] .rc-ctl label.dj,:root[data-apparence="pixel"] .db label.dj{border:0;border-radius:0;background:var(--px-creme);font-family:var(--f-ui);font-weight:400;font-size:20px;margin:3px;box-shadow:var(--px-cadre)}
+:root[data-apparence="pixel"] .sem-filtre label.dj:has(input:not(:checked)){background:#f6e6d2;box-shadow:0 -3px 0 #c9b49a,0 3px 0 #c9b49a,-3px 0 0 #c9b49a,3px 0 0 #c9b49a}
+:root[data-apparence="pixel"] .sem-filtre label.sf-d[style]{color:var(--dc);box-shadow:0 -3px 0 var(--dc),0 3px 0 var(--dc),-3px 0 0 var(--dc),3px 0 0 var(--dc)}
+:root[data-apparence="pixel"] .legende{border:0;border-radius:0;background:transparent;font-family:var(--f-ui);font-weight:400;font-size:19px}
+:root[data-apparence="pixel"] .legende .hint{color:var(--muted);text-shadow:none}
+/* Réglages : chaque débouché, chaque jour de récolte, le compte sont des blocs secondaires (A6) */
+:root[data-apparence="pixel"] .db-h{font-family:var(--f-titre);font-weight:400;font-size:13px;line-height:1.5;color:var(--px-rose-t)}
+:root[data-apparence="pixel"] .db-tete .rc-titre{font-family:var(--f-ui);font-weight:400;font-size:23px}
+:root[data-apparence="pixel"] .db-tete small,:root[data-apparence="pixel"] .db label small,:root[data-apparence="pixel"] .dl-aide{font-weight:400;font-size:18px}
+:root[data-apparence="pixel"] .db label,:root[data-apparence="pixel"] .db-coul-t,:root[data-apparence="pixel"] .dl-titre span,:root[data-apparence="pixel"] .rj-sans,:root[data-apparence="pixel"] .db-ret summary,:root[data-apparence="pixel"] .db-ret li{font-family:var(--f-ui);font-weight:400;font-size:20px}
+:root[data-apparence="pixel"] .db[style]{border-left:6px solid var(--dc)}
+:root[data-apparence="pixel"] .db.db-ouvert .db-tl{border-bottom:2px dotted #efcdb4}
+:root[data-apparence="pixel"] .dl{border:0;border-radius:0;box-shadow:0 -3px 0 #e2c8ac,0 3px 0 #e2c8ac,-3px 0 0 #e2c8ac,3px 0 0 #e2c8ac;margin:3px}
+:root[data-apparence="pixel"] .db label.dc-c{border:0;border-radius:0;font-family:var(--f-ui);font-weight:400;font-size:20px;margin:3px;box-shadow:0 -3px 0 var(--dc),0 3px 0 var(--dc),-3px 0 0 var(--dc),3px 0 0 var(--dc);background:#fff}
+:root[data-apparence="pixel"] .db label.dc-c:has(input:checked){background:var(--dc);color:#fff}
+:root[data-apparence="pixel"] .cpt p,:root[data-apparence="pixel"] .cpt .hint{font-size:20px}
+/* Cases à remplir : fond blanc, marches, VT323 d'au moins 20 points (A9) */
+:root[data-apparence="pixel"] .db input[type=text],:root[data-apparence="pixel"] .db select,:root[data-apparence="pixel"] dialog input:not([type=checkbox]):not([type=radio]){border:0;border-radius:0;background:#fff;color:var(--fg);font-family:var(--f-ui);font-weight:400;font-size:21px;margin:3px 0;box-shadow:var(--px-cadre)}
+:root[data-apparence="pixel"] .db-nom input{color:var(--fg)}
+:root[data-apparence="pixel"] .db[style] .db-nom input,:root[data-apparence="pixel"] .db[style] .db-tete .rc-titre{color:var(--dc)}
+:root[data-apparence="pixel"] .dj input,:root[data-apparence="pixel"] .sem-filtre label.dj input{accent-color:var(--px-rose-f)}
+
+/* ---------- Ordre habituel, historique, commandes : petits boutons ---------- */
+:root[data-apparence="pixel"] .hi-entree .sem-act{font-size:20px}
+
+/* ---------- Fenêtres : des cartes (même cadre), haut rose avec le titre en blanc à contour, intérieur crème (A9).
+   Le cadre (15 points) déborde de 3 points sur l'intérieur (bordure de 12) : le haut rose recouvre la colonne crème. ---------- */
+:root[data-apparence="pixel"] dialog{border-radius:0;box-shadow:none;background:var(--px-creme) padding-box;border-style:solid;border-color:transparent;border-width:12px 12px 18px;
+  border-image:url(apparence/cadre-carte.png) 15 15 21/15px 15px 21px stretch;padding:0 14px 14px;font-family:var(--f-ui);font-size:20px;line-height:1.2;color:var(--fg)}
+:root[data-apparence="pixel"] dialog::backdrop{background:rgba(42,24,16,.5)}
+:root[data-apparence="pixel"] dialog h2{margin:0 -14px 12px;padding:12px 14px 18px;color:#fff;font-family:var(--f-titre);font-weight:400;font-size:15px;line-height:1.5;overflow-wrap:anywhere;
+  background:linear-gradient(#f8b4d0,#f8b4d0) 3px 3px/calc(100% - 6px) 3px no-repeat,linear-gradient(var(--px-rose),var(--px-rose)) 3px 0/calc(100% - 6px) 3px no-repeat,linear-gradient(to top,#f7dcc4 0 3px,#3a2016 3px 6px,#c4508a 6px 9px,var(--px-rose) 9px) 0 3px/100% calc(100% - 3px) no-repeat;
+  text-shadow:var(--px-contour-rose)}
+:root[data-apparence="pixel"] #semEd{padding:0}
+:root[data-apparence="pixel"] #semEd .ed-tete{padding:0 14px 10px}
+:root[data-apparence="pixel"] #semEd .ed-tete h2{margin:0 -14px 10px}
+:root[data-apparence="pixel"] #semEd .ed-corps{border-top:2px dotted #efcdb4}
+:root[data-apparence="pixel"] dialog .sub{font-size:19px;color:var(--muted)}
+:root[data-apparence="pixel"] dialog button{border:0;border-radius:0;background:var(--px-creme);color:var(--fg);font-family:var(--f-ui);font-weight:400;font-size:21px;margin:3px;box-shadow:var(--px-cadre)}
+:root[data-apparence="pixel"] #whoOk,:root[data-apparence="pixel"] #authOk,:root[data-apparence="pixel"] #annOui{background:var(--px-rose-f);color:#fff;border:0;box-shadow:0 -3px 0 var(--px-rose),0 3px 0 #6a1e44,-3px 0 0 var(--px-rose),3px 0 0 #6a1e44}
+:root[data-apparence="pixel"] .auth-l{font-weight:400;font-size:20px}
+:root[data-apparence="pixel"] .add-list button{text-align:left}
+:root[data-apparence="pixel"] .add-list small{font-weight:400;font-size:18px}
+:root[data-apparence="pixel"] .notif-i{border:0;border-radius:0;background:#fff;font-family:var(--f-ui);font-weight:400;font-size:20px;box-shadow:0 -3px 0 #e2c8ac,0 3px 0 #e2c8ac,-3px 0 0 #e2c8ac,3px 0 0 #e2c8ac;margin:3px}
+:root[data-apparence="pixel"] .notif-i.notif-nouv{padding:10px 12px;box-shadow:var(--px-marches-rose);background:#fbe3ef}
+:root[data-apparence="pixel"] .notif-i small{font-weight:400;font-size:18px}
+:root[data-apparence="pixel"] .notif-rien{font-weight:400}
+:root[data-apparence="pixel"] .notif-auto{color:var(--muted)}
+
+/* ---------- Réglages → Apparence : les deux boutons, chacun avec sa vignette ---------- */
+:root[data-apparence="pixel"] .app-b{border:0;border-radius:0;background:var(--px-creme);font-family:var(--f-ui);font-weight:400;font-size:21px;margin:3px;box-shadow:var(--px-cadre)}
+:root[data-apparence="pixel"] .app-b img{border-radius:0;box-shadow:none;image-rendering:pixelated}
+:root[data-apparence="pixel"] .app-b[aria-pressed="true"]{border:0;background:#fbe3ef;color:var(--px-rose-f);padding:8px 6px;
+  box-shadow:0 -3px 0 var(--px-rose-f),0 3px 0 var(--px-rose-f),-3px 0 0 var(--px-rose-f),3px 0 0 var(--px-rose-f),inset 0 0 0 3px var(--px-rose)}
+:root[data-apparence="pixel"] .app-b[aria-pressed="true"] .app-coche{background:var(--px-rose);border-radius:0;color:#fff}
+:root[data-apparence="pixel"] .app-aide{font-size:20px}
+
+/* ---------- Téléphone ---------- */
+@media (max-width:999.98px){
+  :root[data-apparence="pixel"] body{font-size:21px}
+  :root[data-apparence="pixel"] .appbar{position:relative;z-index:2}
+  :root[data-apparence="pixel"] .wrap{padding-left:max(9px,env(safe-area-inset-left));padding-right:max(9px,env(safe-area-inset-right))}
+  :root[data-apparence="pixel"] h1{font-size:17px;text-shadow:3px 3px 0 #8a2a1e,-2px -2px 0 #8a2a1e,2px -2px 0 #8a2a1e,-2px 2px 0 #8a2a1e,0 3px 0 #8a2a1e}
+  :root[data-apparence="pixel"] .tabs button{font-size:17px;padding:4px 0;margin:3px 4px}
+  :root[data-apparence="pixel"] .tabs button span{overflow:visible;text-overflow:clip}
+  :root[data-apparence="pixel"] .tabs-in{gap:4px;padding:6px 8px}
+  :root[data-apparence="pixel"] #regSub{grid-auto-flow:row;grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+/* ---------- Ordinateur ---------- */
+@media (min-width:1000px){
+  :root[data-apparence="pixel"]{--menu-l:200px}
+  :root[data-apparence="pixel"] body::before{background-image:url(apparence/fond-ordinateur.png);background-size:var(--fond-l,1920px) var(--fond-h,1080px)}
+  :root[data-apparence="pixel"] .controls{background-image:url(apparence/fond-ordinateur.png);background-size:var(--fond-l,1920px) var(--fond-h,1080px)}
+  :root[data-apparence="pixel"] body{font-size:19px}
+  /* Menu de gauche : crème jusqu'à environ 70 % de la hauteur, puis fondu ; logo 64 points et « Cumul » dessous */
+  :root[data-apparence="pixel"] .appbar{background:rgba(255,246,232,.95);color:var(--fg);border:0;border-right:4px solid var(--px-brun);box-shadow:none;height:132px}
+  :root[data-apparence="pixel"] .appbar-in{padding:14px 12px 8px}
+  :root[data-apparence="pixel"] .brand{flex-direction:column;align-items:flex-start;gap:12px;font-size:13px;color:#b84a2a;text-shadow:2px 2px 0 #ffd3a8}
+  :root[data-apparence="pixel"] .brand img{width:64px;height:64px}
+  :root[data-apparence="pixel"] .tabs{top:0;padding-top:132px;background:linear-gradient(180deg,rgba(255,246,232,.95) 0,rgba(255,246,232,.95) 70%,rgba(255,246,232,.55) 75%,rgba(255,246,232,0) 80%);border:0;box-shadow:none;border-right:4px solid var(--px-brun)}
+  :root[data-apparence="pixel"] .tabs-in{padding:6px 10px;gap:6px}
+  :root[data-apparence="pixel"] .tabs button{font-size:21px;color:#6a5348;min-height:40px;padding:4px 10px;margin:3px}
+  :root[data-apparence="pixel"] .tabs button:hover{background:#f6e6d2}
+  :root[data-apparence="pixel"] .tabs button[aria-pressed="true"],:root[data-apparence="pixel"] .tabs button[aria-pressed="true"]:hover{background:var(--px-rose);color:#fff;box-shadow:var(--px-marches-rose)}
+  :root[data-apparence="pixel"] .appbar-r{background:transparent;border:0;gap:12px;padding:14px}
+  :root[data-apparence="pixel"] .appbar .pill{background:var(--px-creme);color:var(--fg);box-shadow:var(--px-cadre);margin:3px}
+  :root[data-apparence="pixel"] .appbar .pill.who{background:var(--px-rose);color:#fff;box-shadow:var(--px-marches-rose)}
+  :root[data-apparence="pixel"] .appbar .cloche{background:var(--px-creme);color:var(--fg);box-shadow:var(--px-cadre);margin:3px}
+  :root[data-apparence="pixel"] .appbar .cloche-n{border:0}
+  :root[data-apparence="pixel"] .wrap{padding-top:18px}
+  /* Grille « Répartir » : 21 points (écart 8), intérieur crème, filets pointillés, couleurs des débouchés gardées */
+  :root[data-apparence="pixel"] .g-wrap{border:0;border-radius:0;box-shadow:none;background:transparent}
+  :root[data-apparence="pixel"] #semGrid{font-family:var(--f-ui);font-size:19px}
+  :root[data-apparence="pixel"] #semGrid th,:root[data-apparence="pixel"] #semGrid td{background:var(--px-creme);border-right:2px dotted #e8c8ac;border-bottom:3px dotted #efcdb4}
+  :root[data-apparence="pixel"] #semGrid tbody tr:nth-child(even) td,:root[data-apparence="pixel"] #semGrid tbody tr:nth-child(even) th{background:#fbead6}
+  :root[data-apparence="pixel"] #semGrid thead th{font-family:var(--f-ui);font-size:18px;font-weight:400;line-height:.95;background:var(--px-creme);border-bottom:3px solid #3a2016}
+  :root[data-apparence="pixel"] #semGrid th small{font-size:16px;font-weight:400}
+  :root[data-apparence="pixel"] #semGrid th.dc{box-shadow:inset 0 6px 0 var(--dc),inset 0 9px 0 var(--px-creme)}
+  :root[data-apparence="pixel"] #semGrid .g-prod{font-size:21px;font-weight:400;line-height:1;border-right:3px solid #e2c8ac}
+  :root[data-apparence="pixel"] .g-prod small{font-size:16px;font-weight:400}
+  :root[data-apparence="pixel"] .g-in{font-family:var(--f-ui);font-size:21px;font-weight:400;padding:5px 4px;min-width:48px;line-height:1.1}
+  /* VT323 est plus étroite que DM Sans mais plus grande : largeurs en points, pour que la grille tienne sur 1366 points (T8). */
+  :root[data-apparence="pixel"] #semGrid .g-prod{min-width:136px;padding:6px 8px}
+  :root[data-apparence="pixel"] #semGrid td.g-reste{min-width:136px;padding:6px 6px}
+  :root[data-apparence="pixel"] #semGrid thead th{padding:6px 3px}
+  :root[data-apparence="pixel"] #semGrid td.g-stk{min-width:96px}
+  :root[data-apparence="pixel"] .g-x{padding:6px 4px}
+  :root[data-apparence="pixel"] .g-in:focus{outline:3px solid var(--px-rose-f);background:#fff}
+  :root[data-apparence="pixel"] .g-u,:root[data-apparence="pixel"] #semGrid select{font-family:var(--f-ui);font-size:17px;font-weight:400;border-radius:0;background:#f6e6d2;border-top:2px dotted #e8c8ac}
+  :root[data-apparence="pixel"] #semGrid .g-qui,:root[data-apparence="pixel"] #semGrid .g-por{font-size:15px;font-weight:400;border-top:2px dotted #e8c8ac}
+  :root[data-apparence="pixel"] #semGrid td.g-reste{font-size:17px;font-weight:400;line-height:1}
+  :root[data-apparence="pixel"] #semGrid td.g-reste.aplacer,:root[data-apparence="pixel"] #semGrid td.r-aplacer{background:#fde2b8;color:#9a4a00}
+  :root[data-apparence="pixel"] #semGrid td.g-reste.manque,:root[data-apparence="pixel"] #semGrid td.r-manque{background:#f8d0c4;color:#8a2a1e}
+  :root[data-apparence="pixel"] #semGrid td.g-reste.place,:root[data-apparence="pixel"] #semGrid td.r-place{background:#dcefd8;color:#2f6a3e}
+  :root[data-apparence="pixel"] #semGrid td.g-dispo{background:#f6e6d2}
+  :root[data-apparence="pixel"] #semGrid td.g-stk,:root[data-apparence="pixel"] #semGrid th.stk{background:#f6e6d2;border-right:3px dashed #c9a98c}
+  :root[data-apparence="pixel"] .g-rep input[type="checkbox"]{appearance:none;-webkit-appearance:none;width:16px;height:16px;margin:6px;background:#fff;border-radius:0;box-shadow:var(--px-cadre)}
+  :root[data-apparence="pixel"] .g-rep input[type="checkbox"]:checked{background:var(--px-rose) url(apparence/coche-pixel.svg) center/100% no-repeat;box-shadow:var(--px-marches-rose)}
+  :root[data-apparence="pixel"] .mini-px{width:32px;height:32px}
+  /* Récolte sur l'ordinateur : lignes compactes, poignée et tri au survol, comme en classique */
+  :root[data-apparence="pixel"] li.item{padding:2px 4px;column-gap:6px}
+  :root[data-apparence="pixel"] li.item .prod,:root[data-apparence="pixel"] li.item .qty{line-height:1}
+  /* Nom long : il passe à la ligne à droite du petit dessin, pas dessous, et la ligne reste compacte. */
+  :root[data-apparence="pixel"] li.item .prod{display:flex;align-items:center}
+  :root[data-apparence="pixel"] li.item .prod{font-size:21px}
+  :root[data-apparence="pixel"] li.item .qty{font-size:21px;white-space:nowrap}
+  :root[data-apparence="pixel"] li.item .qty small{font-size:17px;line-height:1}
+  :root[data-apparence="pixel"] li.item .box{width:26px;height:26px;border-radius:0}
+  :root[data-apparence="pixel"] li.item .box svg{width:20px;height:20px}
+  :root[data-apparence="pixel"] li.item .menu,:root[data-apparence="pixel"] li.item .more{width:28px;height:28px;border-radius:0}
+  :root[data-apparence="pixel"] #todo li.item:hover,:root[data-apparence="pixel"] #todo li.item.bouge{box-shadow:none;background:#fbe3ef}
+  :root[data-apparence="pixel"] #todo li.item .poignee{border-radius:0;color:#8a6a52}
+  :root[data-apparence="pixel"] #todo li.item .poignee:hover{background:#f6e6d2}
+  :root[data-apparence="pixel"] #todo li.item .bouger{gap:2px}
+  :root[data-apparence="pixel"] .bouger button{border:0;border-radius:0;background:var(--px-creme);color:var(--px-rose-f);margin:3px;width:26px;height:26px;box-shadow:0 -3px 0 #e2c8ac,0 3px 0 #e2c8ac,-3px 0 0 #e2c8ac,3px 0 0 #e2c8ac}
+  :root[data-apparence="pixel"] .bouger button:hover{background:var(--px-rose);color:#fff}
+  :root[data-apparence="pixel"] .bouger button:disabled{background:var(--px-creme);color:#c9b49a}
+}
+/* Impression : jamais de fond pixel art sur le papier */
+@media print{
+  :root[data-apparence="pixel"] body::before{display:none}
+  :root[data-apparence="pixel"] body{background:#fff}
+  /* Pas de contour de texte sur le papier : le PDF en ferait des lettres en double. */
+  :root[data-apparence="pixel"] #semPrint,:root[data-apparence="pixel"] #semPrint *{text-shadow:none}
+  :root[data-apparence="pixel"] #semPrint{line-height:1.45}
+  :root[data-apparence="pixel"] #semPrint h1{color:inherit;font-weight:300;line-height:1.15;letter-spacing:0}
+}
+/* PIXEL-ART-FIN */
 </style>
 </head>
 <body>
@@ -863,6 +1334,7 @@ button.notif-i{cursor:pointer}
       <button type="button" data-reg="debouches" aria-pressed="true">Débouchés</button>
       <button type="button" data-reg="recoltes" aria-pressed="false">Jours de récolte</button>
       <button type="button" data-reg="compte" aria-pressed="false" hidden>Compte</button>
+      <button type="button" data-reg="apparence" aria-pressed="false">Apparence</button>
     </div>
     <div class="chips" id="zones" aria-label="Zone"></div>
     <div class="chips" id="circs" aria-label="Circuit"></div>
@@ -1702,6 +2174,7 @@ function render(){
   document.querySelectorAll('#todo li.vient-coche').forEach(function(li){ li.style.setProperty('--h', li.scrollHeight + 'px'); });
   $('#done').innerHTML = done.filter(function(it){ return !enCoche(it.id); }).map(function(it){ return itemHtml(it, true); }).join('');
   $('#doneCount').textContent = done.length;
+  $('#todo').setAttribute('data-n', todo.length + ' produit' + (todo.length > 1 ? 's' : ''));   // titre « À récolter » du pixel art (écart 2), invisible en classique
   $('#annList').innerHTML = anns.map(function(it){ return itemHtml(it, false); }).join('');
   $('#annCount').textContent = anns.length;
   if(!anns.length) $('#annSec').hidden = true;
@@ -1715,10 +2188,11 @@ function render(){
   else if(histV) renderHisto();
 }
 function renderReglages(){
-  var rp = ui.regPage === 'recoltes' || (ui.regPage === 'compte' && CLE) ? ui.regPage : 'debouches';
+  var rp = ui.regPage === 'recoltes' || ui.regPage === 'apparence' || (ui.regPage === 'compte' && CLE) ? ui.regPage : 'debouches';
   $('#regSub button[data-reg="compte"]').hidden = !CLE;
   document.querySelectorAll('#regSub button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.reg === rp)); });
-  if(rp === 'compte') $('#debView').innerHTML = compteHtml();
+  if(rp === 'apparence') $('#debView').innerHTML = apparenceHtml();
+  else if(rp === 'compte') $('#debView').innerHTML = compteHtml();
   else if(!debVue()){ chargerRef(); $('#debView').innerHTML = '<p class="empty">Chargement…</p>'; } else { debConnecter(); renderDebouches(); }
 }
 
@@ -3344,6 +3818,47 @@ function miniHtml(nom){
   var e = especeDe(nom);
   return e ? '<svg class="mini" viewBox="0 0 100 100" aria-hidden="true" focusable="false"><use href="especes/' + (ESPECES_MODIFIEES.indexOf(e) >= 0 ? 'modifies' : 'plants') + '.svg#' + e + '"/></svg>' : '';
 }
+/* Apparence pixel art (étape 48, règle R10) : le même dessin d'Ouvre ta ferme, réduit sur l'appareil à une petite grille
+   (14 × 14 sur le téléphone, 16 × 16 sur l'ordinateur), sans demi-transparence, avec un contour brun d'un pixel, puis
+   agrandi 2 fois sans lissage. Calculé une seule fois par espèce et par taille, gardé le temps de la visite ; les fichiers
+   especes/*.svg ne sont ni modifiés ni recopiés. Si le calcul échoue, le dessin d'origine est gardé. */
+var MINI_PX = {}, MINI_DOCS = {}, MINI_VIDE = 'data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==';
+function miniPxFaire(f, e, n){
+  var k = e + '@' + n; MINI_PX[k] = '';
+  var doc = MINI_DOCS[f] || (MINI_DOCS[f] = fetch('especes/' + f + '.svg').then(function(r){ if(!r.ok) throw new Error('dessins'); return r.text(); })
+    .then(function(t){ return new DOMParser().parseFromString(t, 'image/svg+xml'); }));
+  doc.then(function(d){
+    var sym = d.getElementById(e); if(!sym) throw new Error('espece');
+    var defs = Array.prototype.map.call(d.querySelectorAll('defs'), function(x){ return x.outerHTML; }).join('');
+    var img = new Image();
+    img.src = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="' + (sym.getAttribute('viewBox') || '0 0 100 100') + '" width="' + n * 4 + '" height="' + n * 4 + '">' + defs + sym.innerHTML + '</svg>');
+    return img.decode().then(function(){
+      var c = document.createElement('canvas'); c.width = c.height = n;
+      var x = c.getContext('2d'); x.imageSmoothingQuality = 'high'; x.drawImage(img, 0, 0, n, n);
+      var dd = x.getImageData(0, 0, n, n), p = dd.data, i;
+      for(i = 0; i < p.length; i += 4){ var a = p[i + 3]; if(a < 110) p[i + 3] = 0; else { var m = 255 / a; p[i] = Math.min(255, p[i] * m); p[i + 1] = Math.min(255, p[i + 1] * m); p[i + 2] = Math.min(255, p[i + 2] * m); p[i + 3] = 255; } }
+      var o = new Uint8ClampedArray(p), on = function(X, Y){ return X >= 0 && Y >= 0 && X < n && Y < n && p[(Y * n + X) * 4 + 3] > 0; };
+      for(var Y = 0; Y < n; Y++) for(var X = 0; X < n; X++){ var j = (Y * n + X) * 4; if(!on(X, Y) && (on(X - 1, Y) || on(X + 1, Y) || on(X, Y - 1) || on(X, Y + 1))){ o[j] = 0x3a; o[j + 1] = 0x20; o[j + 2] = 0x16; o[j + 3] = 255; } }
+      x.putImageData(new ImageData(o, n, n), 0, 0);
+      MINI_PX[k] = c.toDataURL();
+      document.querySelectorAll('img.mini-px[data-e="' + e + '"][data-n="' + n + '"]').forEach(function(im){ im.src = MINI_PX[k]; });
+    });
+  }).catch(function(){
+    MINI_PX[k] = false;
+    document.querySelectorAll('img.mini-px[data-e="' + e + '"][data-n="' + n + '"]').forEach(function(im){ im.outerHTML = miniHtmlClassique(e); });
+  });
+}
+// En pixel art, miniHtml donne la miniature en pixels ; le code ci-dessus reste celui de magasin.html (tests/miniatures.cjs).
+var miniHtmlClassique = miniHtml;
+miniHtml = function(nom){
+  var e = especeDe(nom);
+  if(e && document.documentElement.getAttribute('data-apparence') === 'pixel'){
+    var f = ESPECES_MODIFIEES.indexOf(e) >= 0 ? 'modifies' : 'plants', n = PC.matches ? 16 : 14, k = e + '@' + n;
+    if(!(k in MINI_PX)) miniPxFaire(f, e, n);
+    if(MINI_PX[k] !== false) return '<img class="mini mini-px" data-e="' + e + '" data-n="' + n + '" src="' + (MINI_PX[k] || MINI_VIDE) + '" alt="" aria-hidden="true" width="' + 2 * n + '" height="' + 2 * n + '">';
+  }
+  return miniHtmlClassique(nom);
+};
 function contenu(f){ return f.kg ? {u:'kg', n:+f.kg} : (f.par_colis ? {u:'u', n:+f.par_colis} : null); }
 // Autres conditionnements possibles d'un produit (référentiel « autres_colis ») : leur unité est le code de leur
 // caisse (« CB » : caisse bleue). Seulement ceux dont le contenu est dans la même unité que le colis principal.
@@ -3970,6 +4485,8 @@ function imprimerSemaine(){
       (f && (f.masque.length || f.masqueD.length) ? 'le reste compte toutes les livraisons · ' : '') +
       'imprimé le ' + maintenant.toLocaleDateString('fr-FR', {weekday:'long', day:'numeric', month:'long'}) + ' à ' + maintenant.toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'})) + '</p>' +
     '<table class="imp-t">' + tableHtml(prods, calc, cr) + '</table>';
+  // Le papier garde les dessins d'origine, même en pixel art (étape 48, règle R13).
+  $('#semPrint').querySelectorAll('img.mini-px').forEach(function(im){ im.outerHTML = miniHtmlClassique(im.dataset.e); });
   window.print();
 }
 
@@ -5280,6 +5797,27 @@ function perdreCompte(msg){
   majStatut(); render();
   demanderCompte(apresConnexion);
 }
+/* Réglages → Apparence (étape 48, docs/CONTRAT_APPARENCE_PIXEL_ART.md) : effet immédiat, gardée sur l'appareil seulement
+   (recolte.apparence), jamais écrite dans la base. Toujours visible, même sans compte. Rien d'autre ne change. */
+function apparenceActuelle(){ return document.documentElement.getAttribute('data-apparence') === 'pixel' ? 'pixel' : 'classique'; }
+function apparenceHtml(){
+  var a = apparenceActuelle();
+  function bouton(v, nom){
+    return '<button type="button" class="app-b" data-apparence-choix="' + v + '" aria-pressed="' + (a === v) + '"><img src="apparence/vignette-' + v + '.png" alt="" width="150" height="90">' +
+      '<span><i class="app-coche" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg></i>' + nom + '</span></button>';
+  }
+  return '<section class="card app-page"><h2 class="db-h">Apparence de cet appareil</h2>' +
+    '<p class="app-aide">Ce choix ne vaut que pour cet appareil. Les autres gardent le leur.</p>' +
+    '<div class="app-choix" role="group" aria-label="Apparence de cet appareil">' + bouton('classique', 'Classique') + bouton('pixel', 'Pixel art') + '</div></section>';
+}
+function apparenceChoisir(a){ apparencePoser(a === 'pixel' ? 'pixel' : 'classique'); render(); }
+$('#debView').addEventListener('click', function(e){
+  var b = e.target.closest('[data-apparence-choix]'); if(!b) return;
+  var a = b.dataset.apparenceChoix === 'pixel' ? 'pixel' : 'classique';
+  ls('recolte.apparence', a); apparenceChoisir(a);
+});
+// Choix fait dans un autre onglet du même appareil : suivi ici aussi.
+addEventListener('storage', function(e){ if(e.key === 'recolte.apparence') apparenceChoisir(ls('recolte.apparence')); });
 function compteHtml(){
   if(!compte) return '<p class="empty">Pas connecté.</p>';
   var n = pending.length + sem.pending.length + (deb.pending ? 1 : 0) + (ordreH.pending ? 1 : 0);
