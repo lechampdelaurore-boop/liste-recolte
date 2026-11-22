@@ -580,6 +580,12 @@ body.large .wrap{max-width:1600px}
 #semGrid td.g-dispo{background:var(--surface2)}
 .g-qui{display:block;padding:2px 5px 3px;font-size:.7rem;line-height:1.15;font-weight:700;color:var(--muted);text-align:right;white-space:normal;border-top:1px solid var(--line)}
 #semTable .g-qui{border:0;padding:0;font-size:.68rem}
+/* Rappel de la semaine d'avant (22/11) : en haut à gauche de la case, sans gêner la saisie (un clic dessus tombe dans la
+   case) ; la case garde sa hauteur ; le rappel ne prend pas de hauteur, mais sa largeur élargit la colonne au besoin. */
+#semGrid td.g-rapc .g-in{padding-top:17px;padding-bottom:5px}
+.g-rap{display:block;position:relative;z-index:1;top:4px;height:0;overflow:visible;padding:0 5px;font-size:.7rem;line-height:1;font-weight:600;color:var(--muted);white-space:nowrap;pointer-events:none;text-align:left}
+#semGrid th .g-rap-t{font-weight:600;color:var(--muted);font-size:.72rem}
+.sr-rap{font-size:.85rem;font-weight:600;color:var(--muted)}
 #semGrid td.g-reste{padding:6px 9px;font-weight:700;min-width:11em;line-height:1.2;font-size:.9rem}
 #semGrid td.g-reste.place{background:var(--accent);color:#fff}
 #semGrid td.g-reste.aplacer{background:var(--attention)}
@@ -1060,7 +1066,7 @@ button.notif-i{cursor:pointer}
 :root[data-apparence="pixel"] .sp.e-place{border-left-color:#4f9a64} :root[data-apparence="pixel"] .sp.e-aplacer{border-left-color:#f0a040} :root[data-apparence="pixel"] .sp.e-manque{border-left-color:#c4503c}
 :root[data-apparence="pixel"] .sp-head{background:transparent}
 :root[data-apparence="pixel"] .sp-nom,:root[data-apparence="pixel"] .sr-nom{font-family:var(--f-ui);font-weight:400;font-size:23px;line-height:1.05}
-:root[data-apparence="pixel"] .sp-colis,:root[data-apparence="pixel"] .sp-resume,:root[data-apparence="pixel"] .sr-nom small,:root[data-apparence="pixel"] .sr-eq,:root[data-apparence="pixel"] .sp-by{font-family:var(--f-ui);font-weight:400;font-size:18px}
+:root[data-apparence="pixel"] .sp-colis,:root[data-apparence="pixel"] .sp-resume,:root[data-apparence="pixel"] .sr-nom small,:root[data-apparence="pixel"] .sr-eq,:root[data-apparence="pixel"] .sr-rap,:root[data-apparence="pixel"] .sp-by{font-family:var(--f-ui);font-weight:400;font-size:18px}
 :root[data-apparence="pixel"] .sp-body,:root[data-apparence="pixel"] .sr,:root[data-apparence="pixel"] .sr-opt,:root[data-apparence="pixel"] .sp-foot,:root[data-apparence="pixel"] .sr.total{border-top:2px dotted #efcdb4}
 :root[data-apparence="pixel"] .sr:first-child{border-top:0}
 :root[data-apparence="pixel"] .sr.dispo{background:#f6e6d2}
@@ -1249,6 +1255,9 @@ button.notif-i{cursor:pointer}
   :root[data-apparence="pixel"] .g-in:focus{outline:3px solid var(--px-rose-f);background:#fff}
   :root[data-apparence="pixel"] .g-u,:root[data-apparence="pixel"] #semGrid select{font-family:var(--f-ui);font-size:17px;font-weight:400;border-radius:0;background:#f6e6d2;border-top:2px dotted #e8c8ac}
   :root[data-apparence="pixel"] #semGrid .g-qui,:root[data-apparence="pixel"] #semGrid .g-por{font-size:15px;font-weight:400;border-top:2px dotted #e8c8ac}
+  :root[data-apparence="pixel"] #semGrid td.g-rapc .g-in{padding-top:15px;padding-bottom:1px}
+  :root[data-apparence="pixel"] #semGrid .g-rap{font-size:15px;font-weight:400;line-height:1;top:0;color:#7a5a48}
+  :root[data-apparence="pixel"] #semGrid th .g-rap-t{font-size:15px;font-weight:400;color:#7a5a48}
   :root[data-apparence="pixel"] #semGrid td.g-reste{font-size:17px;font-weight:400;line-height:1}
   :root[data-apparence="pixel"] #semGrid td.g-reste.aplacer,:root[data-apparence="pixel"] #semGrid td.r-aplacer{background:#fde2b8;color:#9a4a00}
   :root[data-apparence="pixel"] #semGrid td.g-reste.manque,:root[data-apparence="pixel"] #semGrid td.r-manque{background:#f8d0c4;color:#8a2a1e}
@@ -3120,6 +3129,48 @@ function stocks(){
   }); });
   return r;
 }
+/* Rappel de la semaine d'avant (demande de François du 22/11/2026) : dans la page « Répartir », chaque case d'une
+   livraison de Très Allier montre en petit, en haut à gauche, ce qu'on lui a mis la semaine d'avant (« S47 : 3 GB »),
+   avec l'unité (caisse, kg, bottes…). Réglage « rappel » de la fiche du débouché (Réglages), coché au départ pour
+   Très Allier seulement (referentiel/debouches.json) ; une fiche de la base qui ne l'a pas encore prend la valeur du
+   fichier de départ. Lecture seule : rien n'est écrit dans la semaine d'avant. */
+function rappelDe(did){
+  var d = debListe().filter(function(x){ return x.id === did; })[0];
+  if(d && typeof d.rappel === 'boolean') return d.rappel;
+  var d0 = tableau(DEB0 && DEB0.debouches).filter(function(x){ return x.id === did; })[0];
+  return !!(d0 && d0.rappel);
+}
+// La semaine d'avant (quantités, « tout », disponible, fiches des produits) : une lecture par semaine ouverte,
+// relue au plus toutes les 5 min ; la copie gardée sur l'appareil sert en attendant (et hors ligne).
+var rapPrec = {};
+function precCharger(w){
+  var x = rapPrec[w];
+  if(x && (x.etat === 'charge' || Date.now() - x.lu < 300000)) return;
+  var avant = decaler(w, -1), copie = ls('recolte.semaine.' + avant) || {}, cles = ['q', 'tout', 'dispo', 'produits'];
+  rapPrec[w] = {etat:'charge', lu:Date.now(), w:avant};
+  cles.forEach(function(k){ rapPrec[w][k] = (x && x[k]) || copie[k] || {}; });
+  var fini = function(v){
+    if(v){ var o = {etat:'ok', lu:Date.now(), w:avant}; cles.forEach(function(k, i){ o[k] = v[i] || {}; }); rapPrec[w] = o; } else rapPrec[w].etat = 'ok';
+    if(ui.view === 'semaine' && sem.id === w) render();
+  };
+  if(!dbPret()){ fini(null); return; }
+  Promise.all(cles.map(function(k){
+    return dbFetch('/listes/semaines/' + avant + '/' + k, {cache:'no-store'}).then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); });
+  })).then(fini, function(){ fini(null); });
+}
+// Ce qu'on a mis la semaine d'avant dans une livraison : « 3 GB », « 12 kg », « tout (2,5 GB) », ou '' si rien.
+function rappelTxt(pid, f, c){
+  var p = rapPrec[sem.id]; if(!p) return '';
+  var pf = p.produits[pid] && p.produits[pid].nom ? complet(pid, p.produits[pid]) : f, qs = p.q[pid] || {}, t = p.tout[pid];
+  if(t && t.c === c.id){
+    var d = p.dispo[pid] ? enColis(p.dispo[pid], pf) : NaN, somme = 0;
+    Object.keys(qs).forEach(function(k){ if(k !== c.id){ var x = enColis(qs[k], pf); if(!isNaN(x)) somme += x; } });
+    return 'tout' + (isNaN(d) ? '' : ' (' + qTxt(Math.max(0, d - somme), 'colis', pf) + ')');
+  }
+  var q = qs[c.id];
+  return q && typeof q.n === 'number' ? qTxt(q.n, q.u || 'colis', pf) : '';
+}
+function rappelEtiq(){ var p = rapPrec[sem.id]; return 'S' + numSem(p ? p.w : decaler(sem.id, -1)); }
 // Ordre des colonnes de la semaine : le stock d'un débouché se place juste avant sa première livraison
 // (« Stock Très Allier » puis « Très Allier mardi »), pour le voir au moment de remplir ses livraisons.
 // Un débouché sans livraison cette semaine garde son stock en tête, après le disponible.
@@ -3571,6 +3622,7 @@ function debouchesHtml(){
       couleurHtml(d, coul[d.id]) +
       '<label class="dj db-stock"><input type="checkbox" data-f="stock"' + (d.stock ? ' checked' : '') + '><span>Suivre son stock au magasin (une case « Stock » par produit dans la semaine)</span></label>' +
       '<label class="dj db-stock"><input type="checkbox" data-f="portions"' + (d.portions ? ' checked' : '') + '><span>Vendu en portions (un bouton « Portions » sur ses cases : 3 × 1 kg + 500 g)</span></label>' +
+      '<label class="dj db-stock"><input type="checkbox" data-f="rappel"' + (rappelDe(d.id) ? ' checked' : '') + '><span>Rappeler la semaine d\'avant (en petit, dans chaque case de ses livraisons de la page « Répartir »)</span></label>' +
       '<h3 class="db-h3">' + (lv.length > 1 ? lv.length + ' livraisons' : 'Livraison') + '</h3>' +
       lv.map(function(l){ return livraisonHtml(d, l, lv); }).join('') +
       '<div class="db-pied"><button type="button" class="sem-act" data-a="ajouterL">＋ Ajouter une livraison</button>' +
@@ -3774,6 +3826,7 @@ $('#debView').addEventListener('change', function(e){
     else if(f === 'note') d.note = val;
     else if(f === 'stock') d.stock = val;
     else if(f === 'portions') d.portions = val;
+    else if(f === 'rappel') d.rappel = val;
     else if(f === 'moment') l.moment = val;
     else if(f === 'lnom') l.nom = val;
     else if(f === 'court') l.court = val;
@@ -4100,6 +4153,7 @@ function renderSemaine(){
   }
   magSuivre();
   magAuto();
+  if(creneaux().some(function(c){ return rappelDe(c.circuit); })) precCharger(id);
   dcCache = couleurs();
   // Commandes à valider (étape 31) : au-dessus des pages ; une semaine plus ancienne que la dernière lecture est relue.
   var hc = cmdHtml(); $('#semCmd').innerHTML = hc; $('#semCmd').hidden = !hc;
@@ -4527,7 +4581,8 @@ function grilleHtml(prods, calc, cr){
   var cols = colonnes(cr.filter(visibleC), st);
   var h = '<thead><tr><th class="g-prod">Produit</th><th>Disponible</th>' +
     cols.map(function(o){ var c = o.c, x = o.s;
-      return x ? '<th class="stk dc"' + dc(x.id) + '>Stock ' + esc(x.nom) + '<small>au magasin, hors du reste</small></th>' : '<th class="dc"' + dc(c.circuit) + '>' + esc(c.nom) + (c.jour ? '<small>' + esc(c.jour) + '</small>' : '') + '</th>'; }).join('') + '<th>Reste</th>' +
+      return x ? '<th class="stk dc"' + dc(x.id) + '>Stock ' + esc(x.nom) + '<small>au magasin, hors du reste</small></th>' : '<th class="dc"' + dc(c.circuit) + '>' + esc(c.nom) + (c.jour ? '<small>' + esc(c.jour) + '</small>' : '') +
+        (rappelDe(c.circuit) ? '<small class="g-rap-t">en petit : semaine ' + esc(rappelEtiq().slice(1)) + '</small>' : '') + '</th>'; }).join('') + '<th>Reste</th>' +
     reports.map(function(c){ var a = cr.filter(function(x){ return x.id === c.reprend; })[0];
       return '<th class="rep dc"' + dc(c.circuit) + '>Reste ' + esc(a ? a.nom : c.reprend) + ' → ' + esc(c.nom) + '<small>proposé, hors du reste</small></th>'; }).join('') +
     '<th><span class="visually-hidden">Retirer</span></th></tr></thead><tbody>';
@@ -4542,9 +4597,12 @@ function grilleHtml(prods, calc, cr){
         h += '<td class="g-stk dc"' + dc(x.id) + '>' + caseHtml(pid, f, 'stock/' + x.id, qs, {aria:'Stock chez ' + x.nom + ', ' + f.nom, ph: av ? '(' + qCourt(av, f) + ')' : '', titre: av ? avantTxt(pid, f, x.id) : ''}) +
           (qs && qs.at ? '<span class="g-qui">' + esc(quiCourt(qs)) + '</span>' : '') + '</td>'; return;
       }
-      var tout = r.toutC === c.id;
-      h += '<td class="dc"' + dc(c.circuit) + '>' + caseHtml(pid, f, 'q/' + c.id, tout ? null : semLire('q/' + pid + '/' + c.id), {tout:tout, aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom,
-        titre: tout ? 'Tout ce qui reste' + (r.toutV !== null ? ' : ' + deux(r.toutV, f) : '') : ''}) + '</td>';
+      var tout = r.toutC === c.id, rap = rappelDe(c.circuit) ? rappelTxt(pid, f, c) : '', rapT = rap ? 'Semaine ' + rappelEtiq().slice(1) + ' : ' + rap : '';
+      var q0 = tout ? null : semLire('q/' + pid + '/' + c.id), cas = caseHtml(pid, f, 'q/' + c.id, q0, {tout:tout, aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom + (rapT ? ' (' + rapT + ')' : ''),
+        titre: (tout ? 'Tout ce qui reste' + (r.toutV !== null ? ' : ' + deux(r.toutV, f) : '') : '') || (rapT && !q0 ? rapT : '')});
+      if(rapT && q0) cas = cas.replace(/ title="([^"]*)"/, function(m, t){ return ' title="' + t + ' · ' + esc(rapT) + '"'; });
+      // Rappel de la semaine d'avant : en petit, en haut à gauche de la case (la colonne garde la même hauteur de ligne).
+      h += '<td class="dc' + (rappelDe(c.circuit) ? ' g-rapc' : '') + '"' + dc(c.circuit) + '>' + (rap ? '<span class="g-rap" aria-hidden="true">' + esc(rap) + '</span>' : '') + cas + '</td>';
     });
     var der = derniere(pid);
     h += '<td class="g-reste ' + r.etat + '" title="' + esc(der ? 'Dernière modification : ' + quiQuand(der) : '') + '">' + esc(etiquette(r, f)) + '</td>';
@@ -4567,6 +4625,7 @@ function ligneHtml(pid, f, k, nom, q, opts){
     '<div class="sr-top"><span class="sr-nom">' + nom + '</span>' + (opts.tout !== undefined ? '<span class="sr-btns">' +
       (opts.portions && !opts.tout ? '<button type="button" class="tout" data-a="portions" aria-pressed="' + !!(aPortions(q) || semPort[cle]) + '">Portions</button>' : '') +
       '<button type="button" class="tout" data-a="tout" aria-pressed="' + !!opts.tout + '">tout</button></span>' : '') + (opts.haut || '') + '</div>' + (opts.etiq || '');
+  if(opts.rappel) h += '<div class="sr-rap">' + esc(opts.rappel) + '</div>';
   if(opts.tout){
     h += '<div class="sr-toutv">Tout ce qui reste' + (opts.toutV !== null && opts.toutV !== undefined ? ' : ' + esc(deux(opts.toutV, f)) : '') + '</div>';
   } else {
@@ -4638,7 +4697,9 @@ function champHtml(pid, f, r, cr, k){
   }
   var nom = esc(c.nom) + (c.jour ? ' <small>' + esc(c.jour) + '</small>' : '');
   var q = semLire('q/' + pid + '/' + c.id), tout = r.toutC === c.id;
-  return ligneHtml(pid, f, k, nom, tout ? null : q, {tout:tout, toutV:r.toutV, dc:c.circuit, portions:!!c.portions || aPortions(q), aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom});
+  var rap = rappelDe(c.circuit) ? rappelTxt(pid, f, c) : '';
+  return ligneHtml(pid, f, k, nom, tout ? null : q, {tout:tout, toutV:r.toutV, dc:c.circuit, portions:!!c.portions || aPortions(q), aria:c.nom + ' ' + (c.jour || '') + ', ' + f.nom,
+    rappel: rap ? 'Semaine ' + rappelEtiq().slice(1) + ' : ' + rap : ''});
 }
 function resteHtml(f, r){ return '<div class="sr total"><span class="sr-nom">Reste</span><span class="reste ' + r.etat + '">' + esc(etiquette(r, f)) + '</span></div>'; }
 
