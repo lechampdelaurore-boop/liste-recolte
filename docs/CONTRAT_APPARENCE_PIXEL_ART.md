@@ -123,10 +123,10 @@ Les vrais téléphones (soleil, gants, iPhone), Firefox et Edge, l'écran de Fra
 
 Chaque point a été choisi par François sur une carte de décision, tous selon la recommandation.
 
-1. **Confirmé : le choix vaut pour un appareil** (pas pour une personne, ni pour toute la ferme), et chaque appli a le sien. Recommandation : oui. Raisons : Aurore et Martin gardent le classique s'ils veulent, rien n'est écrit dans la base, ça marche sans réseau.
+1. **Confirmé : le choix vaut pour un appareil** (pas pour une personne, ni pour toute la ferme), et chaque appli a le sien. Recommandation : oui. Raisons : Aurore et Martin peuvent garder le classique, rien n'est écrit dans la base, ça marche sans réseau.
 2. **Confirmé : l'image est à François** (« Elle est à moi : photo, dessin ou IA »), elle est publiée avec l'appli et `apparence/LISEZMOI.md` le dit. **L'image du fond** (la ferme japonaise au coucher du soleil, fournie par François) va dans un dépôt **public** : il faut savoir d'où elle vient. Recommandation : si François l'a faite lui-même (photo, dessin ou outil d'image), on la publie et `apparence/LISEZMOI.md` le dit ; si elle vient d'un site, on ne la publie pas et on en fait une autre avant le code.
 3. **Confirmé : la page du magasin reste en classique** pour cette étape. Recommandation : oui. Raisons : elle sert aux employés des magasins, elle n'a pas de Réglages, la maquette ne la montre pas ; on pourra l'habiller plus tard si François le demande.
-4. **Confirmé : l'ordre**, Farm tasks d'abord. recommandation, **Farm tasks d'abord**, puis le Cumul.
+4. **Confirmé : l'ordre, Farm tasks d'abord**, puis le Cumul. Raisons : la charte y est née, la page est deux fois plus courte que celle du Cumul ; on y règle le cadre, les polices et le hors ligne, puis on les reprend pour le Cumul.
 
 ---
 
