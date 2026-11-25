@@ -1,5 +1,9 @@
 # Historique des changements
 
+## 2026-11-25
+
+- **Céleri-branche au kilo en grande basse** (demande de François du 25/11 : « Ce sont des grandes basses, pas des grandes hautes »). `referentiel/conditionnements.json` : caisse GH → GB, toujours 5 kg, même nom (même identifiant dans la base) ; le céleri-branche en bouquet ne change pas. Les semaines déjà saisies gardent la caisse qu'elles ont enregistrée (rien écrit dans la base) ; une semaine nouvelle (« Ajouter un produit » ou « Reprendre ») prend la grande basse. Nouveau `tests/celeri-branche-gb.cjs` ; `tests/celeri-bouquet.cjs` suit le nouveau référentiel. `CACHE` recolte-v75.
+
 ## 2026-11-22
 
 - **Rappel de la semaine d'avant dans « Répartir »** (étape 49, demande de François du 22/11). `index.html` : dans les cases des livraisons Très Allier (mardi, jeudi), en petit en haut à gauche, la quantité de la semaine d'avant avec son unité (« 3 PH », « 12 kg », « 20 bottes », « tout (4 GH) ») ; titre de colonne « en petit : semaine N » ; sur le téléphone « Semaine N : 3 PH » sous le nom de la livraison. Réglage « Rappeler la semaine d'avant » dans la fiche du débouché ; `referentiel/debouches.json` : `rappel: true` pour Très Allier. Lecture seule de la semaine d'avant (au plus toutes les 5 min), règles inchangées. Apparence pixel art comprise. `sw.js` : `CACHE` recolte-v74. Nouveau test `tests/rappel-semaine.cjs`.
