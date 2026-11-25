@@ -150,7 +150,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   await P.click('[data-sem="repartir"]');
   await P.waitForSelector('#semGrid tr[data-pid="carotte-lavee"]');
   const menu = (pid, k) => P.$$eval(`#semGrid select[data-cell="${pid}|${k}"] option`, (e) => e.map((x) => x.textContent));
-  verifie((await menu('carotte-lavee', 'q/el')).join(',') === 'PH,CB,kg' && (await menu('bette', 'q/el')).join(',') === 'GH,kg', 'menu d\'unité : PH, CB, kg pour la carotte ; GH, kg pour la bette (inchangé)');
+  verifie((await menu('carotte-lavee', 'q/el')).join(',') === 'PH,CB,kg,unités' && (await menu('bette', 'q/el')).join(',') === 'GH,kg,unités', 'menu d\'unité : PH, CB, kg, unités pour la carotte ; GH, kg, unités pour la bette (unités au poids moyen depuis le 25/11)');
   verifie((await P.inputValue('#semGrid select[data-cell="carotte-lavee|q/ta-jeu"]')) === 'CB', 'la case Très Allier jeudi affiche CB');
   const cellule = '#semGrid input[data-cell="carotte-lavee|q/el"]';
   await P.fill(cellule, '2 caisses bleues');

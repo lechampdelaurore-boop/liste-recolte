@@ -1,5 +1,5 @@
 {
- "source": "Onglet « Liste produits » du cumul, envoyé par François le 03/11/2026 (capture). Poireau : 10 kg confirmé par François le 03/11/2026 (la ligne vide du cumul est un doublon). Persil frisé : colis de 10 bouquets donné par François le 04/11/2026 (commande Ferme Deschamps), passé à 6 bouquets par colis le 06/11/2026. Céleri-branche : caisse GH (grande haute) au lieu de GB, François le 06/11/2026. Colisage bois : François, 04/11/2026 ; Locavore passé en caisses plastiques comme Auvabio, François le 18/11/2026 ; Auvabio précisé en caisses plastiques dans ses réglages de départ, François le 18/11/2026. Persil frisé, persil plat et thym : conditionnés comme les aromatiques (petite basse, 6 bottes par colis), François le 09/11/2026 ; l'ancien « Persil frisé (bouquet) » est gardé pour les semaines déjà saisies mais n'est plus proposé (« masque ») ; « Reprendre la semaine précédente » le remplace par « Persil frisé » (« remplace_par »). Carotte lavée : toujours récoltée en caisse bleue de 16 kg (« recolte_en », compté dans les caisses à emporter), puis conditionnée au choix en petite haute de 8 kg ou en caisse bleue de 16 kg (« autres_colis »), François le 09/11/2026. Endive : ses caisses sont rangées là où on la récolte, donc jamais comptées dans les caisses à emporter (« caisses_sur_place »), François le 11/11/2026. Céleri-branche en bouquet : nouveau produit à côté du céleri-branche au kilo (inchangé), 10 bouquets par grande basse (GB) pour les débouchés en caisses plastiques, grand colis bois pour les débouchés en colis bois, François le 11/11/2026. Céleri-branche au kilo : repassé en grande basse (GB) au lieu de grande haute, François le 25/11/2026 (« Ce sont des grandes basses, pas des grandes hautes ») ; les semaines déjà saisies gardent la caisse qu'elles ont enregistrée.",
+ "source": "Onglet « Liste produits » du cumul, envoyé par François le 03/11/2026 (capture). Poireau : 10 kg confirmé par François le 03/11/2026 (la ligne vide du cumul est un doublon). Persil frisé : colis de 10 bouquets donné par François le 04/11/2026 (commande Ferme Deschamps), passé à 6 bouquets par colis le 06/11/2026. Céleri-branche : caisse GH (grande haute) au lieu de GB, François le 06/11/2026. Colisage bois : François, 04/11/2026 ; Locavore passé en caisses plastiques comme Auvabio, François le 18/11/2026 ; Auvabio précisé en caisses plastiques dans ses réglages de départ, François le 18/11/2026. Persil frisé, persil plat et thym : conditionnés comme les aromatiques (petite basse, 6 bottes par colis), François le 09/11/2026 ; l'ancien « Persil frisé (bouquet) » est gardé pour les semaines déjà saisies mais n'est plus proposé (« masque ») ; « Reprendre la semaine précédente » le remplace par « Persil frisé » (« remplace_par »). Carotte lavée : toujours récoltée en caisse bleue de 16 kg (« recolte_en », compté dans les caisses à emporter), puis conditionnée au choix en petite haute de 8 kg ou en caisse bleue de 16 kg (« autres_colis »), François le 09/11/2026. Endive : ses caisses sont rangées là où on la récolte, donc jamais comptées dans les caisses à emporter (« caisses_sur_place »), François le 11/11/2026. Céleri-branche en bouquet : nouveau produit à côté du céleri-branche au kilo (inchangé), 10 bouquets par grande basse (GB) pour les débouchés en caisses plastiques, grand colis bois pour les débouchés en colis bois, François le 11/11/2026. Céleri-branche au kilo : repassé en grande basse (GB) au lieu de grande haute, François le 25/11/2026 (« Ce sont des grandes basses, pas des grandes hautes ») ; les semaines déjà saisies gardent la caisse qu'elles ont enregistrée. Poids moyen d'une unité (« poids_unite », en kg) : pour compter en unités les légumes au kilo qui se comptent, choix de François le 25/11/2026 (« poids moyen d'une unité », trouvés sur Internet par Claude, sans pesée) ; sources légume par légume dans docs/POIDS_UNITES.md.",
  "caisses": {
   "PB": "petite basse",
   "PH": "petite haute",
@@ -24,7 +24,8 @@
    "produit": "Ail sec",
    "caisse": "PH",
    "unite": "5 kg",
-   "kg": 5.0
+   "kg": 5.0,
+   "poids_unite": 0.08
   },
   {
    "produit": "Aillet",
@@ -44,13 +45,15 @@
    "produit": "Aubergine Violette",
    "caisse": "GB",
    "unite": "7 kg",
-   "kg": 7.0
+   "kg": 7.0,
+   "poids_unite": 0.4
   },
   {
    "produit": "Bette",
    "caisse": "GH",
    "unite": "5 kg",
-   "kg": 5.0
+   "kg": 5.0,
+   "poids_unite": 1.3
   },
   {
    "produit": "Bette mini (pied)",
@@ -69,7 +72,8 @@
    "produit": "Betterave Rouge",
    "caisse": "PH",
    "unite": "7 kg",
-   "kg": 7.0
+   "kg": 7.0,
+   "poids_unite": 0.2
   },
   {
    "produit": "Betterave Rouge (botte)",
@@ -106,13 +110,15 @@
    "recolte_en": {
     "caisse": "CB",
     "kg": 16.0
-   }
+   },
+   "poids_unite": 0.125
   },
   {
    "produit": "Céleri-branche",
    "caisse": "GB",
    "unite": "5 kg",
-   "kg": 5.0
+   "kg": 5.0,
+   "poids_unite": 0.65
   },
   {
    "produit": "Céleri-branche en bouquet",
@@ -125,31 +131,36 @@
    "produit": "Céleri-rave",
    "caisse": "PH",
    "unite": "5 kg",
-   "kg": 5.0
+   "kg": 5.0,
+   "poids_unite": 1.0
   },
   {
    "produit": "Chou brocoli",
    "caisse": "GH",
    "unite": "7 kg",
-   "kg": 7.0
+   "kg": 7.0,
+   "poids_unite": 0.65
   },
   {
    "produit": "Chou chinois",
    "caisse": "GH",
    "unite": "7 kg",
-   "kg": 7.0
+   "kg": 7.0,
+   "poids_unite": 1.3
   },
   {
    "produit": "Chou fleur",
    "caisse": "GH",
    "unite": "7 kg",
-   "kg": 7.0
+   "kg": 7.0,
+   "poids_unite": 1.5
   },
   {
    "produit": "Chou Frisé",
    "caisse": "GH",
    "unite": "6 kg",
-   "kg": 6.0
+   "kg": 6.0,
+   "poids_unite": 1.3
   },
   {
    "produit": "Chou Kale",
@@ -161,43 +172,50 @@
    "produit": "Chou Pointu",
    "caisse": "GH",
    "unite": "10 kg",
-   "kg": 10.0
+   "kg": 10.0,
+   "poids_unite": 0.9
   },
   {
    "produit": "Chou romanesco",
    "caisse": "GH",
    "unite": "7 kg",
-   "kg": 7.0
+   "kg": 7.0,
+   "poids_unite": 0.55
   },
   {
    "produit": "Chou Rouge",
    "caisse": "GH",
    "unite": "10 kg",
-   "kg": 10.0
+   "kg": 10.0,
+   "poids_unite": 1.4
   },
   {
    "produit": "Chou Vert",
    "caisse": "GH",
    "unite": "10 kg",
-   "kg": 10.0
+   "kg": 10.0,
+   "poids_unite": 1.5
   },
   {
    "produit": "Chou-rave vert (Colrave)",
    "caisse": "PH",
    "unite": "5 kg",
-   "kg": 5.0
+   "kg": 5.0,
+   "poids_unite": 0.385
   },
   {
    "produit": "Chou-rave violet (Colrave)",
    "caisse": "PH",
    "unite": "5 kg",
-   "kg": 5.0
+   "kg": 5.0,
+   "poids_unite": 0.385
   },
   {
    "produit": "Concombre Court Epineux",
    "caisse": "PH",
    "unite": "5 kg",
-   "kg": 5.0
+   "kg": 5.0,
+   "poids_unite": 0.2
   },
   {
    "produit": "Concombre Long Lisse",
@@ -210,32 +228,37 @@
    "produit": "Courge Butternut",
    "caisse": "GH",
    "unite": "10 kg",
-   "kg": 10.0
+   "kg": 10.0,
+   "poids_unite": 1.0
   },
   {
    "produit": "Courge Potimarron",
    "caisse": "GH",
    "unite": "10 kg",
-   "kg": 10.0
+   "kg": 10.0,
+   "poids_unite": 1.0
   },
   {
    "produit": "Courgette Verte cal 14/25",
    "caisse": "PH",
    "unite": "7 kg",
-   "kg": 7.0
+   "kg": 7.0,
+   "poids_unite": 0.2
   },
   {
    "produit": "Courgette Verte cal 30/40",
    "caisse": "GB",
    "unite": "7 kg",
-   "kg": 7.0
+   "kg": 7.0,
+   "poids_unite": 0.4
   },
   {
    "produit": "Endive",
    "caisse": "PH",
    "unite": "5 kg",
    "kg": 5.0,
-   "caisses_sur_place": true
+   "caisses_sur_place": true,
+   "poids_unite": 0.15
   },
   {
    "produit": "Epinard (feuille)",
@@ -247,7 +270,8 @@
    "produit": "Fenouil",
    "caisse": "PH",
    "unite": "5 kg",
-   "kg": 5.0
+   "kg": 5.0,
+   "poids_unite": 0.4
   },
   {
    "produit": "Fève",
@@ -271,7 +295,8 @@
    "produit": "Melon Charentais",
    "caisse": "GH",
    "unite": "12 kg",
-   "kg": 12.0
+   "kg": 12.0,
+   "poids_unite": 0.7
   },
   {
    "produit": "Mesclun",
@@ -283,7 +308,8 @@
    "produit": "Navet violet",
    "caisse": "PH",
    "unite": "5 kg",
-   "kg": 5.0
+   "kg": 5.0,
+   "poids_unite": 0.2
   },
   {
    "produit": "Navet (botte)",
@@ -310,25 +336,29 @@
    "produit": "Oignon blanc demi-sec",
    "caisse": "PH",
    "unite": "7 kg",
-   "kg": 7.0
+   "kg": 7.0,
+   "poids_unite": 0.1
   },
   {
    "produit": "Panais",
    "caisse": "PH",
    "unite": "5 kg",
-   "kg": 5.0
+   "kg": 5.0,
+   "poids_unite": 0.2
   },
   {
    "produit": "Pastèque",
    "caisse": "GH",
    "unite": "12 kg",
-   "kg": 12.0
+   "kg": 12.0,
+   "poids_unite": 2.5
   },
   {
    "produit": "Patate douce",
    "caisse": "PH",
    "unite": "6 kg",
-   "kg": 6.0
+   "kg": 6.0,
+   "poids_unite": 0.45
   },
   {
    "produit": "Persil frisé",
@@ -369,7 +399,8 @@
    "produit": "Poireau",
    "caisse": "GH",
    "unite": "10 kg",
-   "kg": 10.0
+   "kg": 10.0,
+   "poids_unite": 0.2
   },
   {
    "produit": "Rabiole",
@@ -401,7 +432,8 @@
    "produit": "Rhubarbe",
    "caisse": "GB",
    "unite": "7 kg",
-   "kg": 7.0
+   "kg": 7.0,
+   "poids_unite": 0.08
   },
   {
    "produit": "Roquette",
@@ -413,7 +445,8 @@
    "produit": "Rutabaga",
    "caisse": "PH",
    "unite": "5 kg",
-   "kg": 5.0
+   "kg": 5.0,
+   "poids_unite": 0.4
   },
   {
    "produit": "Salade Batavia Carmen (170g+)",
@@ -517,7 +550,8 @@
    "produit": "Tomate Ancienne Population Mélange",
    "caisse": "GB",
    "unite": "6 kg",
-   "kg": 6.0
+   "kg": 6.0,
+   "poids_unite": 0.25
   },
   {
    "produit": "Tomate Cerise",
@@ -529,7 +563,8 @@
    "produit": "Tomate Ronde Rouge",
    "caisse": "PH",
    "unite": "5 kg",
-   "kg": 5.0
+   "kg": 5.0,
+   "poids_unite": 0.15
   }
  ]
 }

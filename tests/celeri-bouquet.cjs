@@ -49,7 +49,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   verifie(bq.length === 1 && bq[0].caisse === 'GB' && bq[0].par_colis === 10 && bq[0].type === 'bouquet' && bq[0].unite === 'Bouquet (x10)' && !bq[0].masque && !bq[0].kg,
     'référentiel : « Céleri-branche en bouquet », une seule fiche, GB de 10 bouquets (' + JSON.stringify(bq[0]) + ')');
   const cb = REF.produits.filter((p) => p.produit === 'Céleri-branche');
-  verifie(cb.length === 1 && JSON.stringify(cb[0]) === JSON.stringify({ produit: 'Céleri-branche', caisse: 'GB', unite: '5 kg', kg: 5 }), 'référentiel : le céleri-branche au kilo garde son nom et ses 5 kg (en GB depuis le 25/11, voir tests/celeri-branche-gb.cjs)');
+  verifie(cb.length === 1 && JSON.stringify(cb[0]) === JSON.stringify({ produit: 'Céleri-branche', caisse: 'GB', unite: '5 kg', kg: 5, poids_unite: 0.65 }), 'référentiel : le céleri-branche au kilo garde son nom et ses 5 kg (en GB depuis le 25/11, voir tests/celeri-branche-gb.cjs)');
   verifie(REF.colisages.bois.GB === 'Grand colis bois', 'colisage bois : GB → grand colis bois');
 
   const site = await serveurSite();

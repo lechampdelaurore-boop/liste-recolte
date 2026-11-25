@@ -1403,7 +1403,7 @@ button.notif-i{cursor:pointer}
     </div>
     <p class="crate-note crate-place" id="cratePlace" hidden></p>
     <label class="crate-opt"><input type="checkbox" id="perCirc" checked> <span>Une caisse par circuit (un demi-colis pour Très Allier et un pour le marché = 2 caisses). Décoché : les demi-colis d'un même produit sont regroupés.</span></label>
-    <p class="crate-note">Une caisse par colis, d'après le code du cumul (PB, PH, GB, GH). Des kilos hors colis (« 1 colis + 5 kg ») prennent une caisse de plus. Les sachets Locavore, les bottes, les pièces et les tomates ne sont pas comptés. Un produit récolté dans sa propre caisse (par exemple la carotte lavée, en caisse bleue de 16 kg) est compté dans cette caisse, d'après son poids total, tous circuits ensemble. Un produit dont les caisses sont déjà là où on le récolte (par exemple les endives) n'est pas compté.</p>
+    <p class="crate-note">Une caisse par colis, d'après le code du cumul (PB, PH, GB, GH). Des kilos hors colis (« 1 colis + 5 kg ») prennent une caisse de plus. Des unités comptées au poids moyen (« 3 unités » de céleri-branche) prennent leur poids en kilos. Les sachets Locavore, les bottes, les pièces et les tomates ne sont pas comptés. Un produit récolté dans sa propre caisse (par exemple la carotte lavée, en caisse bleue de 16 kg) est compté dans cette caisse, d'après son poids total, tous circuits ensemble. Un produit dont les caisses sont déjà là où on le récolte (par exemple les endives) n'est pas compté.</p>
     <p class="crate-note" id="crateAlt" hidden></p>
   </details>
 
@@ -2013,6 +2013,8 @@ function circLabel(ci, v, it, short){
 function content(v, it){
   var m = /^([\d,.]+) (.+)$/.exec(it.condit || ''), a = typeof v === 'string' && autreDeTxt(it, v);
   if(a && m) return fr(Math.round(a.n * a.c * 10) / 10) + ' ' + m[2];
+  var ku = typeof v === 'string' ? unitesKg(it, v) : -1;          // « 3 unités » au poids moyen → « 1,95 kg »
+  if(ku >= 0) return fr(Math.round(ku * 100) / 100) + ' kg';
   return m && typeof v === 'number' ? fr(Math.round(v * parseFloat(m[1].replace(',', '.')) * 10) / 10) + ' ' + m[2] : '';
 }
 /* Autres conditionnements d'un produit (référentiel « autres_colis », ex. carotte lavée en caisse bleue de 16 kg au
@@ -2038,6 +2040,7 @@ function contenuDe(it, v){
   var m = /^([\d,.]+) (.+)$/.exec(it.condit || ''), c = m ? parseFloat(m[1].replace(',', '.')) : 0;
   if(typeof v === 'number') return v * c;
   var a = autreDeTxt(it, v); if(a) return a.n * a.c;
+  var ku = unitesKg(it, v); if(ku >= 0 && m && m[2] === 'kg') return ku;
   var k = /^\s*([\d,.]+)\s*(\S+)\s*$/.exec(String(v)); if(!k || !m) return 0;
   return (k[2] === m[2] || (m[2] === 'kg' && k[2] === 'kg')) ? parseFloat(k[1].replace(',', '.')) : 0;
 }
@@ -2056,11 +2059,16 @@ function qtyHtml(it){
 // Quantité d'un circuit en colis. Un nombre = des colis. Des kilos seuls hors colis (« 5 kg ») prennent
 // une caisse de plus : en part de colis si le colis est en kg (5 kg dans un colis de 6 kg = 5/6), sinon 1.
 // Les autres textes (sachets, bottes, pièces, « tout ») ne sont pas comptés.
+// « 3 unités » d'un produit au kilo compté au poids moyen (ligne « pu ») : leur poids en kilos ; sinon -1.
+function unitesKg(it, v){
+  var m = it && +it.pu > 0 ? /^\s*([\d,.]+)\s+unit[ée]s?\s*$/i.exec(String(v)) : null;
+  return m ? parseFloat(m[1].replace(',', '.')) * it.pu : -1;
+}
 function colisOf(it, v){
   if(typeof v === 'number') return v;
-  var m = /^\s*([\d,.]+)\s*(kg|g)\s*$/i.exec(String(v));
-  if(!m) return 0;
-  var kg = parseFloat(m[1].replace(',', '.')) / (m[2].toLowerCase() === 'g' ? 1000 : 1);
+  var m = /^\s*([\d,.]+)\s*(kg|g)\s*$/i.exec(String(v)), ku = unitesKg(it, v);
+  if(!m && ku < 0) return 0;
+  var kg = m ? parseFloat(m[1].replace(',', '.')) / (m[2].toLowerCase() === 'g' ? 1000 : 1) : ku;
   var c = /^([\d,.]+) kg$/.exec(it.condit || '');
   return c ? kg / parseFloat(c[1].replace(',', '.')) : 1;
 }
@@ -3951,7 +3959,17 @@ function autresDe(f){
 }
 function autreDe(f, u){ return autresDe(f).filter(function(a){ return a.caisse === u; })[0] || null; }
 function contenuAutre(a){ return +(a.kg || a.par_colis); }
-function unitesDe(f){ var c = contenu(f); return ['colis'].concat(autresDe(f).map(function(a){ return a.caisse; }), c ? [c.u] : []); }
+// Unités au poids moyen (25/11/2026, demande de François) : un produit au kilo dont le référentiel donne le poids
+// moyen d'une unité (« poids_unite », en kg) se compte aussi en unités ; 3 unités de 0,65 kg = 1,95 kg, converties
+// en colis comme les kilos. Le stock (page du magasin) reste en colis ou en kilos.
+function poidsUnite(f){ var c = contenu(f), p = f ? +f.poids_unite : 0; return c && c.u === 'kg' && p > 0 ? p : 0; }
+function unitesDe(f, k){
+  var c = contenu(f), l = ['colis'].concat(autresDe(f).map(function(a){ return a.caisse; }), c ? [c.u] : []);
+  if(poidsUnite(f) && !(k && k.indexOf('stock/') === 0)) l.push('u');
+  return l;
+}
+// Unités d'une case : une case en portions (« 3 × 1 kg + 500 g ») ne passe pas en unités, son détail est en kilos.
+function unitesCase(f, k, q){ var l = unitesDe(f, k); return aPortions(q) && (q.u || 'colis') !== 'u' ? l.filter(function(x){ return x !== 'u'; }) : l; }
 // Le colis d'un produit porte le nom de sa caisse (PB, PH, GB, GH) : « 10 PB » = 10 petites basses.
 // Les noms viennent du référentiel (« caisses ») une fois chargé.
 var NOMS_CAISSES = {PB:'petite basse', PH:'petite haute', GB:'grande basse', GH:'grande haute'};
@@ -3961,10 +3979,14 @@ function nomsCaisses(){ if(REF && REF.caisses) Object.keys(REF.caisses).forEach(
 function complet(pid, f){
   if(!f) return f;
   var r = refDe(pid);
-  if(!r || (f.autres_colis !== undefined && f.recolte_en !== undefined)) return f;
+  if(!r || (f.autres_colis !== undefined && f.recolte_en !== undefined && f.poids_unite !== undefined)) return f;
   var o = Object.assign({}, f);
   if(o.autres_colis === undefined && r.autres_colis && r.caisse === o.caisse) o.autres_colis = r.autres_colis;
   if(o.recolte_en === undefined && r.recolte_en) o.recolte_en = r.recolte_en;
+  // Poids moyen d'une unité : toujours celui du référentiel, jamais recopié dans la semaine (corrigé, il vaut pour
+  // toutes les semaines). Valeurs de départ : la future section « Produits » des Réglages (fiche du produit dans la
+  // base, décision de François du 25/11) prendra le relais ici, via refDe().
+  if(r.poids_unite && o.kg) o.poids_unite = r.poids_unite;
   return o;
 }
 function nomUnite(u, f, n){
@@ -3979,12 +4001,14 @@ function enColis(q, f){
   if(q.u === 'colis' || !q.u) return q.n;
   var c = contenu(f), a = autreDe(f, q.u);
   if(a) return q.n * contenuAutre(a) / c.n;
+  if(q.u === 'u' && poidsUnite(f)) return q.n * poidsUnite(f) / c.n;
   return c && c.u === q.u ? q.n / c.n : NaN;
 }
 function deColis(x, u, f){
   if(u === 'colis') return x;
   var c = contenu(f), a = autreDe(f, u);
   if(a) return x * c.n / contenuAutre(a);
+  if(u === 'u' && poidsUnite(f)) return x * c.n / poidsUnite(f);
   return c ? x * c.n : NaN;
 }
 function nb(x){
@@ -4001,6 +4025,7 @@ function deux(x, f){
 function equiv(q, f){
   var x = enColis(q, f); if(isNaN(x)) return '';
   if(q.u === 'colis' || autreDe(f, q.u)){ var c = contenu(f); return c ? '= ' + qTxt(deColis(x, c.u, f), c.u, f) : ''; }
+  if(q.u === 'u' && poidsUnite(f)) return '= ' + qTxt(deColis(x, 'kg', f), 'kg', f) + ' (' + nb(x) + ' ' + nomUnite('colis', f) + ')';
   return '= ' + nb(x) + ' ' + nomUnite('colis', f);
 }
 function sansAccent(s){ return s.normalize('NFD').replace(/[̀-ͯ]/g, ''); }
@@ -4027,7 +4052,7 @@ function lireSaisie(txt, f, defU){
   else if(/^(g|gr|grammes?)$/.test(w)){ u = 'kg'; n = n / 1000; }
   else if(/^(u|unites?)$/.test(w) || (f.type && w.length >= 3 && sansAccent(f.type).indexOf(w.replace(/s$/, '').slice(0, 5)) === 0)) u = 'u';
   else return {err:'Unité inconnue : « ' + m[2] + ' ». ' + aideUnites(f)};
-  if(u !== 'colis' && !autreDe(f, u) && (!c || c.u !== u)) return {err:aideUnites(f)};
+  if(u !== 'colis' && !autreDe(f, u) && (!c || c.u !== u) && !(u === 'u' && poidsUnite(f))) return {err:aideUnites(f)};
   return {n:Math.round(n * 1000) / 1000, u:u};
 }
 /* Portions (18/11/2026, demande de François pour Locavore : « 3,5 kg de patates douces, c'était 3 commandes de 1 kg
@@ -4074,7 +4099,7 @@ function caissesTxt(f){
     .map(function(k){ return k + (NOMS_CAISSES[k] ? ' (' + NOMS_CAISSES[k] + ')' : ''); });
   return l.length ? l.join(' ou ') : 'colis';
 }
-function aideUnites(f){ var c = contenu(f); return 'Ce produit se compte en ' + caissesTxt(f) + (c ? ' ou en ' + nomUnite(c.u, f, 2) : '') + '.'; }
+function aideUnites(f){ var c = contenu(f); return 'Ce produit se compte en ' + caissesTxt(f) + (c ? (poidsUnite(f) ? ', en ' : ' ou en ') + nomUnite(c.u, f, 2) : '') + (poidsUnite(f) ? ' ou en unités' : '') + '.'; }
 function pas(u){ return u === 'kg' || u === 'u' ? 1 : 0.5; }
 
 // Calcul d'une ligne : reste = disponible − tout ce qui est réparti. « tout » prend ce qui reste.
@@ -4580,7 +4605,7 @@ function caseHtml(pid, f, k, q, opts){
   var val = opts.tout ? 'tout' : (q ? nb(q.n) : '');
   var por = !opts.tout && k.indexOf('q/') === 0 && aPortions(q);
   var titre = opts.titre || (q ? [qTxt(q.n, u, f), por ? 'portions : ' + portionsTxt(q.p, f) : '', equiv(q, f), quiQuand(q)].filter(Boolean).join(' · ') : '');
-  var us = unitesDe(f);
+  var us = unitesCase(f, k, q);
   return '<input type="text" class="g-in' + (semErr[cle] ? ' err' : '') + (opts.auto ? ' auto' : '') + (opts.tout ? ' tout' : '') + '" data-cell="' + esc(cle) + '" data-pid="' + esc(pid) + '" data-k="' + esc(k) + '"' +
     ' value="' + esc(val) + '"' + (opts.ph ? ' placeholder="' + esc(opts.ph) + '"' : '') + ' title="' + esc(titre) + '" aria-label="' + esc(opts.aria || '') + '" autocomplete="off" spellcheck="false">' +
     (opts.tout ? '' : '<select class="g-u" data-a="unite-g" data-cell="' + esc(cle) + '" data-pid="' + esc(pid) + '" data-k="' + esc(k) + '" tabindex="-1"' + (us.length < 2 ? ' disabled' : '') +
@@ -4642,7 +4667,7 @@ function ligneHtml(pid, f, k, nom, q, opts){
   if(opts.tout){
     h += '<div class="sr-toutv">Tout ce qui reste' + (opts.toutV !== null && opts.toutV !== undefined ? ' : ' + esc(deux(opts.toutV, f)) : '') + '</div>';
   } else {
-    var unites = unitesDe(f), por = opts.portions && aPortions(q), saisiePor = opts.portions && (por || semPort[cle]);
+    var unites = unitesCase(f, k, q), por = opts.portions && aPortions(q), saisiePor = opts.portions && (por || semPort[cle]);
     // Portions : clavier complet (+ et ×), le détail dans la case ; − et + n'ont plus de sens (quelle portion ?).
     h += '<div class="sr-ctl' + (saisiePor ? ' por' : '') + '"><button type="button" data-a="moins" aria-label="Moins"' + (por ? ' disabled' : '') + '>−</button>' +
       '<input type="text" inputmode="' + (saisiePor ? 'text' : 'decimal') + '" enterkeyhint="done" value="' + (por ? esc(portionsTxt(q.p, f)) : q && !saisiePor ? esc(nb(q.n)) : '') + '" placeholder="' + (saisiePor ? '3 × 1 kg + 500 g' : (opts.ph || '')) + '" aria-label="' + esc((opts.aria || '') + (saisiePor ? ', portions' : '')) + '">' +
@@ -4871,7 +4896,7 @@ $('#semView').addEventListener('click', function(e){
   }
   var q = valeurCase(pid, f, k), u = q ? (q.u || 'colis') : (semUnite[cle] || uniteParDefaut(pid, f));
   if(a === 'unite'){
-    var us = unitesDe(f), u2 = us[(us.indexOf(u) + 1) % us.length];
+    var us = unitesCase(f, k, q), u2 = us[(us.indexOf(u) + 1) % us.length];
     if(!q || (k.indexOf('report/') === 0 && !semLire(cible(pid, k)))){ semUnite[cle] = u2; render(); return; }
     var n2 = deColis(enColis(q, f), u2, f);
     avecNom(function(){ poser(pid, k, signe(avecPortions({n:Math.round(n2 * 100) / 100, u:u2}, q))); });
@@ -4925,6 +4950,7 @@ $('#semView').addEventListener('change', function(e){
   var slot = k.indexOf('q/') === 0 ? k.split('/')[1] : null, t = semLire('tout/' + pid);
   var v = estPortions(inp.value) ? (slot ? lirePortions(inp.value, f, u) : {err:'Les portions se notent seulement dans une livraison.'}) : lireSaisie(inp.value, f, u);
   if(v.tout && !slot) v = {err:'« tout » se met seulement dans un créneau de vente.'};
+  if(!v.err && v.u === 'u' && poidsUnite(f) && k.indexOf('stock/') === 0) v = {err:'Le stock se note en ' + caissesTxt(f) + ' ou en kg.'};
   if(v.err){ semErr[cle] = v.err; if(grille) plusTard(render); else semAttente = true; return; }
   delete semErr[cle];
   avecNom(function(){ plusTard(function(){
@@ -5112,7 +5138,9 @@ function ligneCalculee(pid, f, circ){
   Object.keys(aut).forEach(function(k){ var x = arrondi(aut[k]); if(x > EPS) tot.push(nb(x) + ' ' + k); });
   if(kg > EPS) tot.push(nb(kg) + ' kg');
   if(u > EPS) tot.push(qTxt(u, 'u', f));
-  var kgT = kg, uT = u, cont = [];
+  var kgT = kg, uT = u, cont = [], pu = poidsUnite(f);
+  // Unités au poids moyen : comptées en kilos dans le contenu ; la ligne garde le poids pour les caisses.
+  if(pu && u > EPS){ kgT += u * pu; uT = 0; }
   if(c && c.u === 'kg') kgT += colis * c.n; else if(c && c.u === 'u') uT += colis * c.n;
   Object.keys(aut).forEach(function(k){ var x = aut[k] * contenuAutre(autreDe(f, k)); if(c.u === 'kg') kgT += x; else uT += x; });
   if(kgT > EPS) cont.push(nb(arrondi(kgT)) + ' kg');
@@ -5121,6 +5149,7 @@ function ligneCalculee(pid, f, circ){
   var o = {id:pid, produit:f.nom, caisse:f.caisse || null, condit:c ? qTxt(c.n, c.u, f) : (f.unite || ''), circ:circ,
     total: tot.length ? tot.join(' + ') + (tout ? ' + tout le reste' : '') : (tout ? 'tout ce qu\'il y a' : ''),
     kg: cont.length ? cont.join(' + ') : (tout ? 'tout' : '')};
+  if(pu) o.pu = pu;
   // Autres conditionnements et caisse de récolte : portés par la ligne (et donc par la liste figée).
   if(autres.length) o.autres = autres.map(function(x){ var y = {caisse:x.caisse}; if(x.kg) y.kg = +x.kg; else y.par_colis = +x.par_colis; return y; });
   var rec = f.recolte_en;
