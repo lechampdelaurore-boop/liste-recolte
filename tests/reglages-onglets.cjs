@@ -1,7 +1,9 @@
 // Onglets des Réglages du Cumul (22/11/2026, demande de François : sur le téléphone, en apparence classique, les quatre
 // pages des Réglages étaient des ronds d'où le texte débordait). Classique : quatre tuiles avec une icône au trait, 2 × 2 sur
 // le téléphone, sur une ligne sur l'ordinateur, jamais de texte coupé (même en grand texte) ; pixel art inchangé (icônes
-// cachées, tailles d'avant). Faux Firebase, sans compte. Lancement depuis la racine du dépôt : node tests/reglages-onglets.cjs
+// cachées, tailles d'avant). 25/11/2026 (étape 50) : une 5e page, « Produits » ; avec le Compte, cinq tuiles sur le téléphone
+// (2 × 2, puis « Apparence » sur toute la largeur), quatre sans compte (2 × 2), cinq sur une ligne sur l'ordinateur.
+// Faux Firebase, sans compte. Lancement depuis la racine du dépôt : node tests/reglages-onglets.cjs
 const http = require('http');
 const fs = require('fs');
 const path = require('path');
@@ -49,14 +51,15 @@ const pause = (ms) => new Promise((x) => setTimeout(x, ms));
   const lignes = (m) => new Set(m.map((b) => b.y)).size;
   const resume = (m) => m.map((b) => `${b.nom} ${b.l}×${b.h}`).join(', ');
 
-  // 1. Classique, téléphones : 2 × 2, mêmes tailles, rien de coupé ni hors de l'écran, zones à toucher d'au moins 44 × 44.
+  // 1. Classique, téléphones : 2 × 2 puis « Apparence » sur toute la largeur, mêmes hauteurs, rien de coupé ni hors de
+  // l'écran, zones à toucher d'au moins 44 × 44.
+  const cinq = (m) => m.length === 5 && lignes(m) === 3 && new Set(m.slice(0, 4).map((b) => b.x)).size === 2 && m.slice(0, 4).every((b) => b.l === m[0].l) && m[4].l > m[0].l * 1.9 && m.every((b) => b.h === m[0].h && b.l >= 44 && b.h >= 44 && !b.coupe && !b.dehors);
   for (const [l, h] of [[390, 844], [411, 914], [360, 760], [320, 640]]) {
     const m = await mesure(l, h, 'classique');
-    verifie(m.length === 4 && lignes(m) === 2 && new Set(m.map((b) => b.x)).size === 2 && m.every((b) => b.l === m[0].l && b.h === m[0].h && b.l >= 44 && b.h >= 44 && !b.coupe && !b.dehors),
-      `classique, téléphone ${l} px : quatre tuiles en 2 × 2, de même taille, sans texte coupé (${resume(m)})`);
+    verifie(cinq(m), `classique, téléphone ${l} px : cinq tuiles, 2 × 2 puis « Apparence » sur toute la largeur, sans texte coupé (${resume(m)})`);
     if (l === 390) {
       const c = m.find((b) => b.choisi), a = m.find((b) => !b.choisi);
-      verifie(m.map((b) => b.nom).join() === 'Débouchés,Jours de récolte,Compte,Apparence' && c.nom === 'Apparence', 'classique : ordre des pages gardé, la page ouverte est marquée');
+      verifie(m.map((b) => b.nom).join() === 'Débouchés,Jours de récolte,Produits,Compte,Apparence' && c.nom === 'Apparence', 'classique : ordre des pages gardé (« Produits » après « Jours de récolte »), la page ouverte est marquée');
       verifie(m.every((b) => /^1\.7px\//.test(b.icone)) && c.fond === 'rgb(11, 105, 77)' && c.texte === 'rgb(255, 255, 255)' && c.icone === '1.7px/rgb(255, 255, 255)' && a.fond === 'rgb(255, 255, 255)' && a.icone === '1.7px/rgb(11, 105, 77)' && a.police === '16px' && a.rayon === '16px',
         'classique (charte douce) : icônes au trait de 1,7 px, vertes, blanches sur la page ouverte en vert plein ; texte 16 px ; rayon 1 rem ' + JSON.stringify({ c, a }));
     }
@@ -64,23 +67,24 @@ const pause = (ms) => new Promise((x) => setTimeout(x, ms));
   // 2. Grand texte du téléphone (texte agrandi de 30 %) : toujours rien de coupé ; l'icône passe au-dessus du nom.
   for (const l of [320, 360, 411]) {
     const m = await mesure(l, 800, 'classique', { police: 21 });
-    verifie(m.length === 4 && lignes(m) === 2 && m.every((b) => !b.coupe && !b.dehors && b.h === m[0].h), `classique, téléphone ${l} px, grand texte : rien de coupé (${resume(m)})`);
+    verifie(m.length === 5 && lignes(m) === 3 && m.every((b) => !b.coupe && !b.dehors && b.h === m[0].h), `classique, téléphone ${l} px, grand texte : rien de coupé (${resume(m)})`);
   }
-  // 3. Sans l'onglet Compte (appareil sans compte) : la dernière tuile prend toute la largeur, pas de trou.
+  // 3. Sans l'onglet Compte (appareil sans compte) : quatre tuiles en 2 × 2, de même taille, pas de trou.
   {
     const m = await mesure(390, 844, 'classique', { compte: false });
-    verifie(m.length === 3 && lignes(m) === 2 && m[2].nom === 'Apparence' && m[2].l > m[0].l * 1.9 && !m.some((b) => b.coupe), 'classique, sans compte : trois tuiles, « Apparence » sur toute la largeur (' + resume(m) + ')');
+    verifie(m.length === 4 && lignes(m) === 2 && m[3].nom === 'Apparence' && m.every((b) => b.l === m[0].l && b.h === m[0].h) && !m.some((b) => b.coupe), 'classique, sans compte : quatre tuiles en 2 × 2 (' + resume(m) + ')');
   }
-  // 4. Classique, ordinateur : une seule ligne, quatre tuiles de même largeur, texte sur une ligne.
+  // 4. Classique, ordinateur : une seule ligne, cinq tuiles de même largeur, texte sur une ligne.
   for (const [l, h] of [[1366, 768], [1920, 1080]]) {
     const m = await mesure(l, h, 'classique');
-    verifie(m.length === 4 && lignes(m) === 1 && m.every((b) => b.l === m[0].l && b.h === m[0].h && b.h <= 60 && !b.coupe), `classique, ordinateur ${l} px : les quatre pages sur une ligne, sans texte coupé (${resume(m)})`);
+    verifie(m.length === 5 && lignes(m) === 1 && m.every((b) => b.l === m[0].l && b.h === m[0].h && b.h <= 60 && !b.coupe), `classique, ordinateur ${l} px : les cinq pages sur une ligne, sans texte coupé (${resume(m)})`);
   }
-  // 5. Pixel art : rien ne change (icônes cachées, 2 × 2 au téléphone de 174 × 46, une ligne de 145 × 46 sur l'ordinateur).
+  // 5. Pixel art : icônes cachées, tuiles de 174 × 46 en deux colonnes au téléphone (trois lignes avec « Produits ») ; une
+  // ligne de 149 × 46 sur l'ordinateur (bande élargie de 620 à 800 px pour la 5e page).
   {
     const t = await mesure(390, 844, 'pixel'), o = await mesure(1366, 768, 'pixel');
-    verifie(t.every((b) => b.icone === 'cachée' && b.l === 174 && b.h === 46 && !b.coupe) && lignes(t) === 2, 'pixel art, téléphone : pages des Réglages inchangées, sans icône (' + resume(t) + ')');
-    verifie(o.every((b) => b.icone === 'cachée' && b.l === 145 && b.h === 46 && !b.coupe) && lignes(o) === 1, 'pixel art, ordinateur : pages des Réglages inchangées, sans icône (' + resume(o) + ')');
+    verifie(t.length === 5 && t.every((b) => b.icone === 'cachée' && b.l === 174 && b.h === 46 && !b.coupe) && lignes(t) === 3, 'pixel art, téléphone : tuiles inchangées, sans icône, sur trois lignes (' + resume(t) + ')');
+    verifie(o.length === 5 && o.every((b) => b.icone === 'cachée' && b.l === 149 && b.h === 46 && !b.coupe) && lignes(o) === 1, 'pixel art, ordinateur : cinq pages sur une ligne, sans icône (' + resume(o) + ')');
   }
 
   await nav.close(); site.close(); base.close();

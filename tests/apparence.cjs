@@ -126,7 +126,7 @@ async function pointsDifferents(page, a, b) {
     const page = await P.evaluate(() => { const s = document.querySelector('#debView .app-page'), b = Array.from(s.querySelectorAll('.app-b'));
       return { pastilles: Array.from(document.querySelectorAll('#regSub button')).filter((x) => !x.hidden).map((x) => x.textContent + ':' + x.getAttribute('aria-pressed')).join(), titre: s.querySelector('h2').textContent, phrase: s.querySelector('p').textContent,
         boutons: b.map((x) => x.textContent.trim() + ':' + x.getAttribute('aria-pressed')).join(), images: b.every((x) => x.querySelector('img') && x.querySelector('img').complete && x.querySelector('img').naturalWidth === 300) }; });
-    verifie(page.pastilles === 'Débouchés:false,Jours de récolte:false,Apparence:true' && page.titre === 'Apparence de cet appareil' && page.phrase === 'Ce choix ne vaut que pour cet appareil. Les autres gardent le leur.' && page.boutons === 'Classique:true,Pixel art:false' && page.images,
+    verifie(page.pastilles === 'Débouchés:false,Jours de récolte:false,Produits:false,Apparence:true' && page.titre === 'Apparence de cet appareil' && page.phrase === 'Ce choix ne vaut que pour cet appareil. Les autres gardent le leur.' && page.boutons === 'Classique:true,Pixel art:false' && page.images,
       'R1. Réglages → page « Apparence », visible sans compte : Classique (marqué) et Pixel art, chacun avec sa vignette ' + JSON.stringify(page));
     const avant = ecritures(base);
     await P.click('[data-apparence-choix="pixel"]');
@@ -498,7 +498,7 @@ async function pointsDifferents(page, a, b) {
             const { ctx, page: P } = await appareil(nav, opts, null, s, ui);
             await P.emulateMedia({ reducedMotion: 'reduce' });
             // Masquages posés avant le premier affichage, pour ne rien redessiner juste avant la capture (un logo redessiné
-            // n'a pas toujours exactement les mêmes points) : les pages des Réglages (#regSub ; la 4e, « Apparence », est la
+            // n'a pas toujours exactement les mêmes points) : les pages des Réglages (#regSub ; « Produits », étape 50, et « Apparence » sont la
             // différence permise de l'étape 48, et leurs tuiles ont changé le 22/11, vérifiées par tests/reglages-onglets.cjs),
             // le rappel de la semaine d'avant dans la grille Répartir (étape 49, 22/11 : ajout voulu, vérifié par
             // tests/rappel-semaine.cjs ; masqué ici, ses cases reprennent leurs marges d'avant),
