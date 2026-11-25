@@ -142,6 +142,10 @@ details[open]>summary .chev{transform:rotate(90deg)}
 .crate .nm{font-weight:600;font-size:.95rem}
 .crate[data-c="PB"] .nm{color:var(--pb)} .crate[data-c="PH"] .nm{color:var(--ph)} .crate[data-c="GB"] .nm{color:var(--gb)} .crate[data-c="GH"] .nm{color:var(--gh)}
 .crate.alt{border-style:dashed;border-width:3px}
+/* Rappels toujours présents sous les caisses (25/11) : élastiques et emballages, sans chiffre, pour ne pas les oublier */
+.rappel{border-radius:var(--r1);padding:10px;border:var(--bw) solid var(--line);display:grid;gap:2px;align-content:start}
+.rappel .nm{font-weight:700;font-size:1.05rem}
+.rappel span{font-size:.85rem;color:var(--muted)}
 .crate-opt{display:flex;gap:10px;align-items:flex-start;padding:0 14px 12px;font-size:.9rem;color:var(--muted)}
 .crate-opt input{width:24px;height:24px;flex:none;margin:0;accent-color:var(--accent)}
 .crate-note{padding:0 14px 12px;margin:0;font-size:.85rem;color:var(--muted)}
@@ -752,6 +756,8 @@ li.pitem.annule{background:var(--surface2)}
 .crate[data-c="PB"]{background:var(--pb-bg)} .crate[data-c="PH"]{background:var(--ph-bg)} .crate[data-c="GB"]{background:var(--gb-bg)} .crate[data-c="GH"]{background:var(--gh-bg)}
 .crate b{font-family:var(--f-titre);font-weight:500}
 .crate.alt{border:1.5px dashed var(--line-fort)}
+.rappel{border:1px solid var(--line);background:#fff}
+.rappel .nm{font-family:var(--f-titre);font-weight:600}
 /* Barre de progression */
 .bar{height:16px;border:0;background:#e9e9e9}
 .bar.small{height:12px}
@@ -978,6 +984,9 @@ button.notif-i{cursor:pointer}
 :root[data-apparence="pixel"] .crate.alt{box-shadow:0 -3px 0 #c9b49a,0 3px 0 #c9b49a,-3px 0 0 #c9b49a,3px 0 0 #c9b49a;outline:3px dashed #8a6a52;outline-offset:-6px}
 :root[data-apparence="pixel"] .crate-note,:root[data-apparence="pixel"] .crate-opt{font-size:18px;font-weight:400}
 :root[data-apparence="pixel"] .crate-place{font-size:20px}
+:root[data-apparence="pixel"] .rappel{border:0;border-radius:0;background:#fffaf0;box-shadow:var(--px-cadre);margin:3px}
+:root[data-apparence="pixel"] .rappel .nm{font-family:var(--f-ui);font-weight:400;font-size:22px;color:var(--px-rose-f)}
+:root[data-apparence="pixel"] .rappel span{font-size:18px}
 
 /* ---------- Lignes de liste (Récolte, Préparation, Stock) ---------- */
 :root[data-apparence="pixel"] ul.list{gap:0}
@@ -1388,6 +1397,10 @@ button.notif-i{cursor:pointer}
   <details class="card crates" id="crates">
     <summary><span>Caisses <span class="crate-sum" id="crateSum"></span></span><span class="chev">›</span></summary>
     <div class="crate-grid" id="crateGrid"></div>
+    <div class="crate-grid" id="crateRappels" aria-label="À emporter aussi, à chaque récolte">
+      <div class="rappel" data-r="elastiques"><span class="nm">Élastiques</span><span>À emporter à chaque récolte</span></div>
+      <div class="rappel" data-r="emballages"><span class="nm">Emballages</span><span>Fonds de caisse et complexes</span></div>
+    </div>
     <p class="crate-note crate-place" id="cratePlace" hidden></p>
     <label class="crate-opt"><input type="checkbox" id="perCirc" checked> <span>Une caisse par circuit (un demi-colis pour Très Allier et un pour le marché = 2 caisses). Décoché : les demi-colis d'un même produit sont regroupés.</span></label>
     <p class="crate-note">Une caisse par colis, d'après le code du cumul (PB, PH, GB, GH). Des kilos hors colis (« 1 colis + 5 kg ») prennent une caisse de plus. Les sachets Locavore, les bottes, les pièces et les tomates ne sont pas comptés. Un produit récolté dans sa propre caisse (par exemple la carotte lavée, en caisse bleue de 16 kg) est compté dans cette caisse, d'après son poids total, tous circuits ensemble. Un produit dont les caisses sont déjà là où on le récolte (par exemple les endives) n'est pas compté.</p>

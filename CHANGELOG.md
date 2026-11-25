@@ -2,6 +2,7 @@
 
 ## 2026-11-25
 
+- **Élastiques et emballages sous les caisses de la récolte** (demande de François du 25/11 : « une case pour les élastiques et une case pour les emballages. Qui sera systématique. C'est juste pour ne pas les oublier » ; « La case emballage précise que ce sont les fonds de caisse et les complexes »). `index.html` : dans le cadre « Caisses » de l'onglet Récolte, sous les caisses, deux cases toujours là, sans chiffre : « Élastiques » (« À emporter à chaque récolte ») et « Emballages » (« Fonds de caisse et complexes ») ; hors du total à remplir ; habillage classique et pixel art. Rien dans la base. Nouveau `tests/rappels-caisses.cjs`. `CACHE` recolte-v76.
 - **Céleri-branche au kilo en grande basse** (demande de François du 25/11 : « Ce sont des grandes basses, pas des grandes hautes »). `referentiel/conditionnements.json` : caisse GH → GB, toujours 5 kg, même nom (même identifiant dans la base) ; le céleri-branche en bouquet ne change pas. Les semaines déjà saisies gardent la caisse qu'elles ont enregistrée (rien écrit dans la base) ; une semaine nouvelle (« Ajouter un produit » ou « Reprendre ») prend la grande basse. Nouveau `tests/celeri-branche-gb.cjs` ; `tests/celeri-bouquet.cjs` suit le nouveau référentiel. `CACHE` recolte-v75.
 
 ## 2026-11-22
