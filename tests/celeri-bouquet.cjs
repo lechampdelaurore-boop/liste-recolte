@@ -49,7 +49,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   verifie(bq.length === 1 && bq[0].caisse === 'GB' && bq[0].par_colis === 10 && bq[0].type === 'bouquet' && bq[0].unite === 'Bouquet (x10)' && !bq[0].masque && !bq[0].kg,
     'référentiel : « Céleri-branche en bouquet », une seule fiche, GB de 10 bouquets (' + JSON.stringify(bq[0]) + ')');
   const cb = REF.produits.filter((p) => p.produit === 'Céleri-branche');
-  verifie(cb.length === 1 && JSON.stringify(cb[0]) === JSON.stringify({ produit: 'Céleri-branche', caisse: 'GH', unite: '5 kg', kg: 5 }), 'référentiel : le céleri-branche au kilo est inchangé (GH de 5 kg)');
+  verifie(cb.length === 1 && JSON.stringify(cb[0]) === JSON.stringify({ produit: 'Céleri-branche', caisse: 'GB', unite: '5 kg', kg: 5 }), 'référentiel : le céleri-branche au kilo garde son nom et ses 5 kg (en GB depuis le 25/11, voir tests/celeri-branche-gb.cjs)');
   verifie(REF.colisages.bois.GB === 'Grand colis bois', 'colisage bois : GB → grand colis bois');
 
   const site = await serveurSite();
@@ -59,7 +59,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   const put = (p, v) => fetch(`${BASE}/${p}.json`, { method: 'PUT', body: JSON.stringify(v) });
   // Mercredi (jour habituel) : marché 2 colis et Très Allier jeudi 1 colis (caisses plastiques), Locavore 1 colis
   // (caisses plastiques depuis le 18/11).
-  // Le céleri-branche au kilo à côté, au marché.
+  // Le céleri-branche au kilo à côté, au marché, dans une semaine saisie quand il était en GH (avant le 25/11).
   await put('listes/semaines/' + W, {
     produits: { 'celeri-branche': { nom: 'Céleri-branche', caisse: 'GH', unite: '5 kg', kg: 5, by: 'Aurore', at: A0 } },
     q: { 'celeri-branche': { mk: q(1) } },
