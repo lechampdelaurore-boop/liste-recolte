@@ -497,6 +497,36 @@ dialog input{width:100%;padding:11px;border-radius:var(--r1);border:var(--bw) so
 .db-ret summary{font-weight:700;cursor:pointer}
 .db-ret ul{list-style:none;margin:8px 0 0;padding:0;display:grid;gap:8px}
 .db-ret li{display:flex;justify-content:space-between;align-items:center;gap:8px;font-weight:700}
+/* Réglages → Produits (étape 50) */
+.pr-page{display:grid;gap:12px}
+.pr-haut{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.pr-haut input{flex:1 1 220px;min-width:0;min-height:48px;padding:6px 12px;border:var(--bw) solid var(--line);border-radius:var(--r1);background:var(--surface);font:inherit;font-size:1rem}
+.pr-haut .sem-act{flex:none;color:var(--accent);border-color:var(--accent)}
+.pr .rc-titre{display:flex;align-items:center;gap:10px}
+.pr .pr-nom{flex:1 1 auto;min-width:0}
+.pr.pr-archive .rc-titre{color:var(--muted)}
+.pr-info{display:grid;gap:2px;align-content:start;font-size:.92rem;font-weight:600}
+.pr-info b{font-size:1.05rem}
+.pr-info small{color:var(--muted)}
+.pr-g{display:flex;align-items:center;gap:6px}
+.pr-g input{flex:1 1 7em;min-width:4.5em;width:7em;min-height:44px;padding:6px 10px;border:var(--bw) solid var(--line);border-radius:var(--r1);background:var(--bg);font:inherit;font-weight:700}
+.pr-g select{flex:1 1 auto}
+.pr-g > span{font-weight:700}
+.pr-debs{display:grid;gap:8px;grid-template-columns:repeat(auto-fit,minmax(220px,1fr))}
+@media (min-width:600px){.db label.pr-deb{grid-template-columns:minmax(0,1fr) minmax(0,1.6fr);align-items:center}}
+.db label.pr-arch{display:flex;align-items:center;gap:12px;justify-self:start;cursor:pointer;min-height:48px}
+.pr-arch input{position:absolute;opacity:0;width:1px;height:1px}
+.pr-sw{position:relative;flex:none;width:52px;height:30px;border-radius:999px;background:#c9ced3;transition:background .15s}
+.pr-sw::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:left .15s}
+.pr-arch input:checked + .pr-sw{background:var(--accent)}
+.pr-arch input:checked + .pr-sw::after{left:25px}
+.pr-arch input:focus-visible + .pr-sw{outline:3px solid var(--accent);outline-offset:2px}
+.pr-arch-t{display:grid;gap:2px}
+.pr .sem-add:disabled{opacity:.45;cursor:default;box-shadow:none}
+.pr-question{display:grid;gap:8px;background:var(--warn-bg);border:1px solid var(--line);border-radius:var(--r1);padding:10px 12px}
+.pr-question p{margin:0;font-weight:600}
+.pr-fait{margin:0;background:var(--ok-bg);border-radius:var(--r1);padding:8px 12px;font-weight:600}
+.pr-ret .pr-list{margin-top:10px}
 .sp{overflow:hidden;border-left-width:12px}
 .sp.e-place{border-left-color:var(--accent)} .sp.e-aplacer{border-left-color:var(--attention)} .sp.e-manque{border-left-color:var(--danger-fg)}
 .sp-head{display:grid;grid-template-columns:1fr auto;gap:6px 10px;align-items:center;width:100%;text-align:left;border:0;background:var(--surface);padding:12px;cursor:pointer}
@@ -704,7 +734,8 @@ h2,h3,h4,.db-h3,.rc-q,.cmd-titre,.mag-qui,.hi-jour h4,.annsec h3{font-family:var
 :root:not([data-apparence]) #regSub button{display:flex;align-items:center;gap:10px;min-height:54px;padding:10px 14px;border-radius:var(--r2);text-align:left;font-weight:600;line-height:1.2;box-shadow:var(--ombre-l);overflow-wrap:break-word}
 :root:not([data-apparence]) #regSub button[hidden]{display:none}
 :root:not([data-apparence]) #regSub span{flex:1 1 0}
-:root:not([data-apparence]) #regSub:has(> button[hidden]) > button:last-child{grid-column:1/-1}
+/* Cinq pages (Compte visible) : la dernière tuile prend toute la largeur ; quatre (sans Compte) : 2 × 2. */
+:root:not([data-apparence]) #regSub:not(:has(> button[hidden])) > button:last-child{grid-column:1/-1}
 :root:not([data-apparence]) #regSub svg{display:block;flex:none;width:22px;height:22px;fill:none;stroke:var(--accent);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
 :root:not([data-apparence]) #regSub button[aria-pressed="true"] svg{stroke:#fff}
 /* Téléphone très étroit ou grand texte : l'icône passe au-dessus du nom, sur les quatre tuiles à la fois. */
@@ -834,7 +865,8 @@ dialog h2{font-family:var(--f-titre);font-weight:400;font-size:1.4rem}
   .appbar .cloche{border-color:var(--line);background:var(--surface)}
   .appbar .cloche-n{border-color:var(--surface)}
   #semSub,#regSub,#prepSort{max-width:620px}
-  :root:not([data-apparence]) #regSub{grid-template-columns:repeat(4,200px);max-width:none}
+  :root:not([data-apparence]) #regSub{grid-template-columns:repeat(5,minmax(0,200px));max-width:none}
+  :root:not([data-apparence]) #regSub:not(:has(> button[hidden])) > button:last-child{grid-column:auto}
   :root:not([data-apparence]) #regSub button{white-space:nowrap;padding-right:22px}
 }
 /* CHARTE-DOUCE-FIN */
@@ -931,8 +963,8 @@ button.notif-i{cursor:pointer}
 :root[data-apparence="pixel"] .wrap > .hint{font-family:var(--f-ui);font-size:20px;font-weight:400;line-height:1.05;color:#fff3e0;text-shadow:var(--px-contour-brun)}
 :root[data-apparence="pixel"] .rec-sem{margin:0}
 /* Titres et aides posés directement sur le fond (Réglages, Historique, pages de la Semaine) */
-:root[data-apparence="pixel"] #debView > .db-h,:root[data-apparence="pixel"] #histView > h2,:root[data-apparence="pixel"] #semRecList > h2,:root[data-apparence="pixel"] #semStkList > h2{color:#fff;font-size:13px;text-shadow:3px 3px 0 #8a2a1e,-2px -2px 0 #8a2a1e,2px -2px 0 #8a2a1e,-2px 2px 0 #8a2a1e,0 3px 0 #8a2a1e}
-:root[data-apparence="pixel"] #debView > .hint,:root[data-apparence="pixel"] #debView > p:not(.card),:root[data-apparence="pixel"] #histView > .hint,:root[data-apparence="pixel"] #histView > p:not(.card),:root[data-apparence="pixel"] #semRecList > .hint,:root[data-apparence="pixel"] #semRecList > p:not(.card),:root[data-apparence="pixel"] #semCmd > .hint{font-family:var(--f-ui);font-size:20px;font-weight:400;line-height:1.05;color:#fff3e0;text-shadow:var(--px-contour-brun)}
+:root[data-apparence="pixel"] #debView > .db-h,:root[data-apparence="pixel"] #debView > .pr-page > .db-h,:root[data-apparence="pixel"] #histView > h2,:root[data-apparence="pixel"] #semRecList > h2,:root[data-apparence="pixel"] #semStkList > h2{color:#fff;font-size:13px;text-shadow:3px 3px 0 #8a2a1e,-2px -2px 0 #8a2a1e,2px -2px 0 #8a2a1e,-2px 2px 0 #8a2a1e,0 3px 0 #8a2a1e}
+:root[data-apparence="pixel"] #debView > .hint,:root[data-apparence="pixel"] #debView > p:not(.card),:root[data-apparence="pixel"] #debView > .pr-page > .hint,:root[data-apparence="pixel"] #debView > .pr-page > p:not(.card),:root[data-apparence="pixel"] #histView > .hint,:root[data-apparence="pixel"] #histView > p:not(.card),:root[data-apparence="pixel"] #semRecList > .hint,:root[data-apparence="pixel"] #semRecList > p:not(.card),:root[data-apparence="pixel"] #semCmd > .hint{font-family:var(--f-ui);font-size:20px;font-weight:400;line-height:1.05;color:#fff3e0;text-shadow:var(--px-contour-brun)}
 :root[data-apparence="pixel"] .card.empty,:root[data-apparence="pixel"] .card .empty{color:var(--fg);text-shadow:none}
 :root[data-apparence="pixel"] .empty{color:#fff3e0;text-shadow:var(--px-contour-brun);font-family:var(--f-ui);font-size:21px;font-weight:400}
 
@@ -1221,6 +1253,7 @@ button.notif-i{cursor:pointer}
   :root[data-apparence="pixel"] .tabs-in{gap:4px;padding:6px 8px}
   :root[data-apparence="pixel"] #regSub{grid-auto-flow:row;grid-template-columns:repeat(2,minmax(0,1fr))}
 }
+@media (min-width:1000px){:root[data-apparence="pixel"] #regSub{max-width:800px}}
 
 /* ---------- Ordinateur ---------- */
 @media (min-width:1000px){
@@ -1304,6 +1337,18 @@ button.notif-i{cursor:pointer}
   :root[data-apparence="pixel"] #semPrint{line-height:1.45}
   :root[data-apparence="pixel"] #semPrint h1{color:inherit;font-weight:300;line-height:1.15;letter-spacing:0}
 }
+/* Réglages → Produits (étape 50) : recherche, cases à chiffres, interrupteur « Archivé » en marches d'escalier. */
+:root[data-apparence="pixel"] .pr-haut input,:root[data-apparence="pixel"] .pr-g input{border:0;border-radius:0;background:#fff;color:var(--fg);font-family:var(--f-ui);font-weight:400;font-size:21px;margin:3px;box-shadow:var(--px-cadre)}
+:root[data-apparence="pixel"] .pr-haut .sem-act{color:var(--px-rose-f)}
+:root[data-apparence="pixel"] .pr-info,:root[data-apparence="pixel"] .pr-g > span{font-weight:400;font-size:20px}
+:root[data-apparence="pixel"] .pr-info b{font-weight:400;font-size:22px}
+:root[data-apparence="pixel"] .pr-info small{font-size:18px}
+:root[data-apparence="pixel"] .pr-sw{border-radius:0;background:#c9b49a;box-shadow:var(--px-cadre);margin:3px;transition:none}
+:root[data-apparence="pixel"] .pr-sw::after{border-radius:0;background:var(--px-creme);box-shadow:0 -3px 0 #f8e8d4,0 3px 0 #8a6a52,-3px 0 0 #f8e8d4,3px 0 0 #8a6a52;transition:none}
+:root[data-apparence="pixel"] .pr-arch input:checked + .pr-sw{background:var(--px-rose-f)}
+:root[data-apparence="pixel"] .pr-arch-t{font-weight:400;font-size:20px}
+:root[data-apparence="pixel"] .pr-question,:root[data-apparence="pixel"] .pr-fait{border:0;border-radius:0;font-weight:400;font-size:20px;box-shadow:var(--px-cadre);margin:3px}
+:root[data-apparence="pixel"] .pr-question p{font-weight:400}
 /* PIXEL-ART-FIN */
 </style>
 </head>
@@ -1366,6 +1411,7 @@ button.notif-i{cursor:pointer}
     <div class="seg" id="regSub" role="group" aria-label="Pages des réglages" hidden>
       <button type="button" data-reg="debouches" aria-pressed="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2.5 6h11v10.5h-11zM13.5 9.5h4l3 3.5v3.5h-7"/><circle cx="7" cy="17.5" r="2"/><circle cx="17" cy="17.5" r="2"/></svg><span>Débouchés</span></button>
       <button type="button" data-reg="recoltes" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="16" rx="2.5"/><path d="M3 10h18M8 3v4M16 3v4M8.5 15.5l2.3 2.3 4.7-4.6"/></svg><span>Jours de récolte</span></button>
+      <button type="button" data-reg="produits" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3.5 12.5V4.8c0-.7.6-1.3 1.3-1.3h7.7l8 8a1.3 1.3 0 0 1 0 1.8l-6.9 6.9a1.3 1.3 0 0 1-1.8 0z"/><circle cx="8.5" cy="8.5" r="1.6"/></svg><span>Produits</span></button>
       <button type="button" data-reg="compte" aria-pressed="false" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4.5 20.5c.8-4 3.8-6 7.5-6s6.7 2 7.5 6"/></svg><span>Compte</span></button>
       <button type="button" data-reg="apparence" aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3a9 9 0 1 0 0 18c1.4 0 2-1 1.6-2.1-.5-1.3.3-2.4 1.7-2.4H18a3 3 0 0 0 3-3C21 7.6 17 3 12 3z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7.5" r="1.2"/></svg><span>Apparence</span></button>
     </div>
@@ -1970,6 +2016,11 @@ function altName(circId, caisse){
   var ci = circById[circId], m = ci && ci.colisage && list.colisages && list.colisages[ci.colisage];
   return (m && caisse && m[caisse]) || null;
 }
+// Une caisse de la ferme (PB, PH, GB, GH, CB…), par opposition au nom d'un colis (« Grand colis bois »).
+function estCaisse(x){ return caisses().some(function(c){ return c[0] === x; }); }
+// Caisse d'un produit pour un circuit : celle réglée pour ce débouché (Réglages → Produits), sinon le colis du
+// colisage du circuit (bois), sinon la caisse du produit.
+function caisseCirc(it, circId){ return (it.caisses && it.caisses[circId]) || altName(circId, it.caisse) || it.caisse; }
 function plural(name, v){
   if(v < 2) return name;
   return name.replace(/^(\S+?)(s|x)?(?=\s|$)/, function(w, a, end){ return a + (end || 's'); });
@@ -1993,7 +2044,10 @@ function crateKinds(tot){
       if(n && !kinds.some(function(k){ return k.key === n; })) kinds.push({key:n, nm:n, alt:true});
     });
   });
-  Object.keys(tot).forEach(function(k){ if(tot[k] && !kinds.some(function(x){ return x.key === k; })) kinds.push({key:k, nm:k, alt:false}); });
+  // Colis réglé pour un seul débouché (Réglages → Produits) : affiché comme les colis d'un colisage.
+  var noms = {}, cols = (REF && REF.colisages) || {};
+  Object.keys(cols).forEach(function(t){ Object.keys(cols[t]).forEach(function(c){ noms[cols[t][c]] = 1; }); });
+  Object.keys(tot).forEach(function(k){ if(tot[k] && !kinds.some(function(x){ return x.key === k; })) kinds.push({key:k, nm:k, alt:!!noms[k]}); });
   return kinds;
 }
 function usedCirc(ci){ return list.items.some(function(it){ return it.circ[ci.id] !== undefined && it.circ[ci.id] !== 0; }); }
@@ -2003,8 +2057,9 @@ function usedCirc(ci){ return list.items.some(function(it){ return it.circ[ci.id
 // exactement le conditionnement du produit (ex. 10 bouquets en PB = 10 bouquets en petit colis bois).
 function circLabel(ci, v, it, short){
   if(typeof v === 'number'){
-    var alt = ci && altName(ci.id, it.caisse);
-    if(!alt) return fr(v) + ' ' + (autresIt(it).length && it.caisse ? it.caisse : 'colis');
+    var ov = ci && it.caisses && it.caisses[ci.id];
+    var alt = ov ? (estCaisse(ov) ? null : ov) : (ci && altName(ci.id, it.caisse));
+    if(!alt) return fr(v) + ' ' + (ov || (autresIt(it).length && it.caisse ? it.caisse : 'colis'));
     return fr(v) + ' ' + plural(alt.charAt(0).toLowerCase() + alt.slice(1), v) + (short ? '' : ' de ' + it.condit);
   }
   return v;
@@ -2047,7 +2102,7 @@ function contenuDe(it, v){
 // Quantité d'un produit pour un circuit (filtre de circuit, ligne de préparation).
 function circQtyHtml(it, circId){
   var v = it.circ[circId], ci = circById[circId];
-  var tot = content(v, it), alt = typeof v === 'number' && altName(circId, it.caisse), small = [];
+  var tot = content(v, it), alt = typeof v === 'number' && ((it.caisses && it.caisses[circId]) || altName(circId, it.caisse)), small = [];
   if(alt) small.push('de ' + it.condit);           // même contenu que la caisse
   if(tot && !(alt && v === 1)) small.push(tot);    // total, sauf s'il redit le contenu
   return esc(circLabel(ci, v, it, true)) + (small.length ? '<small>' + esc(small.join(' · ')) + '</small>' : '');
@@ -2091,7 +2146,7 @@ function itemCrates(it){
     var v = a ? a.n : colisOf(it, it.circ[k]);
     if(!(v > 0)) return;
     if(ui.circ && k !== ui.circ) return;
-    var key = a ? a.caisse : (altName(k, it.caisse) || it.caisse);
+    var key = a ? a.caisse : caisseCirc(it, k);
     sum[key] = (sum[key] || 0) + v; n[key] = (n[key] || 0) + Math.ceil(v);
   });
   Object.keys(sum).forEach(function(key){
@@ -2233,11 +2288,12 @@ function render(){
   else if(histV) renderHisto();
 }
 function renderReglages(){
-  var rp = ui.regPage === 'recoltes' || ui.regPage === 'apparence' || (ui.regPage === 'compte' && CLE) ? ui.regPage : 'debouches';
+  var rp = ui.regPage === 'recoltes' || ui.regPage === 'apparence' || ui.regPage === 'produits' || (ui.regPage === 'compte' && CLE) ? ui.regPage : 'debouches';
   $('#regSub button[data-reg="compte"]').hidden = !CLE;
   document.querySelectorAll('#regSub button').forEach(function(b){ b.setAttribute('aria-pressed', String(b.dataset.reg === rp)); });
   if(rp === 'apparence') $('#debView').innerHTML = apparenceHtml();
   else if(rp === 'compte') $('#debView').innerHTML = compteHtml();
+  else if(rp === 'produits'){ if(!REF){ chargerRef(); $('#debView').innerHTML = '<p class="empty">Chargement…</p>'; } else renderProduits(); }
   else if(!debVue()){ chargerRef(); $('#debView').innerHTML = '<p class="empty">Chargement…</p>'; } else { debConnecter(); renderDebouches(); }
 }
 
@@ -2384,6 +2440,14 @@ function renderCrates(){
   var notes = Object.keys(groups).map(function(g){
     var m = list.colisages[g];
     return groups[g].join(', ') + ' : ' + caisses().filter(function(c){ return m[c[0]]; }).map(function(c){ return c[0] + ' → ' + m[c[0]].toLowerCase(); }).join(', ') + '. Même contenu que dans la caisse.';
+  });
+  // Caisse propre à un débouché (Réglages → Produits) : rappelée produit par produit.
+  list.items.forEach(function(it){
+    Object.keys(it.caisses || {}).forEach(function(k){
+      var ci = circById[k], n = it.caisses[k];
+      if(!ci || it.circ[k] === undefined || it.circ[k] === 0 || (ui.circ && k !== ui.circ)) return;
+      notes.push(it.produit + ' pour ' + ci.nom + ' : ' + (estCaisse(n) ? (NOMS_CAISSES[n] || n) + ' (' + n + ')' : n.charAt(0).toLowerCase() + n.slice(1)) + '.');
+    });
   });
   $('#crateAlt').hidden = !notes.length;
   $('#crateAlt').textContent = notes.join(' ');
@@ -2739,7 +2803,7 @@ function chargerRef(){
   }
   debConnecter();
   refCharge = Promise.all([lire('referentiel/conditionnements.json', 'recolte.referentiel'), lire('referentiel/debouches.json', 'recolte.debouches0')])
-    .then(function(r){ REF = r[0]; DEB0 = r[1]; crCache = null; nomsCaisses(); if(!REF || !DEB0){ refCharge = null; refEchec = Date.now(); } render(); });
+    .then(function(r){ REF0 = r[0]; REF = refFusion(); DEB0 = r[1]; crCache = null; nomsCaisses(); if(!REF || !DEB0){ refCharge = null; refEchec = Date.now(); } render(); prodLire(); });
   return refCharge;
 }
 
@@ -3573,6 +3637,97 @@ function debFlush(){
     .catch(function(){ deb.flushing = false; majStatut(); });
 }
 
+/* ---------- Réglages des produits (étape 50, 25/11/2026, docs/DECISIONS.md) ---------- */
+// Réglages → Produits : la fiche de chaque produit (caisse habituelle, caisse par débouché, poids moyen d'une unité,
+// archivé) et les produits ajoutés. Départ : referentiel/conditionnements.json (REF0). Dès sa première modification,
+// la base garde la fiche entière du produit sous listes/reglages/produits/<pid> (les règles n'ouvrent que « listes »),
+// avec qui et quand ; la dernière modification d'un produit l'emporte, comme pour les débouchés. REF = le fichier,
+// chaque fiche remplacée par celle de la base, plus les produits ajoutés : le reste de l'appli lit REF sans le savoir.
+// Une semaine déjà saisie garde sa propre copie de chaque fiche (produits/<pid>) : rien n'y change sans confirmation.
+// Lu au démarrage puis toutes les 15 s (avec la vérification du réseau), sans flux en direct de plus (au plus quatre).
+// Jamais de renommage : le nom fait l'identifiant du produit dans la base. Rien n'est effacé : un produit archivé
+// n'est plus proposé à l'ajout, mais reste lisible dans les semaines où il est déjà.
+//   par_debouche : {<débouché>: <caisse>} ; <caisse> = un code des caisses (PB, PH, GB, GH, CB) ou
+//                  « <colisage>:<code> » (bois:PB = petit colis bois, d'après « colisages » du référentiel).
+//                  Seul le type de caisse change, jamais le contenu (choix de François du 25/11).
+var REF0 = null;
+var prod = {data:ls('recolte.produits') || {}, pending:ls('recolte.produits.pending') || {}, flushing:false, lecture:false};
+function prodVue(){ var o = Object.assign({}, prod.data || {}); Object.keys(prod.pending).forEach(function(k){ o[k] = prod.pending[k]; }); return o; }
+function ficheReglee(x){ var o = Object.assign({}, x); delete o.by; delete o.at; return o; }
+function refFusion(){
+  if(!REF0) return null;
+  var v = prodVue(), vus = {}, o = Object.assign({}, REF0);
+  o.produits = tableau(REF0.produits).map(function(p){ var k = pidDe(p.produit); vus[k] = 1; return v[k] && v[k].produit ? ficheReglee(v[k]) : p; });
+  Object.keys(v).sort().forEach(function(k){ if(!vus[k] && v[k] && v[k].produit && pidDe(v[k].produit) === k) o.produits.push(ficheReglee(v[k])); });
+  return o;
+}
+function refMaj(){ if(!REF0) return; REF = refFusion(); crCache = null; nomsCaisses(); }
+function nProdAttente(){ return Object.keys(prod.pending).length; }
+// Pendant une saisie dans les Réglages, on attend d'avoir quitté la case pour redessiner.
+function prodRender(){
+  var a = document.activeElement;
+  if(ui.view === 'reglages' && a && a.closest && a.closest('#debView') && (a.tagName === 'INPUT' || a.tagName === 'SELECT')){ debAttente = true; return; }
+  if(!drag) render();
+}
+function prodLire(){
+  if(!dbPret() || prod.lecture) return;
+  prod.lecture = true;
+  dbFetch('/listes/reglages/produits', {cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(v){
+      prod.lecture = false;
+      v = v && typeof v === 'object' ? v : {};
+      if(JSON.stringify(v) !== JSON.stringify(prod.data)){ prod.data = v; ls('recolte.produits', v); refMaj(); prodRender(); }
+      prodFlush();
+    }, function(){ prod.lecture = false; });
+}
+// Chaque modification remplace la fiche entière du produit (qui et quand), affichée tout de suite, puis envoyée.
+function prodEcrire(pid, f){
+  var o = ficheReglee(f); o.by = me || ''; o.at = Date.now();
+  prod.pending[pid] = o; ls('recolte.produits.pending', prod.pending);
+  refMaj(); render(); majStatut(); prodFlush();
+}
+function prodFlush(){
+  if(!dbPret() || prod.flushing) return;
+  var pid = Object.keys(prod.pending)[0]; if(!pid) return;
+  prod.flushing = true;
+  var p = prod.pending[pid], url = '/listes/reglages/produits/' + pid;
+  dbFetch(url, {cache:'no-store'})
+    .then(function(r){ if(!r.ok) throw new Error(r.status); return r.json(); })
+    .then(function(srv){
+      // Une modification plus récente du même produit, faite ailleurs, l'emporte : la nôtre est abandonnée.
+      var envoi = srv && srv.at > p.at ? Promise.resolve(srv) :
+        dbFetch(url, {method:'PUT', body:JSON.stringify(p)}).then(function(r){ if(!r.ok) throw new Error(r.status); return p; });
+      return envoi.then(function(v){
+        if(prod.pending[pid] === p){ delete prod.pending[pid]; ls('recolte.produits.pending', prod.pending); }
+        prod.data[pid] = v; ls('recolte.produits', prod.data);
+        prod.flushing = false; refMaj(); prodRender(); majStatut();
+        prodFlush();
+      });
+    })
+    .catch(function(){ prod.flushing = false; majStatut(); });
+}
+// Caisse d'un produit pour un débouché : code des caisses, ou nom du colis d'un colisage (« Grand colis bois »).
+function caisseNom(code){
+  var m = /^([^:]+):(.+)$/.exec(code || ''), cols = (REF && REF.colisages) || {};
+  if(m) return (cols[m[1]] && cols[m[1]][m[2]]) || '';
+  return code || '';
+}
+// Choix d'un menu « caisse pour ce débouché » : les caisses de la ferme, puis les colis de chaque colisage (un par nom).
+function choixCaisses(){
+  var l = caisses().map(function(c){ return [c[0], c[0] + ' · ' + c[1]]; }), cols = (REF && REF.colisages) || {};
+  Object.keys(cols).forEach(function(t){
+    var vus = {};
+    caisses().forEach(function(c){ var n = cols[t][c[0]]; if(n && !vus[n]){ vus[n] = 1; l.push([t + ':' + c[0], n]); } });
+  });
+  return l;
+}
+// Ce qu'un débouché reçoit « comme d'habitude » : sa caisse, ou son nom dans le colisage du débouché (bois).
+function caisseHabituelle(f, d){
+  var cols = (REF && REF.colisages) || {}, m = d && d.colis && cols[d.colis];
+  return (m && f.caisse && m[f.caisse]) || f.caisse || 'colis';
+}
+
 /* Écran « Débouchés et livraisons » */
 // Fiches dépliées (débouchés, jours de récolte habituels) : sur cet appareil, le temps de la visite, rien d'écrit.
 var debOuvert = {}, recOuvert = {};
@@ -3856,6 +4011,208 @@ $('#debView').addEventListener('change', function(e){
 });
 $('#debView').addEventListener('keydown', function(e){ if(e.key === 'Enter' && e.target.tagName === 'INPUT' && e.target.type === 'text' && e.target.id !== 'debNom') e.target.blur(); });
 $('#debView').addEventListener('focusout', function(){ setTimeout(function(){ if(debAttente) render(); }, 0); });
+
+/* Écran « Produits » des Réglages (étape 50) */
+// Fiches dépliées, brouillons, question sur la semaine en cours : sur cet appareil, le temps de la visite, rien d'écrit.
+// Une fiche se modifie dans un brouillon, puis « Enregistrer » l'écrit (une seule écriture par produit).
+var prodOuvert = {}, prodBrouillon = {}, prodQuestion = {}, prodFait = {}, prodErr = {}, prodNouveau = null, prodCherche = '';
+function prodListe(){
+  return ((REF && REF.produits) || []).filter(function(p){ return !p.masque; }).slice()
+    .sort(function(a, b){ return a.produit.localeCompare(b.produit, 'fr'); });
+}
+function prodTypes(){
+  var t = ['botte', 'bouquet', 'pièce', 'sachet'];
+  ((REF && REF.produits) || []).forEach(function(p){ if(p.type && t.indexOf(p.type) < 0) t.push(p.type); });
+  return t;
+}
+function prodChange(pid){ var b = prodBrouillon[pid], r = refDe(pid); return !!(b && r && canon(ficheReglee(b)) !== canon(ficheReglee(r))); }
+function grammes(kg){ return kg > 0 ? String(Math.round(kg * 1000)) : ''; }
+function prodResume(f){
+  var t = colisTxt(fiche(f)), pd = f.par_debouche || {}, debs = debListe();
+  var pu = poidsUnite(f);
+  if(pu) t += ' · ' + (pu >= 1 ? nb(pu) + ' kg' : grammes(pu) + ' g') + ' l\'unité';
+  Object.keys(pd).forEach(function(did){ var d = debs.filter(function(x){ return x.id === did; })[0], n = caisseNom(pd[did]); if(n) t += ' · ' + (d ? d.nom : did) + ' : ' + n; });
+  return t;
+}
+function prodCarteHtml(p){
+  var pid = pidDe(p.produit), ouvert = !!prodOuvert[pid] || !!prodErr[pid] || !!prodQuestion[pid] || !!prodFait[pid];
+  var f = prodBrouillon[pid] || p, c = contenu(f), cherche = sansAccent(p.produit.toLowerCase());
+  var h = '<section class="card db pr' + (ouvert ? ' db-ouvert' : '') + (p.archive ? ' pr-archive' : '') + '" data-p="' + esc(pid) + '" data-nom="' + esc(cherche) + '">' +
+    '<div class="db-tl"><button type="button" class="db-tete" data-pa="plier" aria-expanded="' + ouvert + '">' +
+    '<span class="rc-titre">' + miniHtml(p.produit) + '<span class="pr-nom">' + esc(p.produit) + '<small>' + esc(prodResume(p)) + '</small></span></span>' + ARROW_SEM + '</button></div>';
+  if(!ouvert) return h + '</section>';
+  h += '<div class="db-champs">' +
+    '<label>Caisse habituelle<select data-pf="caisse">' + caisses().map(function(x){ return '<option value="' + esc(x[0]) + '"' + (x[0] === f.caisse ? ' selected' : '') + '>' + esc(x[0] + ' · ' + x[1]) + '</option>'; }).join('') + '</select></label>' +
+    '<div class="pr-info"><span>Contenu d\'un colis</span><b>' + esc(c ? qTxt(c.n, c.u, f) : (f.unite || '?')) + '</b><small>Ne se change pas ici.</small></div>' +
+    (c && c.u === 'kg' ? '<label>Poids moyen d\'une unité<span class="pr-g"><input type="number" inputmode="numeric" min="1" max="20000" step="1" data-pf="poids" value="' + grammes(+f.poids_unite) + '" placeholder="—" aria-label="' + esc('Poids moyen d\'une unité de ' + p.produit + ', en grammes') + '"><span>g</span></span><small>Vide : ne se compte pas à l\'unité.</small></label>' : '') +
+    '</div>';
+  var debs = debListe().filter(function(d){ return !d.archive; }), pd = f.par_debouche || {}, choix = choixCaisses();
+  if(debs.length){
+    h += '<h3 class="db-h3">Caisse pour chaque débouché</h3><div class="pr-debs">' + debs.map(function(d){
+      var cur = pd[d.id] || '';
+      return '<label class="pr-deb"><span>' + esc(d.nom) + '</span><select data-pf="deb" data-deb="' + esc(d.id) + '">' +
+        '<option value=""' + (cur ? '' : ' selected') + '>' + esc('Comme d\'habitude (' + caisseHabituelle(f, d) + ')') + '</option>' +
+        choix.map(function(x){ return '<option value="' + esc(x[0]) + '"' + (x[0] === cur ? ' selected' : '') + '>' + esc(x[1]) + '</option>'; }).join('') +
+        '</select></label>';
+    }).join('') + '</div><p class="hint">Seul le type de caisse change pour ce débouché : le contenu reste le même.</p>';
+  }
+  h += '<label class="pr-arch"><input type="checkbox" role="switch" data-pf="archive"' + (f.archive ? ' checked' : '') + '><span class="pr-sw" aria-hidden="true"></span>' +
+    '<span class="pr-arch-t">Archivé<small>' + (f.archive ? 'Archivé : plus proposé quand on ajoute un produit à une semaine.' : 'En service : proposé quand on ajoute un produit à une semaine.') + '</small></span></label>';
+  if(prodErr[pid]) h += '<p class="sr-err" role="alert">' + esc(prodErr[pid]) + '</p>';
+  var ch = prodChange(pid);
+  h += '<div class="db-pied"><button type="button" class="sem-add" data-pa="enregistrer"' + (ch ? '' : ' disabled') + '>Enregistrer</button>' +
+    (ch ? '<button type="button" class="sem-act" data-pa="annuler">Annuler les changements</button>' : '') + '</div>';
+  var q = prodQuestion[pid];
+  if(q){
+    var n = numSem(q.w);
+    h += '<div class="pr-question" role="group" aria-label="' + esc('Semaine ' + n) + '"><p><b>Semaine ' + n + ' :</b> ' + esc(p.produit) + ' y est encore ' + esc(q.avant) + '. Changer aussi la semaine ' + n + ' ? Seules les caisses changent, pas les quantités.</p>' +
+      '<div class="db-pied"><button type="button" class="sem-add" data-pa="oui">Oui, aussi la semaine ' + n + '</button>' +
+      '<button type="button" class="sem-act" data-pa="non">Non, seulement les prochaines semaines</button></div></div>';
+  }
+  if(prodFait[pid]) h += '<p class="pr-fait" role="status">' + esc(prodFait[pid]) + '</p>';
+  return h + '</section>';
+}
+function produitsHtml(){
+  var l = prodListe(), actifs = l.filter(function(p){ return !p.archive; }), arch = l.filter(function(p){ return p.archive; });
+  var h = '<div class="pr-page"><h2 class="db-h">Produits</h2>' +
+    '<p class="hint">La caisse de chaque produit, sa caisse pour chaque débouché et le poids moyen d\'une unité. Un changement vaut pour les prochaines semaines ; la semaine en cours ne change que si vous le confirmez. Le nom d\'un produit ne se change pas : il sert à le retrouver dans les semaines.</p>' +
+    '<div class="pr-haut"><input type="search" id="prQ" placeholder="Rechercher un produit…" autocomplete="off" aria-label="Rechercher un produit" value="' + esc(prodCherche) + '">' +
+    '<button type="button" class="sem-act" data-pa="nouveau"' + (prodNouveau ? ' aria-expanded="true"' : ' aria-expanded="false"') + '>＋ Nouveau produit</button></div>';
+  if(prodNouveau){
+    var nv = prodNouveau, kg = nv.u === 'kg';
+    h += '<section class="card db pr-new"><h3 class="db-h3">Nouveau produit</h3>' +
+      '<div class="db-champs"><label>Nom<input type="text" id="prNom" autocomplete="off" placeholder="Nom du légume" value="' + esc(nv.nom) + '"></label>' +
+      '<label>Caisse<select id="prCaisse">' + caisses().map(function(x){ return '<option value="' + esc(x[0]) + '"' + (x[0] === nv.caisse ? ' selected' : '') + '>' + esc(x[0] + ' · ' + x[1]) + '</option>'; }).join('') + '</select></label>' +
+      '<label>Contenu d\'un colis<span class="pr-g"><input type="number" id="prN" inputmode="decimal" min="0" step="any" value="' + esc(nv.n) + '" aria-label="Contenu d\'un colis"><select id="prU" aria-label="Unité du contenu">' +
+      ['kg'].concat(prodTypes()).map(function(u){ return '<option value="' + esc(u) + '"' + (u === nv.u ? ' selected' : '') + '>' + esc(u === 'kg' ? 'kg' : u + 's') + '</option>'; }).join('') + '</select></span></label>' +
+      (kg ? '<label>Poids moyen d\'une unité <small>(facultatif)</small><span class="pr-g"><input type="number" id="prPoids" inputmode="numeric" min="1" step="1" value="' + esc(nv.poids) + '" placeholder="—"><span>g</span></span></label>' : '') +
+      '</div>' + (prodErr.nouveau ? '<p class="sr-err" role="alert">' + esc(prodErr.nouveau) + '</p>' : '') +
+      '<p class="hint">Le nom ne pourra plus être changé ensuite.</p>' +
+      '<div class="db-pied"><button type="button" class="sem-add" data-pa="ajouter">＋ Ajouter ce produit</button><button type="button" class="sem-act" data-pa="fermer">Annuler</button></div></section>';
+  }
+  h += '<div class="db-list pr-list">' + actifs.map(prodCarteHtml).join('') + '</div><p class="empty pr-aucun" hidden>Aucun produit trouvé.</p>';
+  if(arch.length) h += '<details class="card db-ret pr-ret"' + (ui.prArch ? ' open' : '') + '><summary>Produits archivés (' + arch.length + ')</summary><div class="db-list pr-list">' + arch.map(prodCarteHtml).join('') + '</div></details>';
+  return h + '</div>';
+}
+// La recherche cache les fiches sans tout redessiner (la case garde le doigt et le clavier).
+function prodFiltrer(){
+  var t = sansAccent(prodCherche.trim().toLowerCase()), n = 0;
+  var arch = 0;
+  document.querySelectorAll('#debView .pr-list > .pr').forEach(function(s){ var ok = !t || s.dataset.nom.indexOf(t) >= 0; s.hidden = !ok; if(ok){ if(s.closest('.pr-ret')) arch++; else n++; } });
+  var a = $('#debView .pr-aucun'); if(a) a.hidden = n + arch > 0 || !t;
+  // Un produit archivé trouvé par la recherche : la liste des archivés s'ouvre pour le montrer.
+  var d = $('#debView .pr-ret'); if(d && t && arch) d.open = true;
+}
+function renderProduits(){
+  var a = document.activeElement, garde = null;
+  if(a && a.closest && a.closest('#debView') && (a.dataset.pf || a.dataset.pa || a.id)){
+    var s = a.closest('[data-p]');
+    garde = {p:s ? s.dataset.p : '', pf:a.dataset.pf, deb:a.dataset.deb, pa:a.dataset.pa, id:a.id, debut:a.selectionStart};
+  }
+  debAttente = false;
+  $('#debView').innerHTML = produitsHtml();
+  prodFiltrer();
+  if(garde){
+    var sel = garde.id ? '#' + garde.id : '#debView [data-p="' + garde.p + '"] ' + (garde.pf ? '[data-pf="' + garde.pf + '"]' + (garde.deb ? '[data-deb="' + garde.deb + '"]' : '') : '[data-pa="' + garde.pa + '"]');
+    var el = null; try{ el = document.querySelector(sel); }catch(x){}
+    if(el){ el.focus(); if(garde.debut != null && el.setSelectionRange && el.type === 'search') try{ el.setSelectionRange(garde.debut, garde.debut); }catch(x){} }
+  }
+}
+// La fiche d'un produit dans la semaine affichée (en cours ou à venir), si elle n'a pas les caisses enregistrées.
+function prodSemaineDiffere(pid, f){
+  if(!sem.id || semPassee()) return null;
+  var sf = semLire('produits/' + pid); if(!sf || !sf.nom) return null;
+  if(sf.caisse === f.caisse && canon(sf.par_debouche || {}) === canon(f.par_debouche || {})) return null;
+  var avant = 'en ' + (sf.caisse || 'colis'), pd = sf.par_debouche || {}, debs = debListe();
+  Object.keys(pd).forEach(function(did){ var d = debs.filter(function(x){ return x.id === did; })[0], n = caisseNom(pd[did]); if(n) avant += ', ' + n + ' pour ' + (d ? d.nom : did); });
+  return {w:sem.id, avant:avant, caisse:f.caisse, pd:f.par_debouche || null};
+}
+function prodBr(pid){ if(!prodBrouillon[pid]){ var r = refDe(pid); if(!r) return null; prodBrouillon[pid] = JSON.parse(JSON.stringify(r)); } return prodBrouillon[pid]; }
+$('#debView').addEventListener('click', function(e){
+  var b = e.target.closest('[data-pa]'); if(!b || !b.closest('.pr-page')) return;
+  var a = b.dataset.pa, s = b.closest('[data-p]'), pid = s && s.dataset.p;
+  if(a === 'plier'){ prodOuvert[pid] = !(prodOuvert[pid] || prodErr[pid] || prodQuestion[pid] || prodFait[pid]); delete prodFait[pid]; if(!prodOuvert[pid]){ delete prodErr[pid]; delete prodQuestion[pid]; } render(); var bt = $('#debView [data-p="' + pid + '"] [data-pa="plier"]'); if(bt) bt.focus(); return; }
+  if(a === 'nouveau'){ prodNouveau = prodNouveau ? null : {nom:'', caisse:caisses()[0][0], n:'', u:'kg', poids:''}; delete prodErr.nouveau; render(); if($('#prNom')) $('#prNom').focus(); return; }
+  if(a === 'fermer'){ prodNouveau = null; delete prodErr.nouveau; render(); return; }
+  if(a === 'annuler'){ delete prodBrouillon[pid]; delete prodErr[pid]; render(); return; }
+  if(a === 'non'){ delete prodQuestion[pid]; prodFait[pid] = 'Enregistré pour les prochaines semaines. La semaine ' + numSem(sem.id) + ' garde ses caisses.'; render(); return; }
+  if(a === 'oui'){
+    var q = prodQuestion[pid]; delete prodQuestion[pid];
+    if(!q || q.w !== sem.id || !semLire('produits/' + pid)){ prodFait[pid] = 'La semaine affichée a changé : rien n\'a été modifié dans les semaines.'; render(); return; }
+    avecNom(function(){
+      var nf = Object.assign({}, semLire('produits/' + pid));
+      nf.caisse = q.caisse; if(q.pd && Object.keys(q.pd).length) nf.par_debouche = q.pd; else delete nf.par_debouche;
+      var ch = {}; ch['produits/' + pid] = signe(nf);
+      prodFait[pid] = 'Semaine ' + numSem(q.w) + ' mise à jour (caisses seulement). Une liste du jour déjà commencée le signale : « Mettre la liste à jour ».';
+      semEcrire(ch);
+    });
+    return;
+  }
+  if(a === 'enregistrer'){
+    var f = prodBrouillon[pid], r = refDe(pid); if(!f || !r) return;
+    if(f.poids_unite !== undefined && !(+f.poids_unite > 0)) delete f.poids_unite;
+    if(f.par_debouche && !Object.keys(f.par_debouche).length) delete f.par_debouche;
+    if(!f.archive) delete f.archive;
+    avecNom(function(){
+      var o = Object.assign({}, f, {produit:r.produit});
+      delete prodBrouillon[pid]; delete prodErr[pid]; delete prodFait[pid];
+      var q = prodSemaineDiffere(pid, o); if(q) prodQuestion[pid] = q; else prodFait[pid] = o.archive && !r.archive ? 'Archivé : rangé dans « Produits archivés ».' : 'Enregistré.';
+      // Archivé ou remis en service : la fiche change de liste ; celle des archivés s'ouvre pour la garder sous les yeux.
+      if(!!o.archive !== !!r.archive){ ui.prArch = true; saveUi(); }
+      prodEcrire(pid, o);
+    });
+    return;
+  }
+  if(a === 'ajouter'){
+    var nv = prodNouveau; if(!nv) return;
+    var nom = nv.nom.replace(/\s+/g, ' ').trim(), id = pidDe(nom), n = parseFloat(String(nv.n).replace(',', '.')), poids = parseFloat(String(nv.poids).replace(',', '.'));
+    var deja = ((REF && REF.produits) || []).filter(function(p){ return pidDe(p.produit) === id; })[0];
+    var err = !nom || !id ? 'Donner un nom au produit.' : deja ? '« ' + deja.produit + ' » existe déjà' + (deja.archive ? ' (dans les produits archivés : le remettre en service).' : '.') : !(n > 0) ? 'Donner le contenu d\'un colis (5 kg, 10 bottes…).' : '';
+    if(err){ prodErr.nouveau = err; render(); return; }
+    avecNom(function(){
+      var o = {produit:nom, caisse:nv.caisse};
+      if(nv.u === 'kg'){ o.unite = String(n).replace('.', ',') + ' kg'; o.kg = n; if(poids > 0) o.poids_unite = Math.round(poids) / 1000; }
+      else { n = Math.round(n); o.unite = majuscule(nv.u) + ' (x' + n + ')'; o.par_colis = n; o.type = nv.u; }
+      prodNouveau = null; delete prodErr.nouveau; prodOuvert[id] = true; prodFait[id] = 'Produit ajouté : il est proposé quand on ajoute un produit à une semaine.';
+      prodCherche = '';
+      prodEcrire(id, o);
+      var c = $('#debView [data-p="' + id + '"]'); if(c && c.scrollIntoView) c.scrollIntoView({block:'center'});
+    });
+  }
+});
+function prodSaisie(e){
+  var inp = e.target; if(!inp.closest || !inp.closest('.pr-page')) return;
+  // Menus et interrupteur : au choix fait (« change ») ; cases à taper : à chaque lettre (« input »), sans redessiner,
+  // pour qu'un appui sur « Enregistrer » juste après la saisie ne soit pas perdu.
+  var menu = inp.tagName === 'SELECT' || inp.type === 'checkbox';
+  if(menu ? e.type !== 'change' : e.type !== 'input') return;
+  if(inp.id === 'prQ'){ prodCherche = inp.value; prodFiltrer(); return; }
+  if(prodNouveau && /^pr(Nom|Caisse|N|U|Poids)$/.test(inp.id)){
+    var k = {prNom:'nom', prCaisse:'caisse', prN:'n', prU:'u', prPoids:'poids'}[inp.id];
+    prodNouveau[k] = inp.value; delete prodErr.nouveau;
+    if(inp.id === 'prU') render();
+    return;
+  }
+  var pf = inp.dataset.pf, s = inp.closest('[data-p]'); if(!pf || !s) return;
+  var pid = s.dataset.p, f = prodBr(pid); if(!f) return;
+  if(pf === 'caisse') f.caisse = inp.value;
+  else if(pf === 'poids'){ var g = parseFloat(inp.value.replace(',', '.')); if(g > 0) f.poids_unite = Math.round(g) / 1000; else delete f.poids_unite; }
+  else if(pf === 'deb'){ var pd = f.par_debouche = Object.assign({}, f.par_debouche || {}); if(inp.value) pd[inp.dataset.deb] = inp.value; else delete pd[inp.dataset.deb]; if(!Object.keys(pd).length) delete f.par_debouche; }
+  else if(pf === 'archive'){ if(inp.checked) f.archive = true; else delete f.archive; }
+  delete prodFait[pid]; delete prodQuestion[pid];
+  // Un menu ou l'interrupteur redessine la fiche (« comme d'habitude » suit la caisse) ; une case à taper ne change
+  // que le bouton « Enregistrer ».
+  if(menu) render();
+  else { var bt = s.querySelector('[data-pa="enregistrer"]'); if(bt) bt.disabled = !prodChange(pid); }
+}
+$('#debView').addEventListener('input', prodSaisie);
+$('#debView').addEventListener('change', prodSaisie);
+$('#debView').addEventListener('keydown', function(e){
+  if(e.key !== 'Enter' || !e.target.closest || !e.target.closest('.pr-page')) return;
+  if(e.target.id === 'prQ'){ e.target.blur(); return; }
+  if(e.target.closest('.pr-new') && e.target.tagName === 'INPUT'){ var b = $('#debView [data-pa="ajouter"]'); if(b) b.click(); }
+});
+$('#debView').addEventListener('toggle', function(e){ if(e.target.classList && e.target.classList.contains('pr-ret')){ ui.prArch = e.target.open; saveUi(); } }, true);
 
 /* Quantités : colis, kilos ou unités, convertis d'après le contenu d'un colis de la fiche du produit. */
 function tableau(x){ if(!x) return []; return Array.isArray(x) ? x.filter(Boolean) : Object.keys(x).sort(function(a, b){ return a - b; }).map(function(k){ return x[k]; }); }
@@ -5010,7 +5367,7 @@ function retirer(pid){
 }
 function fiche(p){
   var o = {nom:p.produit || p.nom};
-  ['caisse', 'unite', 'kg', 'par_colis', 'type', 'autres_colis', 'recolte_en'].forEach(function(k){ if(p[k] !== undefined) o[k] = p[k]; });
+  ['caisse', 'unite', 'kg', 'par_colis', 'type', 'autres_colis', 'recolte_en', 'par_debouche'].forEach(function(k){ if(p[k] !== undefined) o[k] = p[k]; });
   return o;
 }
 // Reprendre la liste des produits (sans les quantités) de la semaine précédente.
@@ -5028,6 +5385,8 @@ function reprendre(){
       // Produit retiré du référentiel (« masque ») : on reprend celui qui le remplace (« remplace_par »), s'il existe.
       var n = r && r.masque && r.remplace_par && (REF.produits || []).filter(function(x){ return x.produit === r.remplace_par; })[0];
       if(n){ ch['produits/' + pidDe(n.produit)] = signe(fiche(n)); return; }
+      // Produit archivé (Réglages → Produits) : il n'est plus proposé, donc pas repris.
+      if(r && r.archive) return;
       ch['produits/' + k] = signe(r ? fiche(r) : fiche(prods[k]));
     });
     semEcrire(ch);
@@ -5040,7 +5399,7 @@ function ouvrirAjout(did){
   function liste(){
     var t = sansAccent(q.value.trim().toLowerCase()), deja = {};
     if(did) stkTour(did).forEach(function(x){ deja[x.pid] = 1; }); else deja = semLire('produits') || {};
-    var l = (REF.produits || []).filter(function(p){ return !p.masque && !deja[pidDe(p.produit)] && sansAccent(p.produit.toLowerCase()).indexOf(t) >= 0; });
+    var l = (REF.produits || []).filter(function(p){ return !p.masque && !p.archive && !deja[pidDe(p.produit)] && sansAccent(p.produit.toLowerCase()).indexOf(t) >= 0; });
     // Tour du magasin : aussi les produits de la semaine absents du référentiel (produit ajouté à la main).
     if(did) produitsSem().forEach(function(p){ if(!refDe(p.id) && !deja[p.id] && sansAccent(p.f.nom.toLowerCase()).indexOf(t) >= 0) l.push(Object.assign({}, p.f, {produit:p.f.nom, _pid:p.id})); });
     l.sort(function(a, b){ return a.produit.localeCompare(b.produit, 'fr'); });
@@ -5150,6 +5509,11 @@ function ligneCalculee(pid, f, circ){
     total: tot.length ? tot.join(' + ') + (tout ? ' + tout le reste' : '') : (tout ? 'tout ce qu\'il y a' : ''),
     kg: cont.length ? cont.join(' + ') : (tout ? 'tout' : '')};
   if(pu) o.pu = pu;
+  // Caisse propre à un débouché (Réglages → Produits, étape 50) : portée par la ligne, par circuit, avec le nom de la
+  // caisse (« PH ») ou du colis (« Grand colis bois ») ; le contenu ne change pas.
+  var pd = f.par_debouche || {}, cs = {};
+  Object.keys(circ).forEach(function(k){ var n = caisseNom(pd[k]); if(n) cs[k] = n; });
+  if(Object.keys(cs).length) o.caisses = cs;
   // Autres conditionnements et caisse de récolte : portés par la ligne (et donc par la liste figée).
   if(autres.length) o.autres = autres.map(function(x){ var y = {caisse:x.caisse}; if(x.kg) y.kg = +x.kg; else y.par_colis = +x.par_colis; return y; });
   var rec = f.recolte_en;
@@ -5227,7 +5591,11 @@ function comparer(fg, calc){
     vu[it.id] = 1;
     var c = parId[it.id];
     if(!c){ e.lignes[it.id] = {retire:true}; e.retires.push(it.produit); }
-    else if(canon(c.circ) !== canon(it.circ)){ e.lignes[it.id] = {maintenant:c.total + (c.kg && c.kg !== c.total ? ' (' + c.kg + ')' : '')}; e.changes.push(it.produit); }
+    else if(canon(c.circ) !== canon(it.circ) || (c.caisse || null) !== (it.caisse || null) || canon(c.caisses || {}) !== canon(it.caisses || {})){
+      // Caisse changée (Réglages → Produits, appliquée à la semaine) : signalée comme une quantité changée.
+      var cc = canon(c.circ) === canon(it.circ) ? ' · ' + (c.caisse || 'colis') + Object.keys(c.caisses || {}).map(function(k){ var ci = c.caisses[k]; return ', ' + ci + ' pour ' + ((circById[k] || {}).nom || k); }).join('') : '';
+      e.lignes[it.id] = {maintenant:c.total + (c.kg && c.kg !== c.total ? ' (' + c.kg + ')' : '') + cc}; e.changes.push(it.produit);
+    }
   });
   calc.items.forEach(function(it){ if(!vu[it.id]) e.ajouts.push(it.produit); });
   e.circuits = canon(fg.circuits.map(function(c){ return c.id; })) !== canon(calc.circuits.map(function(c){ return c.id; }));
@@ -5402,10 +5770,10 @@ function setStatus(cls, txt){ var s = $('#sync'); s.className = 'pill ' + cls; s
 var enLigne = false, refuse = false, connu = false;
 // La liste figée part avec la première coche : elle n'est pas comptée à part.
 function nListe(p){ var f = p.filter(function(x){ return x.path === 'fige'; }).length; return p.length - (f && p.length > f ? f : 0); }
-function nAttente(){ return nListe(pending) + sem.pending.length + (deb.pending ? 1 : 0) + (ordreH.pending ? 1 : 0) + clesAutres().reduce(function(a, x){ return a + x.n; }, 0); }
+function nAttente(){ return nListe(pending) + sem.pending.length + (deb.pending ? 1 : 0) + (ordreH.pending ? 1 : 0) + nProdAttente() + clesAutres().reduce(function(a, x){ return a + x.n; }, 0); }
 function enAttente(){
   var n = nAttente();
-  var coches = !sem.pending.length && !deb.pending && !ordreH.pending && pending.every(function(p){ return p.path !== 'order'; });
+  var coches = !sem.pending.length && !deb.pending && !ordreH.pending && !nProdAttente() && pending.every(function(p){ return p.path !== 'order'; });
   return n + ' ' + (coches ? (n > 1 ? 'coches' : 'coche') : (n > 1 ? 'changements' : 'changement')) + ' en attente';
 }
 function majStatut(){
@@ -5556,7 +5924,7 @@ function verifier(){
     if(compte && compte.jeton !== avant){ relancerTout(true); return; }
     if(!dbPret()) return;
     if(lid && es && es.readyState === 2) ouvrir();
-    flush(); semRelancer(); debRelancer(); ordreRelancer(); magRelancer(false);
+    flush(); semRelancer(); debRelancer(); ordreRelancer(); magRelancer(false); if(document.visibilityState !== 'hidden') prodLire();
     clocheRelancer(false); suiviRelancer(); autoFerme(); cmdRelancer(false);
     if(!enLigne && navigator.onLine) sonder();
   }, function(){ enLigne = false; majStatut(); });
@@ -5580,7 +5948,7 @@ function relancerTout(tous){
   if(refCharge && (tous || !deb.es || deb.es.readyState === 2)){ if(deb.es) deb.es.close(); deb.es = null; debConnecter(); }
   if(tous || !ordreH.es || ordreH.es.readyState === 2){ if(ordreH.es) ordreH.es.close(); ordreH.es = null; ordreConnecter(); }
   magRelancer(tous); clocheRelancer(tous); suiviRelancer(); cmdRelancer(tous);
-  flush(); semFlush(); debFlush(); ordreFlush();
+  flush(); semFlush(); debFlush(); ordreFlush(); prodLire();
 }
 // Un flux de la base (liste, semaine ou débouchés) a répondu : la pastille passe à « Partagé ».
 // Sans jour de récolte dans la semaine, aucune liste n'est ouverte : la semaine suffit (sinon « Connexion… » restait).
@@ -5938,7 +6306,7 @@ $('#debView').addEventListener('click', function(e){
 addEventListener('storage', function(e){ if(e.key === 'recolte.apparence') apparenceChoisir(ls('recolte.apparence')); });
 function compteHtml(){
   if(!compte) return '<p class="empty">Pas connecté.</p>';
-  var n = pending.length + sem.pending.length + (deb.pending ? 1 : 0) + (ordreH.pending ? 1 : 0);
+  var n = pending.length + sem.pending.length + (deb.pending ? 1 : 0) + (ordreH.pending ? 1 : 0) + nProdAttente();
   return '<section class="card cpt"><h2 class="db-h">Compte de ce téléphone</h2>' +
     '<p>Connecté avec l\'identifiant <b>' + esc(compte.id) + '</b>.</p>' +
     (refuse ? '<p class="sr-err" role="alert">Ce compte n\'a pas encore accès à la base : dans la console Firebase, lui donner le profil « ferme » (voir le pas-à-pas).</p>' : '') +
