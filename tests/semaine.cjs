@@ -140,7 +140,9 @@ const duAuAttendu = (d) => { if (typeof d === 'string') { const p = d.split('-')
   const q = base.lire(CHEMIN + '/q/bette/ps');
   verifie(q && q.n === 10 && q.u === 'kg' && q.by === 'François' && typeof q.at === 'number', 'la base garde la case telle que saisie (10 kg), avec le prénom et l\'heure');
 
-  // 4. Changer d'unité d'une case : 10 kg → 2 colis
+  // 4. Changer d'unité d'une case : 10 kg → 7,69 unités (poids moyen 1,3 kg, depuis le 25/11) → 2 colis
+  await A.click(ligne('bette', 'q/ps') + ' [data-a="unite"]');
+  verifie((await A.inputValue(ligne('bette', 'q/ps') + ' input')) === '7,69' && (await A.textContent(ligne('bette', 'q/ps') + ' [data-a="unite"]')) === 'unités', 'le bouton d\'unité passe 10 kg en 7,69 unités (bette de 1,3 kg)');
   await A.click(ligne('bette', 'q/ps') + ' [data-a="unite"]');
   verifie((await A.inputValue(ligne('bette', 'q/ps') + ' input')) === '2' && (await A.textContent(ligne('bette', 'q/ps') + ' [data-a="unite"]')) === 'GH', 'le bouton d\'unité convertit 10 kg en 2 colis');
 
@@ -327,7 +329,7 @@ const duAuAttendu = (d) => { if (typeof d === 'string') { const p = d.split('-')
   verifie(qr && qr.n === 0.5 && qr.u === 'colis' && qr.by === 'Martin', 'la saisie est ensuite enregistrée : 0,5 colis par Martin');
   // 15. Unité choisie case par case (demande de François du 8/11) : caisse du produit (PB, PH, GB, GH), kg ou bottes
   const menu = (pid, k) => `#semGrid select[data-cell="${pid}|${k}"]`;
-  verifie((await C.$$eval(menu('bette', 'q/ta-mar') + ' option', (o) => o.map((x) => x.textContent))).join() === 'GH,kg' && (await C.$$eval(menu('radis-long-rose', 'dispo') + ' option', (o) => o.map((x) => x.textContent))).join() === 'GB,bottes', 'chaque case a son menu d\'unité : GH ou kg pour la bette, GB ou bottes pour le radis');
+  verifie((await C.$$eval(menu('bette', 'q/ta-mar') + ' option', (o) => o.map((x) => x.textContent))).join() === 'GH,kg,unités' && (await C.$$eval(menu('radis-long-rose', 'dispo') + ' option', (o) => o.map((x) => x.textContent))).join() === 'GB,bottes', 'chaque case a son menu d\'unité : GH, kg ou unités pour la bette (poids moyen, 25/11), GB ou bottes pour le radis');
   verifie((await valeur(C, 'radis-long-rose', 'dispo')) === '4' && (await C.$eval(menu('radis-long-rose', 'dispo'), (x) => x.value)) === 'u', 'le disponible du radis saisi en bottes s\'affiche « 4 » avec « bottes » dans le menu');
   await C.selectOption(menu('radis-long-rose', 'q/ps'), 'u');
   await C.click(cellule('radis-long-rose', 'q/ps'));

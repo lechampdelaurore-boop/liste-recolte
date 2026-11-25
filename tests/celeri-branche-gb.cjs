@@ -46,7 +46,7 @@ const net = (t) => String(t || '').replace(/\s+/g, ' ').trim();
   // 0. Le référentiel : même produit, même identifiant, grande basse de 5 kg
   const REF = JSON.parse(fs.readFileSync(path.join(RACINE, 'referentiel/conditionnements.json'), 'utf8'));
   const cb = REF.produits.filter((p) => p.produit === 'Céleri-branche');
-  verifie(cb.length === 1 && JSON.stringify(cb[0]) === JSON.stringify({ produit: 'Céleri-branche', caisse: 'GB', unite: '5 kg', kg: 5 }),
+  verifie(cb.length === 1 && JSON.stringify(cb[0]) === JSON.stringify({ produit: 'Céleri-branche', caisse: 'GB', unite: '5 kg', kg: 5, poids_unite: 0.65 }),
     'référentiel : « Céleri-branche » (au kilo), une seule fiche, GB de 5 kg (' + JSON.stringify(cb[0]) + ')');
   verifie(REF.caisses.GB === 'grande basse', 'référentiel : GB = « ' + REF.caisses.GB + ' »');
   const bq = REF.produits.filter((p) => p.produit === 'Céleri-branche en bouquet');
