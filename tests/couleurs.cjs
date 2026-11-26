@@ -117,7 +117,7 @@ const BLEU = '#0b3d91', FRAMBOISE = '#a0105c', VERT = '#0a5a1c', VIOLET = '#5e1a
   const col = (sel, prop) => C.$eval(sel, (e, p) => getComputedStyle(e)[p], prop || 'color');
   const thDe = async (txt) => C.$$eval('#semGrid thead th', (e, t) => { const x = e.filter((y) => y.textContent.startsWith(t))[0]; return x ? getComputedStyle(x).color : null; }, txt);
   verifie((await thDe('Très Allier')) === rgb(BLEU) && (await thDe('Locavore')) === rgb(VERT) && (await thDe('Panier La Magic')) === rgb(FRAMBOISE), 'grille : titres Très Allier en bleu, Locavore en vert, La Magic en framboise');
-  verifie((await thDe('Stock Très Allier')) === rgb(BLEU) && (await thDe('Reste Auvabio 03')) === rgb(VIOLET) && (await thDe('Auvabio 63')) === rgb(VIOLET), 'grille : stock Très Allier en bleu ; Auvabio 63 et le reste proposé 03 → 63 en violet');
+  verifie((await thDe('Stock Très Allier')) === rgb(BLEU) && (await thDe('Proposé à Auvabio 63')) === rgb(VIOLET) && (await thDe('Auvabio 63')) === rgb(VIOLET), 'grille : stock Très Allier en bleu ; Auvabio 63 et le reste proposé 03 → 63 en violet');
   const cell = (k) => `#semGrid tr[data-pid="bette"] input.g-in[data-k="${k}"]`, unite = (k) => `#semGrid tr[data-pid="bette"] select.g-u[data-k="${k}"]`;
   verifie((await C.inputValue(cell('q/lv'))) === '2' && (await col(cell('q/lv'))) === rgb(VERT) && (await col(unite('q/lv'))) === rgb(VERT), 'grille : le chiffre (2) et l\'unité de Locavore sont en vert');
   verifie((await C.inputValue(cell('q/ta-mar'))) === '3' && (await col(cell('q/ta-mar'))) === rgb(BLEU) && (await col(unite('q/ta-mar'))) === rgb(BLEU) && (await C.inputValue(unite('q/ta-mar'))) === 'kg', 'grille : 3 kg pour Très Allier mardi, chiffre et unité en bleu');
