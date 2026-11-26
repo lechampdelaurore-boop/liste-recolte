@@ -2,7 +2,7 @@
 
 ## 2026-11-26
 
-- **Idée notée : chronomètre de la Récolte et historique complet** (étape 51, demande de François du 26/11). Documentation seulement, **aucun code, aucun contrat** : `docs/ROADMAP.md` (étape 51, questions ouvertes, modèle · effort proposé sans engagement) et `docs/ETAT_DU_PROJET.md`. Ajout de François : historique facile à extraire (tableur) pour la productivité horaire. Ajout de François : piste de liaison avec Ouvre ta ferme.
+- **Idée notée : chronomètre de la Récolte et historique complet** (étape 51, demande de François du 26/11). Documentation seulement, **aucun code, aucun contrat** : `docs/ROADMAP.md` (étape 51, questions ouvertes, modèle · effort proposé sans engagement) et `docs/ETAT_DU_PROJET.md`. Ajout de François : historique facile à extraire (tableur) pour la productivité horaire. Ajout de François : piste de liaison avec Ouvre ta ferme (temps rattaché à une série de légumes).
 - **Titre « Proposé à Auvabio 63 »** (demande de François du 26/11 : la formulation « Reste Auvabio 03 → Auvabio 63 / proposé, hors du reste » n'était pas claire ; choix : « Juste proposé à Auvabio 63 sans petit texte en dessous »). `index.html` : dans l'onglet Semaine, la colonne de la grille s'appelle « Proposé à Auvabio 63 », sans petit texte, comme la colonne du tableau « Cumul » ; sur téléphone, la case s'appelle « Proposé à Auvabio 63 » (avec « calculé » ou « modifié ») et sa note n'a plus « · hors du reste ». Même modèle pour toute seconde livraison (ex. « Proposé à Deschamps ven »). Calcul et comportement inchangés. `tests/semaine.cjs`, `tests/debouches.cjs`, `tests/couleurs.cjs` suivent le nouveau titre. `CACHE` recolte-v79.
 
 ## 2026-11-25
