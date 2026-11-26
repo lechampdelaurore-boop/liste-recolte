@@ -175,7 +175,7 @@ const lundi = (decal) => { const d = new Date(); d.setHours(0, 0, 0, 0); d.setDa
   verifie(l2.jours.join() === 'vendredi' && l2.court === 'Deschamps ven' && l2.reprend === 'ferme-deschamps', 'seconde livraison : vendredi, nom court « Deschamps ven », reprend le reste du mercredi');
   await attendre(B);
   const t3 = await enTete(B);
-  verifie(t3.includes('Deschamps ven') && t3.includes('Reste Ferme Deschamps → Deschamps ven'), 'chez Aurore : colonne du vendredi et reste reporté, comme pour Auvabio');
+  verifie(t3.includes('Deschamps ven') && t3.includes('Proposé à Deschamps ven'), 'chez Aurore : colonne du vendredi et reste reporté, comme pour Auvabio');
 
   // 7. Retirer une livraison, puis la remettre
   await A.click(`${livr('ferme-deschamps', 'ferme-deschamps-mer')} [data-a="retirerL"]`);

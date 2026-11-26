@@ -200,7 +200,7 @@ const duAuAttendu = (d) => { if (typeof d === 'string') { const p = d.split('-')
   await B.click('[data-sem="cumul"]');
   verifie(await B.isVisible('#semTable') && !(await B.isVisible('#semList')) && (await B.isVisible('#semNav')) && (await B.textContent('[data-sem="cumul"]')) === 'Cumul', 'page « Cumul » : le tableau du cumul à la place des fiches, le choix de la semaine reste en haut, le bouton s\'appelle « Cumul »');
   const enTetes = await B.$$eval('#semTable th', (e) => e.map((x) => x.textContent));
-  verifie(enTetes.join('|') === 'Produit|Dispo|Stock Très Allier|TA mar|La Magic|Panier adéq.|Locavore|TA jeu|Auvabio 03|Auvabio 63|Marché ven|Élie|Reste|Reste Auvabio 03 → Auvabio 63', 'le tableau a le stock chez Très Allier, une colonne par créneau, le reste, puis le reste 03 → 63 à part (obtenu ' + enTetes.join('|') + ')');
+  verifie(enTetes.join('|') === 'Produit|Dispo|Stock Très Allier|TA mar|La Magic|Panier adéq.|Locavore|TA jeu|Auvabio 03|Auvabio 63|Marché ven|Élie|Reste|Proposé à Auvabio 63', 'le tableau a le stock chez Très Allier, une colonne par créneau, le reste, puis la colonne « Proposé à Auvabio 63 » à part (obtenu ' + enTetes.join('|') + ')');
   const rangBette = await B.$$eval('#semTable tr[data-pid="bette"] td', (e) => e.map((x) => x.textContent));
   verifie(rangBette.join('|') === 'Bette|10||2||2||3|5||||−2 GH (−10 kg)|0', 'ligne bette du tableau (obtenu ' + rangBette.join('|') + ')');
   verifie(await B.evaluate(() => innerWidth === 412 && document.documentElement.scrollWidth <= innerWidth), 'tableau ouvert : la page garde la largeur du téléphone, le tableau défile dans son cadre');

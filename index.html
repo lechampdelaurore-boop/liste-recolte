@@ -4979,7 +4979,7 @@ function grilleHtml(prods, calc, cr){
       return x ? '<th class="stk dc"' + dc(x.id) + '>Stock ' + esc(x.nom) + '<small>au magasin, hors du reste</small></th>' : '<th class="dc"' + dc(c.circuit) + '>' + esc(c.nom) + (c.jour ? '<small>' + esc(c.jour) + '</small>' : '') +
         (rappelDe(c.circuit) ? '<small class="g-rap-t">en petit : semaine ' + esc(rappelEtiq().slice(1)) + '</small>' : '') + '</th>'; }).join('') + '<th>Reste</th>' +
     reports.map(function(c){ var a = cr.filter(function(x){ return x.id === c.reprend; })[0];
-      return '<th class="rep dc"' + dc(c.circuit) + '>Reste ' + esc(a ? a.nom : c.reprend) + ' → ' + esc(c.nom) + '<small>proposé, hors du reste</small></th>'; }).join('') +
+      return '<th class="rep dc"' + dc(c.circuit) + '>Proposé à ' + esc(c.nom) + '</th>'; }).join('') +
     '<th><span class="visually-hidden">Retirer</span></th></tr></thead><tbody>';
   prods.forEach(function(p){
     var pid = p.id, f = p.f, r = calc[pid];
@@ -5086,8 +5086,8 @@ function champHtml(pid, f, r, cr, k){
     if(!prop) return h;
     var auto = reportAuto(pid, f, c, r), man = semLire('report/' + pid + '/' + c.id);
     var note = auto === null ? 'Calcul : saisir le disponible' : 'Calcul : ' + deux(auto, f);
-    return h + ligneHtml(pid, f, k, 'Reste de ' + esc(avant ? avant.nom : c.reprend) + ', proposé à ' + esc(c.nom) + (man ? ' <small>modifié</small>' : ' <small>calculé</small>'), valeurCase(pid, f, k),
-      {cls:'report', dc:c.circuit, aria:'Reste proposé à ' + c.nom + ', ' + f.nom, note:note + ' · hors du reste', qui:!!man,
+    return h + ligneHtml(pid, f, k, 'Proposé à ' + esc(c.nom) + (man ? ' <small>modifié</small>' : ' <small>calculé</small>'), valeurCase(pid, f, k),
+      {cls:'report', dc:c.circuit, aria:'Reste proposé à ' + c.nom + ', ' + f.nom, note:note, qui:!!man,
        extra: man ? '<button type="button" class="sem-act" data-a="auto">Revenir au calcul</button>' : ''});
   }
   var nom = esc(c.nom) + (c.jour ? ' <small>' + esc(c.jour) + '</small>' : '');
@@ -5144,7 +5144,7 @@ function tableHtml(prods, calc, cr, modifiable){
   var st = stocksVisibles(stocks(), cr);
   var cols = colonnes(cr.filter(visibleC), st);
   var h = '<thead><tr><th>Produit</th><th>Dispo</th>' + cols.map(function(o){ return o.s ? '<th class="stk dc"' + dc(o.s.id) + '>' + esc('Stock ' + o.s.nom) + '</th>' : '<th class="dc"' + dc(o.c.circuit) + '>' + esc(o.c.court || o.c.nom) + '</th>'; }).join('') + '<th>Reste</th>' +
-    reports.map(function(c){ var a = cr.filter(function(x){ return x.id === c.reprend; })[0]; return '<th class="rep dc"' + dc(c.circuit) + '>' + esc('Reste ' + (a ? a.court || a.nom : '') + ' → ' + (c.court || c.nom)) + '</th>'; }).join('') + '</tr></thead><tbody>';
+    reports.map(function(c){ return '<th class="rep dc"' + dc(c.circuit) + '>' + esc('Proposé à ' + (c.court || c.nom)) + '</th>'; }).join('') + '</tr></thead><tbody>';
   prods.forEach(function(p){
     var r = calc[p.id], f = p.f, d = semLire('dispo/' + p.id);
     h += '<tr data-pid="' + esc(p.id) + '"><td>' + miniHtml(f.nom) + esc(f.nom) + '</td><td' + ed('dispo') + '>' + (d ? esc(qCourt(d, f)) : '') + '</td>' + cols.map(function(o){
