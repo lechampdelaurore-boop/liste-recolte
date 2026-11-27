@@ -235,6 +235,24 @@ const compte = async (email, mdp) => {
   verifie([rVf.s, rVe.s, rVm.s, rVn.s].every((x) => x === 401), 'ferme, équipe, magasin, sans compte : personne d\'autre ne lit les clés d\'envoi (rappel/)');
   const rTm = await appel('taches', m.idToken), rTg = await appel('taches', g.idToken), rTe = await appel('taches', e.idToken);
   verifie([rTm.s, rTg.s, rTe.s].every((x) => x === 401), 'magasin, agent, compte sans profil : pas d\'accès aux tâches');
+  // Historique des tâches réalisées de Farm tasks (27/11, étape 55 du dépôt aurore-task) : nœud à part, taches-historique/,
+  // hors du flux en direct de taches/. La ferme et l'équipe y écrivent, dans la même écriture que la tâche cochée (mise à
+  // jour à plusieurs chemins depuis la racine), et le lisent par période (requête sur la clé) ; la sauvegarde le lit.
+  const ligneH = (by, fin) => ({ liste: 'jeudi', listeNom: 'Jeudi', tache: 't1', texte: 'Banque', by, fin, chrono: false, pause: 0 });
+  r = await ecrit('', { 'taches/t/t5': null, 'taches/faites/f1': { at: 5, mot: 'Faite' }, 'taches-historique/00mhx7s00aaaaa': ligneH('francois', 5) }, f.idToken);
+  const rHEq = await ecrit('', { 'taches/chrono/martin/t2': null, 'taches-historique/00mhx7s01bbbbb': ligneH('martin', 6) }, eq.idToken);
+  const rHCorr = await ecrit('taches-historique/00mhx7s01bbbbb', { debut: 2, duree: 4, corr: { by: 'martin', at: 7 } }, eq.idToken);
+  verifie(r.s === 200 && rHEq.s === 200 && rHCorr.s === 200, 'historique : la ferme et l\'équipe écrivent la ligne avec la tâche cochée, d\'un seul envoi depuis la racine, et la corrigent (' + [r.s, rHEq.s, rHCorr.s].join(',') + ')');
+  const rqH = await fetch(url('taches-historique', eq.idToken, 'orderBy=' + encodeURIComponent('"$key"') + '&startAt=' + encodeURIComponent('"00mhx7s01"') + '&endAt=' + encodeURIComponent('"00mhx7s01~"')));
+  const jqH = await rqH.json(), rHf = await appel('taches-historique', f.idToken);
+  verifie(rqH.status === 200 && Object.keys(jqH).join() === '00mhx7s01bbbbb' && jqH['00mhx7s01bbbbb'].duree === 4 && rHf.s === 200 && Object.keys(rHf.j).length === 2, 'historique : lu par période (« orderBy $key », startAt, endAt), seulement les lignes demandées ; la ferme lit tout');
+  const rHSup = await appel('taches-historique/00mhx7s00aaaaa', f.idToken, { method: 'DELETE' });
+  await ecrit('taches-historique/00mhx7s00aaaaa', ligneH('francois', 5), f.idToken, 'PUT');
+  verifie(rHSup.s === 200, 'historique : la ferme retire une ligne (« Remettre », ou « Supprimer la ligne » après confirmation)');
+  const rHRef = [await appel('taches-historique', rp.idToken), await appel('taches-historique', m.idToken), await appel('taches-historique', g.idToken), await appel('taches-historique', e.idToken), await appel('taches-historique', null)].map((x) => x.s);
+  const rHRefE = [await ecrit('taches-historique/zz', ligneH('x', 1), rp.idToken, 'PUT'), await ecrit('taches-historique/zz', ligneH('x', 1), m.idToken, 'PUT'), await ecrit('taches-historique/zz', ligneH('x', 1), g.idToken, 'PUT'),
+    await ecrit('taches-historique/zz', ligneH('x', 1), e.idToken, 'PUT'), await ecrit('taches-historique/zz', ligneH('x', 1), null, 'PUT'), await ecrit('', { 'taches-historique/zz': ligneH('x', 1), 'taches/lu/francois/2026-11-27': { at: 1 } }, rp.idToken)].map((x) => x.s);
+  verifie(rHRef.concat(rHRefE).every((x) => x === 401), 'historique : rappel, magasin, agent, compte sans profil, sans compte ne le lisent ni ne l\'écrivent (' + rHRef.concat(rHRefE).join(',') + ')');
   const formes = [
     ['champ en plus', pr({ prix: 3 })], ['type inconnu', pr({ type: 'suppression' })], ['semaine qui n\'est pas une date', pr({ w: 'demain' })],
     ['livraison vide', pr({ c: '' })], ['source de plus de 120 signes', pr({ src: 'x'.repeat(121) })], ['heure du mail manquante', pr({ date: null })],
@@ -261,16 +279,16 @@ const compte = async (email, mdp) => {
   // chaque nœud de la base, sauf rappel/ (clés d'envoi des notifications), et n'écrit nulle part.
   const sv = await compte('sauvegarde@ferme.invalid', 'essai-sauvegarde');
   await fetch(`${DB}/profils/${sv.localId}.json?ns=${NS}`, { method: 'PUT', headers: admin, body: '"sauvegarde"' });
-  const NOEUDS_SAUVEGARDE = ['listes', 'taches', 'profils', 'magasins', 'notifs', 'agent'];
+  const NOEUDS_SAUVEGARDE = ['listes', 'taches', 'profils', 'magasins', 'notifs', 'agent', 'taches-historique'];
   const rSv = [];
   for (const n of NOEUDS_SAUVEGARDE) rSv.push(await appel(n, sv.idToken));
-  verifie(rSv.every((x) => x.s === 200) && rSv[0].j.semaines && rSv[1].j.t && rSv[2].j[f.localId] === 'ferme' && rSv[2].j[sv.localId] === 'sauvegarde',
-    'sauvegarde : elle lit chaque nœud d\'un coup (listes, tâches, profils de tous les comptes, magasins, notifications, agent) (' + rSv.map((x) => x.s).join(',') + ')');
+  verifie(rSv.every((x) => x.s === 200) && rSv[0].j.semaines && rSv[1].j.t && rSv[2].j[f.localId] === 'ferme' && rSv[2].j[sv.localId] === 'sauvegarde' && Object.keys(rSv[6].j).length === 2,
+    'sauvegarde : elle lit chaque nœud d\'un coup (listes, tâches, profils de tous les comptes, magasins, notifications, agent, historique des tâches) (' + rSv.map((x) => x.s).join(',') + ')');
   const rSvR = await appel('rappel', sv.idToken), rSvV = await appel('rappel/vapid', sv.idToken), rSvT = await appel('', sv.idToken);
   verifie([rSvR.s, rSvV.s, rSvT.s].every((x) => x === 401), 'sauvegarde : ni rappel/ (clés d\'envoi des notifications), ni la racine (' + [rSvR.s, rSvV.s, rSvT.s].join(',') + ')');
   const rSvE = [await ecrit('listes/2026-11-04/done/radis', { by: 'x', at: 1 }, sv.idToken, 'PUT'), await ecrit('taches/t/t9', { texte: 'x' }, sv.idToken, 'PUT'),
     await ecrit('profils/' + sv.localId, 'ferme', sv.idToken, 'PUT'), await ecrit('magasins/ta/personnes/p9', { nom: 'x', at: 1 }, sv.idToken, 'PUT'),
-    await ecrit('notifs/ferme/n9', { at: 1 }, sv.idToken, 'PUT'), await ecrit('agent/propositions/sv', pr(), sv.idToken, 'PUT'), await ecrit('rappel/vapid', { publique: 'x' }, sv.idToken, 'PUT'),
+    await ecrit('notifs/ferme/n9', { at: 1 }, sv.idToken, 'PUT'), await ecrit('agent/propositions/sv', pr(), sv.idToken, 'PUT'), await ecrit('taches-historique/sv', { fin: 1 }, sv.idToken, 'PUT'), await ecrit('rappel/vapid', { publique: 'x' }, sv.idToken, 'PUT'),
     await appel('listes/2026-11-04', sv.idToken, { method: 'DELETE' }), await ecrit('', { listes: null }, sv.idToken)];
   verifie(rSvE.every((x) => x.s === 401), 'sauvegarde : aucune écriture ni effacement, nulle part, pas même son propre profil (' + rSvE.map((x) => x.s).join(',') + ')');
   const premiers = Object.keys(JSON.parse(regles).rules).filter((k) => k !== 'rappel').sort().join();

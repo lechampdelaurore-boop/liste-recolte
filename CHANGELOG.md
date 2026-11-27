@@ -1,5 +1,9 @@
 # Historique des changements
 
+## 2026-11-27
+
+- **Règle de la base : historique des tâches de Farm tasks** (étape 55 du dépôt `aurore-task`, choix de François du 27/11 : un dossier à part). `docs/regles-base/fermees.json` : nouveau nœud `taches-historique` (lecture `ferme`, `equipe`, `sauvegarde` ; écriture `ferme`, `equipe`). Règle d'avant : `docs/regles-base/fermees-sans-historique.json`. `tests/regles.cjs` : 4 vérifications de plus (écriture avec la tâche cochée en un seul envoi depuis la racine, correction, lecture par période, refus pour les autres profils ; la sauvegarde lit le nœud). **Pas publiée** : « vas-y » de François et sauvegarde de la base avant.
+
 ## 2026-11-26
 
 - **Idée notée : chronomètre de la Récolte et historique complet** (étape 51, demande de François du 26/11). Documentation seulement, **aucun code, aucun contrat** : `docs/ROADMAP.md` (étape 51, questions ouvertes, modèle · effort proposé sans engagement) et `docs/ETAT_DU_PROJET.md`. Ajout de François : historique facile à extraire (tableur) pour la productivité horaire. Ajout de François : piste de liaison avec Ouvre ta ferme (temps rattaché à une série de légumes).
