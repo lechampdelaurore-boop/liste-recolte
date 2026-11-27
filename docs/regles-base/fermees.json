@@ -15,6 +15,10 @@
       "lu": { ".write": "auth != null && root.child('profils').child(auth.uid).val() === 'rappel'" },
       "abonnements": { ".write": "auth != null && root.child('profils').child(auth.uid).val() === 'rappel'" }
     },
+    "taches-historique": {
+      ".read": "auth != null && (root.child('profils').child(auth.uid).val() === 'ferme' || root.child('profils').child(auth.uid).val() === 'equipe' || root.child('profils').child(auth.uid).val() === 'sauvegarde')",
+      ".write": "auth != null && (root.child('profils').child(auth.uid).val() === 'ferme' || root.child('profils').child(auth.uid).val() === 'equipe')"
+    },
     "rappel": {
       ".read": "auth != null && root.child('profils').child(auth.uid).val() === 'rappel'",
       ".write": "auth != null && root.child('profils').child(auth.uid).val() === 'rappel'"
