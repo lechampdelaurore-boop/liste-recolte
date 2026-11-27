@@ -2,7 +2,7 @@
 
 ## 2026-11-27
 
-- **Règle de la base : historique des tâches de Farm tasks** (étape 55 du dépôt `aurore-task`, choix de François du 27/11 : un dossier à part). `docs/regles-base/fermees.json` : nouveau nœud `taches-historique` (lecture `ferme`, `equipe`, `sauvegarde` ; écriture `ferme`, `equipe`). Règle d'avant : `docs/regles-base/fermees-sans-historique.json`. `tests/regles.cjs` : 4 vérifications de plus (écriture avec la tâche cochée en un seul envoi depuis la racine, correction, lecture par période, refus pour les autres profils ; la sauvegarde lit le nœud). **Pas publiée** : « vas-y » de François et sauvegarde de la base avant.
+- **Règle de la base : historique des tâches de Farm tasks** (étape 55 du dépôt `aurore-task`, choix de François du 27/11 : un dossier à part). `docs/regles-base/fermees.json` : nouveau nœud `taches-historique` (lecture `ferme`, `equipe`, `sauvegarde` ; écriture `ferme`, `equipe`). Règle d'avant : `docs/regles-base/fermees-sans-historique.json`. `tests/regles.cjs` : 4 vérifications de plus (écriture avec la tâche cochée en un seul envoi depuis la racine, correction, lecture par période, refus pour les autres profils ; la sauvegarde lit le nœud). **Publiée le 27/11 vers 19 h 53** (« vas-y » de François, export de la base juste avant ; texte publié vérifié identique après rechargement).
 
 ## 2026-11-26
 
